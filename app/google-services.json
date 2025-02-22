@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "338088447621",
+    "project_id": "smart-food-inventory-tracker",
+    "storage_bucket": "smart-food-inventory-tracker.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:338088447621:android:9e8ed6657c8f21137c63ec",
+        "android_client_info": {
+          "package_name": "com.example.smartfoodinventorytracker"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDl56r4BJ6GKuXvJjmHvy80MHgE9j4rlHc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
