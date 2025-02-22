@@ -50,4 +50,10 @@ dependencies {
 
     // (Optional) Firestore for data storage (for future features)
     implementation("com.google.firebase:firebase-firestore")
+
+    // ✅ ViewPager2 for swipeable onboarding screens
+    implementation("androidx.viewpager2:viewpager2:1.0.0")
+
+    // ✅ Material Components (for TabLayout dots)
+    implementation("com.google.android.material:material:1.9.0")
 }

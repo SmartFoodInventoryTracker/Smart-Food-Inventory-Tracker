@@ -31,11 +31,7 @@
         <!-- ✅ Login Activity as Launcher -->
         <activity
             android:name=".LoginActivity"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
+            android:exported="false">
         </activity>
 
         <!-- ✅ Main Activity (Unused or Future Use) -->
@@ -43,6 +39,12 @@
             android:name=".MainActivity"
             android:exported="false" />
 
+        <activity android:name=".OnboardingActivity" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
     </application>
 
 </manifest>
