@@ -49,10 +49,13 @@ public class DashboardActivity extends AppCompatActivity {
 
             if (id == R.id.nav_dashboard) {
                 Toast.makeText(this, "Dashboard", Toast.LENGTH_SHORT).show();
+
             } else if (id == R.id.nav_inventory) {
                 Toast.makeText(this, "Inventory", Toast.LENGTH_SHORT).show();
+                goToInventory();
             } else if (id == R.id.nav_shopping_lists) {
                 Toast.makeText(this, "Shopping Lists", Toast.LENGTH_SHORT).show();
+                goToShoppingList();
             } else if (id == R.id.nav_fridge_condition) {
                 Toast.makeText(this, "Fridge Condition", Toast.LENGTH_SHORT).show();
             } else if (id == R.id.nav_notifications) {
@@ -70,15 +73,11 @@ public class DashboardActivity extends AppCompatActivity {
 
         // ✅ Dashboard Button Click Listeners
         inventoryButton.setOnClickListener(v -> {
-            Toast.makeText(this, "Inventory Clicked", Toast.LENGTH_SHORT).show();
-            Intent intent = new Intent(this, Inventory.class);
-            startActivity(intent);
+            goToInventory();
         });
 
         shoppingListButton.setOnClickListener(v -> {
-            Toast.makeText(this, "Shopping Lists Clicked", Toast.LENGTH_SHORT).show();
-            //Intent intent = new Intent(this, ShoppingListActivity.class);
-            //startActivity(intent);
+            goToShoppingList();
         });
 
         fridgeConditionButton.setOnClickListener(v -> {
@@ -108,5 +107,17 @@ public class DashboardActivity extends AppCompatActivity {
         } else {
             super.onBackPressed();
         }
+    }
+
+    private void goToInventory(){
+        Toast.makeText(this, "Inventory Clicked", Toast.LENGTH_SHORT).show();
+        Intent intent = new Intent(this, Inventory.class);
+        startActivity(intent);
+    }
+    private void goToShoppingList()
+    {
+        Toast.makeText(this, "Shopping", Toast.LENGTH_SHORT).show();
+        Intent intent = new Intent(this, ShoppingList.class);
+        startActivity(intent);
     }
 }

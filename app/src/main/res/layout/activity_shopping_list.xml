@@ -5,15 +5,16 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".Inventory">
+    tools:context=".ShoppingList">
 
     <androidx.appcompat.widget.Toolbar
-        android:id="@+id/inventory_toolbar"
+        android:id="@+id/shopping_toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         android:background="?attr/colorPrimary"
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
         app:layout_constraintTop_toTopOf="parent"
-        app:title="Inventory" />
+        app:title="Shopping" />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>
