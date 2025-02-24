@@ -1,9 +1,26 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
+    <!-- Base Theme without ActionBar -->
     <style name="Base.Theme.SmartFoodInventoryTracker" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+        <!-- ✅ Toolbar Colors -->
+        <item name="colorPrimary">@color/green</item>
+        <item name="colorOnPrimary">@android:color/white</item>
+
+        <!-- ✅ App Background -->
+        <item name="android:windowBackground">@color/white</item>
+
+        <!-- ✅ Status Bar Color -->
+        <item name="android:statusBarColor">@color/green</item>
+
+        <!-- ✅ Toolbar Style -->
+        <item name="toolbarStyle">@style/CustomToolbar</item>
     </style>
 
     <style name="Theme.SmartFoodInventoryTracker" parent="Base.Theme.SmartFoodInventoryTracker" />
+
+    <!-- ✅ Custom Toolbar Styling -->
+    <style name="CustomToolbar" parent="Widget.Material3.Toolbar">
+        <item name="android:background">@color/green</item>
+        <item name="titleTextColor">@android:color/white</item>
+        <item name="subtitleTextColor">@android:color/white</item>
+    </style>
 </resources>

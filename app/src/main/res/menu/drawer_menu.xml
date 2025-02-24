@@ -1,11 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <item
-        android:id="@+id/nav_settings"
-        android:title="Settings"
-        android:icon="@drawable/ic_settings" />
+    <group android:checkableBehavior="single">
+
+        <item
+            android:id="@+id/nav_dashboard"
+            android:icon="@drawable/ic_dashboard"
+            android:title="Dashboard" />
+
+        <item
+            android:id="@+id/nav_inventory"
+            android:icon="@drawable/ic_inventory"
+            android:title="Inventory" />
+
+        <item
+            android:id="@+id/nav_shopping_lists"
+            android:icon="@drawable/ic_shopping_cart"
+            android:title="Shopping Lists" />
+
+        <item
+            android:id="@+id/nav_fridge_condition"
+            android:icon="@drawable/ic_fridge"
+            android:title="Fridge Condition" />
+
+        <item
+            android:id="@+id/nav_notifications"
+            android:icon="@drawable/ic_notification"
+            android:title="Notifications Center" />
+
+        <item
+            android:id="@+id/nav_settings"
+            android:icon="@drawable/ic_settings"
+            android:title="Settings" />
+
+    </group>
+
     <item
         android:id="@+id/nav_logout"
-        android:title="Logout"
-        android:icon="@drawable/ic_logout" />
+        android:icon="@drawable/ic_logout"
+        android:title="Logout" />
 </menu>

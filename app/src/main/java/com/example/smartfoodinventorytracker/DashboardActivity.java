@@ -1,5 +1,7 @@
 package com.example.smartfoodinventorytracker;
 
+import static com.example.smartfoodinventorytracker.R.id.fridgeConditionButton;
+
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
@@ -38,12 +40,22 @@ public class DashboardActivity extends AppCompatActivity {
         MaterialToolbar topAppBar = findViewById(R.id.topAppBar);
         topAppBar.setNavigationOnClickListener(v -> drawerLayout.openDrawer(GravityCompat.START));
 
-        // ✅ Setup Navigation Drawer
+        // ✅ Setup Navigation Drawer with Full Menu
         NavigationView navigationView = findViewById(R.id.navigationView);
         navigationView.setNavigationItemSelectedListener(item -> {
             int id = item.getItemId();
 
-            if (id == R.id.nav_settings) {
+            if (id == R.id.nav_dashboard) {
+                Toast.makeText(this, "Dashboard", Toast.LENGTH_SHORT).show();
+            } else if (id == R.id.nav_inventory) {
+                Toast.makeText(this, "Inventory", Toast.LENGTH_SHORT).show();
+            } else if (id == R.id.nav_shopping_lists) {
+                Toast.makeText(this, "Shopping Lists", Toast.LENGTH_SHORT).show();
+            } else if (id == R.id.nav_fridge_condition) {
+                Toast.makeText(this, "Fridge Condition", Toast.LENGTH_SHORT).show();
+            } else if (id == R.id.nav_notifications) {
+                Toast.makeText(this, "Notifications Center", Toast.LENGTH_SHORT).show();
+            } else if (id == R.id.nav_settings) {
                 Toast.makeText(this, "Settings Clicked", Toast.LENGTH_SHORT).show();
             } else if (id == R.id.nav_logout) {
                 Toast.makeText(this, "Logout Clicked", Toast.LENGTH_SHORT).show();
@@ -54,7 +66,7 @@ public class DashboardActivity extends AppCompatActivity {
             return true;
         });
 
-        // ✅ Button Click Listeners
+        // ✅ Dashboard Button Click Listeners
         inventoryButton.setOnClickListener(v -> {
             Toast.makeText(this, "Inventory Clicked", Toast.LENGTH_SHORT).show();
             // Intent intent = new Intent(this, InventoryActivity.class);

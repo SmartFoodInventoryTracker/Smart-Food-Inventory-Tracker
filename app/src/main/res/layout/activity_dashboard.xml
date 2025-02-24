@@ -4,34 +4,30 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/drawerLayout"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    tools:context=".DashboardActivity">
 
-    <!-- ✅ Main Content -->
+    <!-- Main Content -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <!-- ✅ Top App Bar -->
+        <!-- Top App Bar -->
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/topAppBar"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:backgroundTint="@color/green"
-            android:title="Dashboard"
-            android:titleTextColor="@android:color/white"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
+            app:navigationIcon="@drawable/ic_menu"
+            app:title="Dashboard"
+            app:titleTextColor="@android:color/white"
+            app:logo="@drawable/ic_dashboard"
             app:layout_constraintTop_toTopOf="parent"
-            app:navigationIcon="@drawable/ic_menu" />
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
 
-        <!-- ✅ Greeting -->
-
-        <!-- ✅ Inventory Button -->
-
-        <!-- ✅ Shopping List Button -->
-
-        <!-- ✅ Fridge Condition Button -->
-
+        <!-- Dashboard Content -->
         <TextView
             android:id="@+id/greetingText"
             android:layout_width="wrap_content"
@@ -44,6 +40,8 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/topAppBar" />
 
+
+    <!-- ✅ Inventory Button -->
         <LinearLayout
             android:id="@+id/inventoryButton"
             android:layout_width="130dp"
@@ -71,6 +69,7 @@
                 android:textSize="14sp" />
         </LinearLayout>
 
+        <!-- ✅ Shopping List Button -->
         <LinearLayout
             android:id="@+id/shoppingListButton"
             android:layout_width="130dp"
@@ -99,6 +98,7 @@
                 android:textSize="14sp" />
         </LinearLayout>
 
+        <!-- ✅ Fridge Condition Button -->
         <LinearLayout
             android:id="@+id/fridgeConditionButton"
             android:layout_width="124dp"
