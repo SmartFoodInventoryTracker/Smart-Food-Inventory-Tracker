@@ -80,7 +80,7 @@ public class DashboardActivity extends AppCompatActivity {
     // ✅ Handle Logout Logic
     private void logout() {
         // Example logout logic — update based on your auth
-        Intent intent = new Intent(this, LoginActivity.class);
+        Intent intent = new Intent(this, OnboardingActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();
