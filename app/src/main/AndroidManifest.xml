@@ -34,6 +34,9 @@
             android:exported="false">
         </activity>
 
+        <activity android:name=".ProfileActivity"
+            android:exported="false" />
+
         <!-- ✅ Main Activity (Unused or Future Use) -->
         <activity
             android:name=".MainActivity"

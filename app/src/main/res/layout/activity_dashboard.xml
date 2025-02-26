@@ -13,35 +13,38 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <!-- Top App Bar -->
+        <!-- ✅ Top App Bar (Navbar) -->
+
+        <!-- ✅ Greeting Text Below Navbar -->
+
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/topAppBar"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:backgroundTint="@color/green"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:logo="@drawable/ic_dashboard"
             app:navigationIcon="@drawable/ic_menu"
             app:title="Dashboard"
-            app:titleTextColor="@android:color/white"
-            app:logo="@drawable/ic_dashboard"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
+            app:titleTextColor="@android:color/white" />
 
-        <!-- Dashboard Content -->
         <TextView
             android:id="@+id/greetingText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="112dp"
+            android:layout_marginTop="160dp"
             android:text="Hi, User"
+            android:textColor="@android:color/black"
             android:textSize="20sp"
+
             android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/topAppBar" />
+            app:layout_constraintTop_toTopOf="@+id/topAppBar" />
 
-
-    <!-- ✅ Inventory Button -->
         <LinearLayout
             android:id="@+id/inventoryButton"
             android:layout_width="130dp"
@@ -111,9 +114,7 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.498"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/topAppBar"
-            app:layout_constraintVertical_bias="1.0">
+            app:layout_constraintStart_toStartOf="parent">
 
             <ImageView
                 android:layout_width="48dp"
