@@ -5,7 +5,7 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".Inventory">
+    tools:context=".FridgeConditions">
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
@@ -26,22 +26,22 @@
             tools:layout_editor_absoluteX="16dp">
 
             <ImageView
-                android:id="@+id/inventoryLogo"
+                android:id="@+id/fridgeLogo"
                 android:layout_width="25dp"
                 android:layout_height="25dp"
                 android:layout_gravity="center_vertical"
                 android:layout_marginStart="0dp"
                 android:layout_weight="1"
-                android:src="@drawable/ic_inventory" />
+                android:src="@drawable/ic_fridge" />
 
             <TextView
-                android:id="@+id/inventoryTitle"
+                android:id="@+id/fridgeTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
                 android:layout_marginStart="12dp"
                 android:layout_weight="1"
-                android:text="Inventory"
+                android:text="Fridge Conditions"
                 android:textColor="@android:color/white"
                 android:textSize="20sp"
                 android:textStyle="bold" />
@@ -53,19 +53,6 @@
                 android:layout_gravity="center_vertical|end"
                 android:layout_weight="1"
                 android:src="@drawable/ic_add" />
-
-            <ImageView
-                android:id="@+id/barcodeLogo"
-                android:layout_width="1dp"
-                android:layout_height="25dp"
-                android:layout_gravity="center_vertical|end"
-                android:layout_marginStart="0dp"
-                android:layout_weight="1"
-                android:src="@drawable/icons8_barcode_scanner_100" />
-
-
-
-
         </LinearLayout>
 
     </androidx.appcompat.widget.Toolbar>

@@ -21,54 +21,47 @@
             android:background="?attr/colorPrimary"
             android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
             app:layout_constraintTop_toTopOf="parent"
-            app:title="Dashboard">
+            android:paddingStart="0dp"
+            >
 
             <LinearLayout
-                android:layout_width="match_parent"
+                android:id="@+id/dashboardElements"
+                android:layout_width="wrap_content"
                 android:layout_height="match_parent"
+                android:gravity="center_vertical"
                 android:orientation="horizontal"
-                android:layout_marginStart="0dp"
-                android:gravity="start"
-                android:layout_gravity="start">
+                tools:layout_editor_absoluteX="16dp">
 
                 <ImageView
                     android:id="@+id/dashboard_logo"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:gravity="start"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginStart="0dp"
+                    android:layout_weight="1"
                     android:src="@drawable/ic_dashboard"
-                    android:translationX="-150dp"
                     android:translationY="5dp" />
 
                 <TextView
                     android:id="@+id/dashboardTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:gravity="start"
+                    android:layout_marginStart="12dp"
+                    android:layout_weight="1"
                     android:text="Dashboard"
+                    android:textColor="@android:color/white"
                     android:textSize="20sp"
                     android:textStyle="bold"
-                    />
-
+                    android:layout_gravity="center_vertical"/>
             </LinearLayout>
 
-
-
-         </androidx.appcompat.widget.Toolbar>
+        </androidx.appcompat.widget.Toolbar>
         <!-- Dashboard Content -->
-        <TextView
-            android:id="@+id/greetingText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Hi, User"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            tools:layout_editor_absoluteY="843dp" />
+
 
 
     <!-- ✅ Inventory Button -->
+
         <LinearLayout
             android:id="@+id/inventoryButton"
             android:layout_width="130dp"

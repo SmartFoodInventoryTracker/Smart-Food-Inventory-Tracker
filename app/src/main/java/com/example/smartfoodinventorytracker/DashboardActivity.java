@@ -2,7 +2,9 @@ package com.example.smartfoodinventorytracker;
 
 import static com.example.smartfoodinventorytracker.R.id.fridgeConditionButton;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
@@ -29,6 +31,7 @@ public class DashboardActivity extends AppCompatActivity {
     private NavigationView navView;
     private TextView greetingText;
     private LinearLayout inventoryButton, shoppingListButton, fridgeConditionButton;
+    private SharedPreferences shared;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,6 +44,44 @@ public class DashboardActivity extends AppCompatActivity {
        setUpToolBar();
 
         // ✅ Setup Navigation Drawer with Full Menu
+        setUpNavBar();
+
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        setUpGreetings();
+    }
+
+    private void setUpUi()
+    {
+        drawerLayout = findViewById(R.id.drawerLayout);
+        navView= findViewById(R.id.navigationView);
+        //greetingText = findViewById(R.id.greetingText);
+        inventoryButton = findViewById(R.id.inventoryButton);
+        shoppingListButton = findViewById(R.id.shoppingListButton);
+        fridgeConditionButton = findViewById(R.id.fridgeConditionButton);
+
+        //Set onClickListeners
+        setUpOnClickListeners();
+    }
+    private void setUpToolBar(){
+        toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_menu);
+        getSupportActionBar().setDisplayShowTitleEnabled(false); // Disable default title
+        toolbar.setNavigationOnClickListener(v ->{
+         if(drawerLayout.isDrawerOpen(GravityCompat.START))
+            drawerLayout.closeDrawer(GravityCompat.START);
+         else
+            drawerLayout.openDrawer(GravityCompat.START);
+        });
+    }
+
+    private void setUpNavBar(){
         NavigationView navigationView = findViewById(R.id.navigationView);
         navigationView.setNavigationItemSelectedListener(item -> {
             int id = item.getItemId();
@@ -56,6 +97,7 @@ public class DashboardActivity extends AppCompatActivity {
                 goToShoppingList();
             } else if (id == R.id.nav_fridge_condition) {
                 Toast.makeText(this, "Fridge Condition", Toast.LENGTH_SHORT).show();
+                goToFridgeConditions();
             } else if (id == R.id.nav_notifications) {
                 Toast.makeText(this, "Notifications Center", Toast.LENGTH_SHORT).show();
             } else if (id == R.id.nav_settings) {
@@ -67,38 +109,6 @@ public class DashboardActivity extends AppCompatActivity {
 
             drawerLayout.closeDrawer(GravityCompat.START);
             return true;
-        });
-
-        // ✅ Dashboard Button Click Listeners
-
-
-        // ✅ Set Greeting (Optional: Pass username dynamically)
-        greetingText.setText("Hi, User");
-    }
-
-    private void setUpUi()
-    {
-        drawerLayout = findViewById(R.id.drawerLayout);
-        navView= findViewById(R.id.navigationView);
-        greetingText = findViewById(R.id.greetingText);
-        inventoryButton = findViewById(R.id.inventoryButton);
-        shoppingListButton = findViewById(R.id.shoppingListButton);
-        fridgeConditionButton = findViewById(R.id.fridgeConditionButton);
-
-        //Set onClickListeners
-        setUpOnClickListeners();
-    }
-    private void setUpToolBar(){
-        toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_menu);
-        toolbar.setNavigationOnClickListener(v ->{
-         if(drawerLayout.isDrawerOpen(GravityCompat.START))
-            drawerLayout.closeDrawer(GravityCompat.START);
-         else
-            drawerLayout.openDrawer(GravityCompat.START);
         });
     }
 
@@ -113,10 +123,12 @@ public class DashboardActivity extends AppCompatActivity {
         });
         //Fridge button onClickListener
         fridgeConditionButton.setOnClickListener(v -> {
-            Toast.makeText(this, "Fridge Condition Clicked", Toast.LENGTH_SHORT).show();
-            // Intent intent = new Intent(this, FridgeConditionActivity.class);
-            // startActivity(intent);
+            goToFridgeConditions();
         });
+    }
+
+    private void setUpGreetings(){
+        shared =getApplicationContext().getSharedPreferences("event_preferences", Context.MODE_PRIVATE);
     }
 
     // ✅ Handle Logout Logic
@@ -149,4 +161,11 @@ public class DashboardActivity extends AppCompatActivity {
         Intent intent = new Intent(this, ShoppingList.class);
         startActivity(intent);
     }
+
+    private void goToFridgeConditions(){
+        Toast.makeText(this, "Fridge Condition Clicked", Toast.LENGTH_SHORT).show();
+        Intent intent = new Intent(this, FridgeConditions.class);
+        startActivity(intent);
+    }
+
 }
