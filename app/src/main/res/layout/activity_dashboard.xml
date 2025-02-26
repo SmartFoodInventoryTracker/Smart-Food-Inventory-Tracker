@@ -14,31 +14,58 @@
         android:layout_height="match_parent">
 
         <!-- Top App Bar -->
-        <com.google.android.material.appbar.MaterialToolbar
-            android:id="@+id/topAppBar"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:backgroundTint="@color/green"
-            app:navigationIcon="@drawable/ic_menu"
-            app:title="Dashboard"
-            app:titleTextColor="@android:color/white"
-            app:logo="@drawable/ic_dashboard"
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="?attr/colorPrimary"
+            android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
+            app:title="Dashboard">
 
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="horizontal"
+                android:layout_marginStart="0dp"
+                android:gravity="start"
+                android:layout_gravity="start">
+
+                <ImageView
+                    android:id="@+id/dashboard_logo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="start"
+                    android:src="@drawable/ic_dashboard"
+                    android:translationX="-150dp"
+                    android:translationY="5dp" />
+
+                <TextView
+                    android:id="@+id/dashboardTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="start"
+                    android:text="Dashboard"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    />
+
+            </LinearLayout>
+
+
+
+         </androidx.appcompat.widget.Toolbar>
         <!-- Dashboard Content -->
         <TextView
             android:id="@+id/greetingText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="112dp"
             android:text="Hi, User"
             android:textSize="20sp"
             android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/topAppBar" />
+            tools:layout_editor_absoluteY="843dp" />
 
 
     <!-- ✅ Inventory Button -->
@@ -111,9 +138,7 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.498"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/topAppBar"
-            app:layout_constraintVertical_bias="1.0">
+            app:layout_constraintStart_toStartOf="parent">
 
             <ImageView
                 android:layout_width="48dp"

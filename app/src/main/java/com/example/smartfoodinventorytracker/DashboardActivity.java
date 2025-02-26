@@ -12,7 +12,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
@@ -23,6 +25,8 @@ public class DashboardActivity extends AppCompatActivity {
 
 
     private DrawerLayout drawerLayout;
+    private Toolbar toolbar;
+    private NavigationView navView;
     private TextView greetingText;
     private LinearLayout inventoryButton, shoppingListButton, fridgeConditionButton;
 
@@ -32,15 +36,9 @@ public class DashboardActivity extends AppCompatActivity {
         setContentView(R.layout.activity_dashboard);
 
         // ✅ Initialize Views
-        drawerLayout = findViewById(R.id.drawerLayout);
-        greetingText = findViewById(R.id.greetingText);
-        inventoryButton = findViewById(R.id.inventoryButton);
-        shoppingListButton = findViewById(R.id.shoppingListButton);
-        fridgeConditionButton = findViewById(R.id.fridgeConditionButton);
-
+        setUpUi();
         // ✅ Setup Toolbar
-        MaterialToolbar topAppBar = findViewById(R.id.topAppBar);
-        topAppBar.setNavigationOnClickListener(v -> drawerLayout.openDrawer(GravityCompat.START));
+       setUpToolBar();
 
         // ✅ Setup Navigation Drawer with Full Menu
         NavigationView navigationView = findViewById(R.id.navigationView);
@@ -72,22 +70,53 @@ public class DashboardActivity extends AppCompatActivity {
         });
 
         // ✅ Dashboard Button Click Listeners
+
+
+        // ✅ Set Greeting (Optional: Pass username dynamically)
+        greetingText.setText("Hi, User");
+    }
+
+    private void setUpUi()
+    {
+        drawerLayout = findViewById(R.id.drawerLayout);
+        navView= findViewById(R.id.navigationView);
+        greetingText = findViewById(R.id.greetingText);
+        inventoryButton = findViewById(R.id.inventoryButton);
+        shoppingListButton = findViewById(R.id.shoppingListButton);
+        fridgeConditionButton = findViewById(R.id.fridgeConditionButton);
+
+        //Set onClickListeners
+        setUpOnClickListeners();
+    }
+    private void setUpToolBar(){
+        toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_menu);
+        toolbar.setNavigationOnClickListener(v ->{
+         if(drawerLayout.isDrawerOpen(GravityCompat.START))
+            drawerLayout.closeDrawer(GravityCompat.START);
+         else
+            drawerLayout.openDrawer(GravityCompat.START);
+        });
+    }
+
+    private void setUpOnClickListeners(){
+        //Inventory button onClickListener
         inventoryButton.setOnClickListener(v -> {
             goToInventory();
         });
-
+        //Shopping button onClickListener
         shoppingListButton.setOnClickListener(v -> {
             goToShoppingList();
         });
-
+        //Fridge button onClickListener
         fridgeConditionButton.setOnClickListener(v -> {
             Toast.makeText(this, "Fridge Condition Clicked", Toast.LENGTH_SHORT).show();
             // Intent intent = new Intent(this, FridgeConditionActivity.class);
             // startActivity(intent);
         });
-
-        // ✅ Set Greeting (Optional: Pass username dynamically)
-        greetingText.setText("Hi, User");
     }
 
     // ✅ Handle Logout Logic
