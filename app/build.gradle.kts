@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -40,4 +41,19 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
+
+    // ✅ Firebase BoM (Bill of Materials)
+    implementation(platform("com.google.firebase:firebase-bom:33.9.0"))
+
+    // ✅ Firebase Authentication
+    implementation("com.google.firebase:firebase-auth")
+
+    // (Optional) Firestore for data storage (for future features)
+    implementation("com.google.firebase:firebase-firestore")
+
+    // ✅ ViewPager2 for swipeable onboarding screens
+    implementation("androidx.viewpager2:viewpager2:1.0.0")
+
+    // ✅ Material Components (for TabLayout dots)
+    implementation("com.google.android.material:material:1.9.0")
 }
