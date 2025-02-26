@@ -13,9 +13,16 @@
         android:theme="@style/Theme.SmartFoodInventoryTracker"
         tools:targetApi="31">
 
+        <!-- ✅ Notification Center Activity -->
+        <activity
+            android:name=".NotificationCenterActivity"
+            android:label="Dashboard"
+            android:exported="false" />
+
         <!-- ✅ Dashboard Activity -->
         <activity
             android:name=".DashboardActivity"
+            android:label="Dashboard"
             android:exported="false" />
 
         <!-- ✅ Forgot Password Activity -->

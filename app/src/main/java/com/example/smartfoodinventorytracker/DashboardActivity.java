@@ -2,12 +2,16 @@ package com.example.smartfoodinventorytracker;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
+import android.view.Window;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GravityCompat;
+import androidx.core.view.WindowCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
 import com.google.firebase.auth.FirebaseAuth;
@@ -26,24 +30,30 @@ public class DashboardActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_dashboard);
 
-        // ✅ Initialize Firebase
+        // To display status bar
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+        setContentView(R.layout.activity_dashboard);
+        Window window = getWindow();
+        View decorView = window.getDecorView();
+        decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+
+        // Initialize Firebase
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
-        // ✅ Initialize Views
+        // Initialize Views
         drawerLayout = findViewById(R.id.drawerLayout);
         greetingText = findViewById(R.id.greetingText);
         inventoryButton = findViewById(R.id.inventoryButton);
         shoppingListButton = findViewById(R.id.shoppingListButton);
         fridgeConditionButton = findViewById(R.id.fridgeConditionButton);
 
-        // ✅ Setup Toolbar
-        MaterialToolbar topAppBar = findViewById(R.id.topAppBar);
-        topAppBar.setNavigationOnClickListener(v -> drawerLayout.openDrawer(GravityCompat.START));
+        // Setup Menu Button to Open Navigation Drawer
+        ImageView menuButton = findViewById(R.id.menuButton);
+        menuButton.setOnClickListener(v -> drawerLayout.openDrawer(GravityCompat.START));
 
-        // ✅ Setup Navigation Drawer with If-Else Logic
+        // Setup Navigation Drawer with If-Else Logic
         NavigationView navigationView = findViewById(R.id.navigationView);
         navigationView.setNavigationItemSelectedListener(item -> {
             int id = item.getItemId();
@@ -72,10 +82,10 @@ public class DashboardActivity extends AppCompatActivity {
             return true;
         });
 
-        // ✅ Load User Name for Dynamic Greeting
+        // Load User Name for Dynamic Greeting
         loadUserName();
 
-        // ✅ Dashboard Button Click Listeners
+        // Dashboard Button Click Listeners
         inventoryButton.setOnClickListener(v -> {
             Toast.makeText(this, "Inventory Clicked", Toast.LENGTH_SHORT).show();
             // Intent intent = new Intent(this, InventoryActivity.class);
@@ -113,8 +123,7 @@ public class DashboardActivity extends AppCompatActivity {
                 .addOnFailureListener(e -> Toast.makeText(this, "Failed to load user data", Toast.LENGTH_SHORT).show());
     }
 
-
-    // ✅ Handle Logout Logic
+    // Handle Logout Logic
     private void logout() {
         mAuth.signOut();
         Intent intent = new Intent(this, OnboardingActivity.class);
@@ -126,10 +135,10 @@ public class DashboardActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        loadUserName(); // ✅ Reload user data when returning
+        loadUserName(); // Reload user data when returning
     }
 
-    // ✅ Handle Back Press for Drawer
+    // Handle Back Press for Drawer
     @Override
     public void onBackPressed() {
         if (drawerLayout.isDrawerOpen(GravityCompat.START)) {

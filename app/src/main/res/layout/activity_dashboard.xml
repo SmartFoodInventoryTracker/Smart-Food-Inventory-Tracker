@@ -9,70 +9,92 @@
     tools:context=".DashboardActivity">
 
     <!-- Main Content -->
+
+    <!-- ✅ Navigation Drawer -->
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
+
 
         <!-- ✅ Top App Bar (Navbar) -->
 
         <!-- ✅ Greeting Text Below Navbar -->
 
-        <com.google.android.material.appbar.MaterialToolbar
-            android:id="@+id/topAppBar"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:backgroundTint="@color/green"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.0"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:logo="@drawable/ic_dashboard"
-            app:navigationIcon="@drawable/ic_menu"
-            app:title="Dashboard"
-            app:titleTextColor="@android:color/white" />
+        <!-- ✅ Dashboard Label with Icon in Grey Box -->
 
+
+        <LinearLayout
+            android:id="@+id/dashboardLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="60dp"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="44dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="12dp"
+            app:layout_constraintStart_toEndOf="@+id/global_menu"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <!-- Dashboard Icon -->
+            <ImageView
+                android:id="@+id/dashboardIcon"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_marginEnd="8dp"
+                android:src="@drawable/ic_dashboard" />
+
+            <!-- Dashboard Text -->
+            <TextView
+                android:id="@+id/dashboardTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Dashboard"
+                android:textColor="@android:color/black"
+                android:textSize="28sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/global_menu"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="44dp"
+            android:background="@drawable/rounded_button"
+            android:gravity="center_vertical"
+            android:padding="10dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <!-- Menu Button -->
+
+            <!-- Dashboard Title -->
+            <ImageView
+                android:id="@+id/menuButton"
+                android:layout_width="39dp"
+                android:layout_height="38dp"
+                android:src="@drawable/ic_menu" />
+        </LinearLayout>
+
+        <!-- ✅ Shopping List Button -->
+
+        <!-- ✅ Fridge Condition Button -->
         <TextView
             android:id="@+id/greetingText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="160dp"
             android:text="Hi, User"
             android:textColor="@android:color/black"
+
             android:textSize="20sp"
-
             android:textStyle="bold"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/topAppBar" />
-
-        <LinearLayout
-            android:id="@+id/inventoryButton"
-            android:layout_width="130dp"
-            android:layout_height="125dp"
-            android:background="@drawable/rounded_button"
-            android:gravity="center"
-            android:orientation="vertical"
-            android:padding="8dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.217"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.407">
+            app:layout_constraintVertical_bias="0.242" />
 
-            <ImageView
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:src="@drawable/ic_inventory" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Inventory"
-                android:textSize="14sp" />
-        </LinearLayout>
-
-        <!-- ✅ Shopping List Button -->
         <LinearLayout
             android:id="@+id/shoppingListButton"
             android:layout_width="130dp"
@@ -84,10 +106,10 @@
             android:padding="8dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.893"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintHorizontal_bias="0.48"
+            app:layout_constraintStart_toEndOf="@+id/inventoryButton"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.402">
+            app:layout_constraintVertical_bias="0.407">
 
             <ImageView
                 android:layout_width="48dp"
@@ -101,7 +123,33 @@
                 android:textSize="14sp" />
         </LinearLayout>
 
-        <!-- ✅ Fridge Condition Button -->
+        <LinearLayout
+            android:id="@+id/inventoryButton"
+            android:layout_width="130dp"
+            android:layout_height="125dp"
+            android:background="@drawable/rounded_button"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="8dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.17"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.412">
+
+            <ImageView
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@drawable/ic_inventory" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Inventory"
+                android:textSize="14sp" />
+        </LinearLayout>
+
         <LinearLayout
             android:id="@+id/fridgeConditionButton"
             android:layout_width="124dp"
@@ -114,7 +162,9 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.498"
-            app:layout_constraintStart_toStartOf="parent">
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/greetingText"
+            app:layout_constraintVertical_bias="0.976">
 
             <ImageView
                 android:layout_width="48dp"
@@ -130,7 +180,6 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <!-- ✅ Navigation Drawer -->
     <com.google.android.material.navigation.NavigationView
         android:id="@+id/navigationView"
         android:layout_width="wrap_content"
