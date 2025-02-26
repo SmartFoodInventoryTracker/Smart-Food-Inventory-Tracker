@@ -17,33 +17,19 @@
 
         <!-- ✅ Greeting Text Below Navbar -->
 
-        <com.google.android.material.appbar.MaterialToolbar
-            android:id="@+id/topAppBar"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:backgroundTint="@color/green"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.0"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:logo="@drawable/ic_dashboard"
-            app:navigationIcon="@drawable/ic_menu"
-            app:title="Dashboard"
-            app:titleTextColor="@android:color/white" />
-
         <TextView
             android:id="@+id/greetingText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="160dp"
+            android:layout_marginTop="172dp"
             android:text="Hi, User"
             android:textColor="@android:color/black"
-            android:textSize="20sp"
 
+            android:textSize="20sp"
             android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/topAppBar" />
+            app:layout_constraintTop_toTopOf="parent" />
 
         <LinearLayout
             android:id="@+id/inventoryButton"
