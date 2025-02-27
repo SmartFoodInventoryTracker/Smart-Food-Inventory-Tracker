@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ShoppingList">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorPrimary"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        app:layout_constraintTop_toTopOf="parent"
+        android:paddingStart="0dp"
+        >
+
+        <LinearLayout
+            android:id="@+id/dashboardElements"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            tools:layout_editor_absoluteX="16dp">
+
+            <ImageView
+                android:id="@+id/shoppingListLogo"
+                android:layout_width="25dp"
+                android:layout_height="25dp"
+                android:layout_gravity="center_vertical"
+                android:layout_marginStart="0dp"
+                android:layout_weight="1"
+                android:src="@drawable/ic_shopping_cart"
+                android:translationY="5dp" />
+
+            <TextView
+                android:id="@+id/shoppingListTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:layout_marginStart="12dp"
+                android:layout_weight="1"
+                android:text="Shopping List"
+                android:textColor="@android:color/white"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <ImageView
+                android:id="@+id/addLogo"
+                android:layout_width="5dp"
+                android:layout_height="20dp"
+                android:layout_gravity="center_vertical|end"
+                android:layout_weight="1"
+                android:src="@drawable/ic_add" />
+
+
+        </LinearLayout>
+
+    </androidx.appcompat.widget.Toolbar>
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

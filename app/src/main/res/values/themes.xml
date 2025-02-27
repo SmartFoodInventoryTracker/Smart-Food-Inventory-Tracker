@@ -2,7 +2,7 @@
     <!-- Base Theme without ActionBar -->
     <style name="Base.Theme.SmartFoodInventoryTracker" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- ✅ Toolbar Colors -->
-        <item name="colorPrimary">@color/green</item>
+        <item name="colorPrimary">@color/blue</item>
         <item name="colorOnPrimary">@android:color/white</item>
 
         <!-- ✅ App Background -->
