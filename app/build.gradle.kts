@@ -56,4 +56,7 @@ dependencies {
 
     // ✅ Material Components (for TabLayout dots)
     implementation("com.google.android.material:material:1.9.0")
+
+    // ✅ Firebase Realtime Database
+    implementation("com.google.firebase:firebase-database")
 }
