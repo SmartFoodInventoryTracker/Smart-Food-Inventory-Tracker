@@ -48,7 +48,7 @@ public class OnboardingActivity extends AppCompatActivity {
                 currentIndex = (currentIndex + 1) % titles.length;
                 rotatingTitle.setText(titles[currentIndex]);
                 rotatingDescription.setText(descriptions[currentIndex]);
-                handler.postDelayed(this, 4000); // Rotate every 5 seconds
+                handler.postDelayed(this, 4000); // Rotate every 4 seconds
             }
         };
         handler.post(textRotator);
