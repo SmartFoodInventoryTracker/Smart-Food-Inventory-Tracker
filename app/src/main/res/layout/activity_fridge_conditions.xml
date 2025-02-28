@@ -57,81 +57,194 @@
 
     </androidx.appcompat.widget.Toolbar>
 
-    <!-- ✅ Temperature -->
 
-    <!-- ✅ Humidity -->
+    <!-- ✅ Temperature Card -->
 
-    <!-- ✅ CO Levels -->
-
-    <!-- ✅ LPG Levels -->
-
-    <!-- ✅ Smoke Levels -->
-
-    <!-- ✅ Refresh Data Button (Fix Missing ID) -->
-
-    <TextView
-        android:id="@+id/tempText"
-        android:layout_width="wrap_content"
+    <!-- ✅ Humidity Card -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/card_temp"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
+        android:layout_margin="10dp"
         android:layout_marginTop="44dp"
-        android:text="Temperature: Loading..."
-        android:textSize="18sp"
+        app:cardBackgroundColor="@android:color/white"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="6dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.8"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/toolbar" />
+        app:layout_constraintTop_toBottomOf="@id/toolbar">
 
-    <TextView
-        android:id="@+id/humidityText"
-        android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="16dp">
+
+            <ImageView
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@drawable/ic_temperature" />
+
+            <TextView
+                android:id="@+id/tempText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:text="Temperature: Loading..."
+                android:textSize="18sp" />
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/card_humidity"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="32dp"
-        android:text="Humidity: Loading..."
-        android:textSize="18sp"
+        android:layout_margin="10dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="6dp"
+        app:cardBackgroundColor="@android:color/white"
+        app:layout_constraintTop_toBottomOf="@id/card_temp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tempText" />
+        app:layout_constraintEnd_toEndOf="parent">
 
-    <TextView
-        android:id="@+id/coText"
-        android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="16dp"
+            android:gravity="center_vertical">
+
+            <ImageView
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@drawable/ic_humidity"/>
+
+            <TextView
+                android:id="@+id/humidityText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Humidity: Loading..."
+                android:textSize="18sp"
+                android:layout_marginStart="12dp"/>
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- ✅ CO Card -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/card_co"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="34dp"
-        android:text="CO: Loading..."
-        android:textSize="18sp"
+        android:layout_margin="10dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="6dp"
+        app:cardBackgroundColor="@android:color/white"
+        app:layout_constraintTop_toBottomOf="@id/card_humidity"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/humidityText" />
+        app:layout_constraintEnd_toEndOf="parent">
 
-    <TextView
-        android:id="@+id/lpgText"
-        android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="16dp"
+            android:gravity="center_vertical">
+
+            <ImageView
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@drawable/ic_co"/>
+
+            <TextView
+                android:id="@+id/coText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="CO: Loading..."
+                android:textSize="18sp"
+                android:layout_marginStart="12dp"/>
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- ✅ LPG Card -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/card_lpg"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="34dp"
-        android:text="LPG: Loading..."
-        android:textSize="18sp"
+        android:layout_margin="10dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="6dp"
+        app:cardBackgroundColor="@android:color/white"
+        app:layout_constraintTop_toBottomOf="@id/card_co"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/coText" />
+        app:layout_constraintEnd_toEndOf="parent">
 
-    <TextView
-        android:id="@+id/smokeText"
-        android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="16dp"
+            android:gravity="center_vertical">
+
+            <ImageView
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@drawable/ic_lpg"/>
+
+            <TextView
+                android:id="@+id/lpgText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="LPG: Loading..."
+                android:textSize="18sp"
+                android:layout_marginStart="12dp"/>
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- ✅ Smoke Card -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/card_smoke"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="34dp"
-        android:text="Smoke: Loading..."
-        android:textSize="18sp"
+        android:layout_margin="10dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="6dp"
+        app:cardBackgroundColor="@android:color/white"
+        app:layout_constraintTop_toBottomOf="@id/card_lpg"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/lpgText" />
+        app:layout_constraintEnd_toEndOf="parent">
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="16dp">
+
+            <ImageView
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@drawable/ic_smoke" />
+
+            <TextView
+                android:id="@+id/smokeText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:text="Smoke: Loading..."
+                android:textSize="18sp" />
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- ✅ Refresh Data Button -->
     <Button
         android:id="@+id/updateButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="45dp"
         android:text="Refresh Data"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/smokeText" />
-
+        app:layout_constraintTop_toBottomOf="@id/card_smoke"
+        app:layout_constraintVertical_bias="0.138" />
 </androidx.constraintlayout.widget.ConstraintLayout>
