@@ -1,9 +1,17 @@
 package com.example.smartfoodinventorytracker;
 
 import android.annotation.SuppressLint;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -13,6 +21,7 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -28,6 +37,8 @@ public class NotificationCenter extends AppCompatActivity {
     private TextView fridgeTempText;
     private DatabaseReference databaseRef;
 
+    Button test_notifications;
+
     @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,14 +51,52 @@ public class NotificationCenter extends AppCompatActivity {
             return insets;
         });
 
-        // ✅ Initialize UI Elements
-        fridgeTempText = findViewById(R.id.fridgeTempText);
-        setUpToolbar();
+        test_notifications = findViewById(R.id.test_notifications);
 
-        // ✅ Listen for real-time fridge temperature updates
-        listenToTemperatureChanges();
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU){
+            if (ContextCompat.checkSelfPermission(NotificationCenter.this,android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED){
+                ActivityCompat.requestPermissions(NotificationCenter.this,new String[]{android.Manifest.permission.POST_NOTIFICATIONS},101);
+
+            }
+        }
+        test_notifications.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                makeNotification();
+            }
+        });
     }
 
+    public void makeNotification() {
+        String CHANNEL_ID = "CHANNEL_ID_NOTIFICATION";
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), CHANNEL_ID);
+
+        builder.setSmallIcon(R.drawable.ic_notification)
+            .setContentTitle("Fridge Alert ⚠️")
+            .setContentText("Some abnormal condition has been detected in your fridge!")
+            .setAutoCancel(true).setPriority(NotificationCompat.PRIORITY_DEFAULT);
+
+        //Send to the page in question
+        Intent intent = new Intent(getApplicationContext(), FridgeConditions.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        intent.putExtra("data", "Some Value to be passed");
+
+        PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContext(),0,intent, PendingIntent.FLAG_MUTABLE);
+        builder.setContentIntent(pendingIntent);
+        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+        NotificationChannel notificationChannel = notificationManager.getNotificationChannel(CHANNEL_ID);
+        if (notificationChannel == null) {
+            int importance = NotificationManager.IMPORTANCE_HIGH;
+            notificationChannel = new NotificationChannel(CHANNEL_ID,
+                    "Some description", importance);
+            notificationChannel.setLightColor(Color.GREEN);
+            notificationChannel.enableVibration(true);
+            notificationManager.createNotificationChannel(notificationChannel);
+        }
+
+        notificationManager.notify(0, builder.build());
+    }
     private void setUpToolbar(){
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -59,57 +108,6 @@ public class NotificationCenter extends AppCompatActivity {
         }
 
         toolbar.setNavigationOnClickListener(v -> finish());
-    }
-
-    private void listenToTemperatureChanges() {
-        databaseRef = FirebaseDatabase.getInstance().getReference().child("inventory");
-
-        databaseRef.orderByKey().limitToLast(1).addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                if (dataSnapshot.exists()) {
-                    for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                        Double temperature = snapshot.child("temperature").getValue(Double.class);
-
-                        if (temperature != null) {
-                            fridgeTempText.setText("Temperature: " + temperature + "°C");
-
-                            if (temperature > 10.0) { // 🚨 Temperature too high
-                                sendNotification("Fridge Temperature Alert",
-                                        "The fridge temperature is too high: " + temperature + "°C");
-                            }
-                        }
-                    }
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                Toast.makeText(NotificationCenter.this, "Failed to load data!", Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
-    private void sendNotification(String title, String message) {
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, "fridge_alerts")
-                .setSmallIcon(R.drawable.ic_notification)
-                .setContentTitle(title)
-                .setContentText(message)
-                .setPriority(NotificationCompat.PRIORITY_HIGH)
-                .setAutoCancel(true);
-
-        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
-
-        // ✅ Handle Permission Correctly for Different Android Versions
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) { // Android 13+
-            if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS)
-                    != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 1);
-                return;
-            }
-        }
-
-        notificationManager.notify(1, builder.build());
     }
 
 }
