@@ -82,6 +82,21 @@ public class DatabaseHelper {
         });
     }
 
+    public static void listenForNotificationUpdates(Runnable callback) {
+        notificationsRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot snapshot) {
+                callback.run(); // Call loadNotifications() whenever the database updates
+            }
+
+            @Override
+            public void onCancelled(DatabaseError error) {
+                Log.e("DatabaseHelper", "Error listening for notifications", error.toException());
+            }
+        });
+    }
+
+
     public static class NotificationItem {
         private String title;
         private String message;

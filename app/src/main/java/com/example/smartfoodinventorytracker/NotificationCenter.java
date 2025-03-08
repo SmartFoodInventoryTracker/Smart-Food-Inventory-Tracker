@@ -40,6 +40,9 @@ public class NotificationCenter extends AppCompatActivity {
         // Fetch Notifications
         loadNotifications();
 
+        // ✅ Auto-refresh when new notifications are added
+        DatabaseHelper.listenForNotificationUpdates(this::loadNotifications);
+
         // ✅ Listen to Inventory Changes (Temperature & Humidity)
         DatabaseHelper.listenToInventoryChanges(new DatabaseHelper.ConditionChangeListener() {
             @Override
@@ -84,7 +87,6 @@ public class NotificationCenter extends AppCompatActivity {
             adapter.notifyDataSetChanged();
         });
     }
-
 
     private void sendFridgeAlertNotification() {
         notificationHelper.sendNotification(
