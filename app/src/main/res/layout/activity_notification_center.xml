@@ -14,8 +14,7 @@
         android:background="?attr/colorPrimary"
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
         app:layout_constraintTop_toTopOf="parent"
-        android:paddingStart="0dp"
-        >
+        android:paddingStart="0dp">
 
         <LinearLayout
             android:id="@+id/dashboardElements"
@@ -75,6 +74,16 @@
         app:layout_constraintHorizontal_bias="0.497"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/toolbar"
-        app:layout_constraintVertical_bias="0.106" />
+        app:layout_constraintVertical_bias="0.059" />
+
+    <ListView
+        android:id="@+id/Notification_ListView"
+        android:layout_width="409dp"
+        android:layout_height="551dp"
+        android:layout_marginTop="12dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/test_notifications" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -13,7 +13,11 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
-import com.example.smartfoodinventorytracker.R;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class NotificationHelper {
 
@@ -22,9 +26,11 @@ public class NotificationHelper {
     private static final String CHANNEL_DESCRIPTION = "Notifications for fridge and inventory alerts";
 
     private final Context context;
+    private final DatabaseReference databaseRef;
 
     public NotificationHelper(Context context) {
         this.context = context;
+        this.databaseRef = FirebaseDatabase.getInstance().getReference("notifications");
         createNotificationChannel(); // Initialize channel once
     }
 
@@ -45,6 +51,10 @@ public class NotificationHelper {
     }
 
     public void sendNotification(String title, String message, Class<?> targetActivity, String data) {
+        // Store the notification in Firebase before sending it
+        storeNotificationInFirebase(title, message);
+
+        // Check notification permission for Android 13+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
                 ActivityCompat.checkSelfPermission(context, android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
             return; // Permission not granted, exit method
@@ -66,5 +76,18 @@ public class NotificationHelper {
 
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
         notificationManager.notify(0, builder.build());
+    }
+
+    private void storeNotificationInFirebase(String title, String message) {
+        String notificationId = databaseRef.push().getKey();
+
+        Map<String, Object> notificationData = new HashMap<>();
+        notificationData.put("timestamp", System.currentTimeMillis() / 1000);  // Unix timestamp
+        notificationData.put("template", "FridgeAlert");
+        notificationData.put("message", message);
+
+        if (notificationId != null) {
+            databaseRef.child(notificationId).setValue(notificationData);
+        }
     }
 }
