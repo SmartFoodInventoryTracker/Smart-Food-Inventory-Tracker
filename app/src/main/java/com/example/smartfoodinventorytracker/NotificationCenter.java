@@ -25,11 +25,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
 public class NotificationCenter extends AppCompatActivity {
 
@@ -39,12 +35,16 @@ public class NotificationCenter extends AppCompatActivity {
     private ArrayAdapter<String> adapter;
     private List<String> notificationList;
     private DatabaseReference databaseRef;
+    private static DatabaseReference inventoryRef; // Make static so it persists across openings
+    private static Long lastTemperature = null;
+    private static boolean isListenerAttached = false; // Ensure listener is only attached once
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_notification_center);
         EdgeToEdge.enable(this);
+
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
@@ -53,38 +53,31 @@ public class NotificationCenter extends AppCompatActivity {
 
         setUpToolbar();
 
-        // Enable Up Navigation
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        }
-
-        // Initialize Firebase reference
+        // Firebase References
         databaseRef = FirebaseDatabase.getInstance().getReference("notifications");
+        inventoryRef = FirebaseDatabase.getInstance().getReference("inventory");
 
-        // Initialize UI elements
+        // UI Initialization
         notificationHelper = new NotificationHelper(this);
         test_notifications = findViewById(R.id.test_notifications);
         notificationListView = findViewById(R.id.Notification_ListView);
 
-        // Initialize ListView and Adapter
+        // Initialize ListView
         notificationList = new ArrayList<>();
         adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, notificationList);
         notificationListView.setAdapter(adapter);
 
-        // Request Notification Permission if needed (Android 13+)
+        // Request Notification Permission
         requestNotificationPermission();
 
-        // Button for testing notifications
-        test_notifications.setOnClickListener(v -> sendFridgeAlertNotification());
-
-        // Fetch notifications initially and listen for updates
+        // Fetch Notifications Initially
         fetchNotificationsFromFirebase();
 
-        // Auto-refresh notifications when database updates
+        // Auto-refresh when new notifications are added
         databaseRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot snapshot) {
-                fetchNotificationsFromFirebase(); // Refresh ListView when database updates
+                fetchNotificationsFromFirebase();
             }
 
             @Override
@@ -92,6 +85,15 @@ public class NotificationCenter extends AppCompatActivity {
                 Log.e("NotificationCenter", "Error fetching notifications", error.toException());
             }
         });
+
+        // ✅ Attach Temperature Listener Only Once
+        if (!isListenerAttached) {
+            listenToTemperatureChanges();
+            isListenerAttached = true;
+        }
+
+        // Button to Send Test Notification
+        test_notifications.setOnClickListener(v -> sendFridgeAlertNotification());
     }
 
     private void requestNotificationPermission() {
@@ -114,7 +116,7 @@ public class NotificationCenter extends AppCompatActivity {
         databaseRef.orderByChild("timestamp").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                notificationList.clear(); // Clear existing data before adding new
+                notificationList.clear();
                 List<NotificationItem> tempNotificationList = new ArrayList<>();
 
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
@@ -139,11 +141,7 @@ public class NotificationCenter extends AppCompatActivity {
                     notificationList.add(displayText);
                 }
 
-                // Notify adapter of data change
                 adapter.notifyDataSetChanged();
-
-                // Log notifications for debugging
-                Log.d("NotificationCenter", "Fetched Notifications: " + notificationList);
             }
 
             @Override
@@ -153,10 +151,58 @@ public class NotificationCenter extends AppCompatActivity {
         });
     }
 
+    private void listenToTemperatureChanges() {
+        inventoryRef.orderByKey().limitToLast(1).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot snapshot) {
+                for (DataSnapshot inventorySnapshot : snapshot.getChildren()) {
+                    checkTemperatureAndNotify(inventorySnapshot);
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError error) {
+                Log.e("NotificationCenter", "Error listening to inventory updates", error.toException());
+            }
+        });
+    }
+
+    private void checkTemperatureAndNotify(DataSnapshot snapshot) {
+        Long newTemperature = snapshot.child("temperature").getValue(Long.class);
+
+        if (newTemperature != null) {
+            Log.d("TemperatureMonitor", "New Temperature: " + newTemperature);
+
+            if (lastTemperature == null || !newTemperature.equals(lastTemperature)) {
+                // ✅ Temperature changed → Send notification
+                String message = "Temperature changed! Current: " + newTemperature + "°C";
+
+                notificationHelper.sendNotification("Temperature Alert ⚠️", message, FridgeConditions.class, "");
+
+                // ✅ Update last known temperature
+                lastTemperature = newTemperature;
+            }
+        }
+    }
+
     private String formatTimestamp(long timestamp) {
         return new SimpleDateFormat("yyyy-MM-dd @ HH:mm", Locale.getDefault()).format(new Date(timestamp * 1000));
     }
 
+    private void setUpToolbar(){
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayShowTitleEnabled(false);
+
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setDisplayShowHomeEnabled(true);
+        }
+
+        toolbar.setNavigationOnClickListener(v -> finish());
+    }
+
+    // ✅ NotificationItem class to store notifications
     private static class NotificationItem {
         private final String title;
         private final String message;
@@ -179,24 +225,5 @@ public class NotificationCenter extends AppCompatActivity {
         public long getTimestamp() {
             return timestamp;
         }
-    }
-
-    @Override
-    public boolean onSupportNavigateUp() {
-        finish();  // Close NotificationCenter and return to the previous activity
-        return true;
-    }
-
-    private void setUpToolbar(){
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayShowTitleEnabled(false);
-
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setDisplayShowHomeEnabled(true);
-        }
-
-        toolbar.setNavigationOnClickListener(v -> finish());
     }
 }
