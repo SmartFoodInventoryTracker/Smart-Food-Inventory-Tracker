@@ -8,6 +8,10 @@ import android.widget.ListView;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -25,11 +29,16 @@ public class NotificationCenter extends AppCompatActivity {
         setContentView(R.layout.activity_notification_center);
         EdgeToEdge.enable(this);
 
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            return insets;
+        });
+
         setUpToolbar();
 
         // UI Initialization
         notificationHelper = new NotificationHelper(this);
-        test_notifications = findViewById(R.id.test_notifications);
         notificationListView = findViewById(R.id.Notification_ListView);
 
         // Initialize ListView
@@ -55,9 +64,6 @@ public class NotificationCenter extends AppCompatActivity {
                 sendConditionNotification("Humidity", newHumidity);
             }
         });
-
-        // Button to Send Test Notification
-        test_notifications.setOnClickListener(v -> sendFridgeAlertNotification());
     }
 
     private void sendConditionNotification(String type, Long value) {
