@@ -78,4 +78,14 @@ public class NotificationHelper {
             databaseRef.child(notificationId).setValue(notificationData);
         }
     }
+
+    public void sendConditionNotification(String type, Long value) {
+        sendNotification(
+                type + " Alert ⚠️",
+                type + " changed! Current: " + value + (type.equals("Temperature") ? "°C" : "%"),
+                FridgeConditions.class,
+                ""
+        );
+    }
+
 }

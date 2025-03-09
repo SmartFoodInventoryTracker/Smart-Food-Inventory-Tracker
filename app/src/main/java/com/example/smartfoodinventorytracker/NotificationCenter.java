@@ -3,7 +3,6 @@ package com.example.smartfoodinventorytracker;
 import android.os.Bundle;
 import android.text.Html;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.ListView;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -18,10 +17,10 @@ import java.util.*;
 public class NotificationCenter extends AppCompatActivity {
 
     private NotificationHelper notificationHelper;
+
     private ListView notificationListView;
     private ArrayAdapter<String> adapter;
     private List<String> notificationList;
-    private Button test_notifications;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,28 +50,7 @@ public class NotificationCenter extends AppCompatActivity {
 
         // ✅ Auto-refresh when new notifications are added
         DatabaseHelper.listenForNotificationUpdates(this::loadNotifications);
-
-        // ✅ Listen to Inventory Changes (Temperature & Humidity)
-        DatabaseHelper.listenToInventoryChanges(new DatabaseHelper.ConditionChangeListener() {
-            @Override
-            public void onTemperatureChanged(Long newTemperature) {
-                sendConditionNotification("Temperature", newTemperature);
-            }
-
-            @Override
-            public void onHumidityChanged(Long newHumidity) {
-                sendConditionNotification("Humidity", newHumidity);
-            }
-        });
-    }
-
-    private void sendConditionNotification(String type, Long value) {
-        notificationHelper.sendNotification(
-                type + " Alert ⚠️",
-                type + " changed! Current: " + value + (type.equals("Temperature") ? "°C" : "%"),
-                FridgeConditions.class,
-                ""
-        );
+        DatabaseHelper.listenToInventoryChanges(this, notificationHelper);
     }
 
     private void loadNotifications() {
@@ -92,15 +70,6 @@ public class NotificationCenter extends AppCompatActivity {
             }
             adapter.notifyDataSetChanged();
         });
-    }
-
-    private void sendFridgeAlertNotification() {
-        notificationHelper.sendNotification(
-                "Fridge Alert ⚠️",
-                "Some abnormal condition has been detected in your fridge!",
-                FridgeConditions.class,
-                ""
-        );
     }
 
     private String formatTimestamp(long timestamp) {
