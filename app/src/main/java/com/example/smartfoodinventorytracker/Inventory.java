@@ -23,6 +23,7 @@ public class Inventory extends AppCompatActivity {
         });
         setUpUi();
     }
+
     private void setUpUi(){
         setUpToolbar();
     }

@@ -96,12 +96,16 @@ public class DashboardActivity extends AppCompatActivity {
                 Toast.makeText(this, "Dashboard", Toast.LENGTH_SHORT).show();
             } else if (id == R.id.nav_inventory) {
                 Toast.makeText(this, "Inventory", Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(this, Inventory.class));
             } else if (id == R.id.nav_shopping_lists) {
                 Toast.makeText(this, "Shopping Lists", Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(this, ShoppingList.class));
             } else if (id == R.id.nav_fridge_condition) {
                 Toast.makeText(this, "Fridge Condition", Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(this, FridgeConditions.class));
             } else if (id == R.id.nav_notifications) {
                 Toast.makeText(this, "Notifications Center", Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(this, NotificationCenter.class));
             } else if (id == R.id.nav_profile) {
                 startActivity(new Intent(this, ProfileActivity.class));
             } else if (id == R.id.nav_settings) {
