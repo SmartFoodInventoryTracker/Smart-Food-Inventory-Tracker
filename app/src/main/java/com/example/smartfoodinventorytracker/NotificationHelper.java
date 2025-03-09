@@ -80,12 +80,31 @@ public class NotificationHelper {
     }
 
     public void sendConditionNotification(String type, Long value) {
+        String unit;
+
+        switch (type) {
+            case "Temperature":
+                unit = "°C";
+                break;
+            case "Humidity":
+                unit = "%";
+                break;
+            case "CO Level":
+            case "LPG Level":
+            case "Smoke Level":
+                unit = " ppm"; // ✅ Set correct unit for gases
+                break;
+            default:
+                unit = "";
+        }
+
         sendNotification(
                 type + " Alert ⚠️",
-                type + " changed! Current: " + value + (type.equals("Temperature") ? "°C" : "%"),
+                type + " changed! Current: " + value + unit,
                 FridgeConditions.class,
                 ""
         );
     }
+
 
 }
