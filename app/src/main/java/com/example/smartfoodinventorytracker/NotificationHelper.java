@@ -99,7 +99,7 @@ public class NotificationHelper {
         }
 
         sendNotification(
-                type + " Alert ⚠️",
+                "Fridge Alert ⚠️",
                 type + " changed! Current: " + value + unit,
                 FridgeConditions.class,
                 ""
