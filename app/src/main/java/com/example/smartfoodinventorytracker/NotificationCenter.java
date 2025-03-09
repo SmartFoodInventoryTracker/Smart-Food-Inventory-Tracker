@@ -2,8 +2,12 @@ package com.example.smartfoodinventorytracker;
 
 import android.os.Bundle;
 import android.text.Html;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.Toast;
+
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -52,6 +56,40 @@ public class NotificationCenter extends AppCompatActivity {
         DatabaseHelper.listenForNotificationUpdates(this::loadNotifications);
         DatabaseHelper.listenToInventoryChanges(this, notificationHelper);
     }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_clear_notifs, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.clear_notifs) {
+            clearAllNotifications(); // Call method to clear notifications
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void clearAllNotifications() {
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Clear All Notifications")
+                .setMessage("Are you sure you want to delete all notifications?")
+                .setPositiveButton("Yes", (dialog, which) -> {
+                    // Call the method to clear notifications if confirmed
+                    DatabaseHelper.clearNotifications(() -> {
+                        Toast.makeText(this, "All notifications cleared!", Toast.LENGTH_SHORT).show();
+                        loadNotifications(); // Refresh the ListView
+                    });
+                })
+                .setNegativeButton("Cancel", (dialog, which) -> {
+                    // Do nothing if canceled
+                    dialog.dismiss();
+                })
+                .show();
+    }
+
 
     private void loadNotifications() {
         DatabaseHelper.fetchNotifications(notifications -> {

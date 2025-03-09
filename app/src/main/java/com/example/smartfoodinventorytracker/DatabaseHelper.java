@@ -52,6 +52,17 @@ public class DatabaseHelper {
         });
     }
 
+    public static void clearNotifications(Runnable onComplete) {
+        notificationsRef.removeValue().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                Log.d("DatabaseHelper", "All notifications cleared.");
+            } else {
+                Log.e("DatabaseHelper", "Failed to clear notifications.", task.getException());
+            }
+            onComplete.run();
+        });
+    }
+
     // 🔹 Listen to temperature & humidity changes
     public static void listenToInventoryChanges(Context context, NotificationHelper notificationHelper) {
         inventoryRef.orderByKey().limitToLast(1).addValueEventListener(new ValueEventListener() {
