@@ -82,7 +82,7 @@ public class FridgeConditions extends AppCompatActivity {
                         humidityText.setText(humidity != null ? "Humidity: " + humidity + "%" : "-- %");
                         coText.setText(co != null ? "CO: " + co + " ppm" : "-- ppm");
                         lpgText.setText(lpg != null ? "LPG: " + lpg + " ppm" : "-- ppm");
-                        smokeText.setText(smoke != null ? "Smoke: " + smoke + " ppm" : "-- ppm");
+                        smokeText.setText(smoke != null ? "NH4: " + smoke + " ppm" : "-- ppm");
                     }
                 } else {
                     Toast.makeText(FridgeConditions.this, "No data found!", Toast.LENGTH_SHORT).show();
