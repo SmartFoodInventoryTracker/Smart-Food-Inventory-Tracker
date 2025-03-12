@@ -11,6 +11,7 @@ import androidx.camera.core.Camera;
 import androidx.camera.core.CameraSelector;
 import androidx.camera.core.ImageAnalysis;
 import androidx.camera.core.ImageProxy;
+import androidx.camera.core.Preview;
 import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.camera.view.PreviewView;
 import androidx.core.content.ContextCompat;
@@ -48,19 +49,25 @@ public class BarcodeScannerActivity extends AppCompatActivity {
                         .requireLensFacing(CameraSelector.LENS_FACING_BACK)
                         .build();
 
+                Preview preview = new Preview.Builder().build();
+                preview.setSurfaceProvider(previewView.getSurfaceProvider());
+
                 ImageAnalysis imageAnalysis = new ImageAnalysis.Builder()
                         .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                         .build();
 
                 imageAnalysis.setAnalyzer(Executors.newSingleThreadExecutor(), this::scanBarcode);
 
-                Camera camera = cameraProvider.bindToLifecycle(this, cameraSelector, imageAnalysis);
+                cameraProvider.unbindAll(); // ✅ Fix binding issues
+                Camera camera = cameraProvider.bindToLifecycle(this, cameraSelector, preview, imageAnalysis);
 
             } catch (Exception e) {
-                e.printStackTrace();
+                Log.e("BarcodeScanner", "CameraX failed to start", e);
+                Toast.makeText(this, "Failed to start camera", Toast.LENGTH_LONG).show();
             }
         }, ContextCompat.getMainExecutor(this));
     }
+
 
     private void scanBarcode(ImageProxy imageProxy) {
         @SuppressWarnings("UnsafeOptInUsageError")
@@ -71,11 +78,11 @@ public class BarcodeScannerActivity extends AppCompatActivity {
         scanner.process(image)
                 .addOnSuccessListener(barcodes -> {
                     for (Barcode barcode : barcodes) {
-                        String barcodeValue = barcode.getRawValue(); // Ensure this method exists
+                        String barcodeValue = barcode.getRawValue();
                         if (barcodeValue != null) {
                             sendResultToInventoryActivity(barcodeValue);
                             imageProxy.close();
-                            break;
+                            return;  // ✅ Stops scanning after finding a barcode
                         }
                     }
                 })
@@ -83,9 +90,11 @@ public class BarcodeScannerActivity extends AppCompatActivity {
     }
 
     private void sendResultToInventoryActivity(String barcode) {
+        Log.d("BarcodeScanner", "Scanned Barcode: " + barcode);  // ✅ Debugging Log
         Intent intent = new Intent();
         intent.putExtra("scannedBarcode", barcode);
         setResult(RESULT_OK, intent);
         finish();
     }
+
 }

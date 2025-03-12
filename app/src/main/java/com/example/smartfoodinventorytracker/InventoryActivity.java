@@ -1,6 +1,9 @@
 package com.example.smartfoodinventorytracker;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -9,15 +12,16 @@ import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.google.firebase.database.DataSnapshot;
@@ -45,7 +49,7 @@ public class InventoryActivity extends AppCompatActivity {
         setContentView(R.layout.activity_inventory);
 
         // Initialize Firebase Database Reference
-        databaseReference = FirebaseDatabase.getInstance().getReference("inventory");
+        databaseReference = FirebaseDatabase.getInstance().getReference("inventory_product");
 
         // Initialize Volley for API calls
         requestQueue = Volley.newRequestQueue(this);
@@ -61,6 +65,9 @@ public class InventoryActivity extends AppCompatActivity {
 
         // Fetch inventory data from Firebase
         fetchInventoryData();
+
+        // ✅ Request Camera Permission
+        checkCameraPermission();
     }
 
     private void setUpToolbar() {
@@ -78,20 +85,83 @@ public class InventoryActivity extends AppCompatActivity {
         // Handle barcode scanner button click
         ImageView barcodeScannerButton = findViewById(R.id.barcodeLogo);
         barcodeScannerButton.setOnClickListener(v -> {
-            Log.d("BarcodeScanner", "Barcode button clicked"); // Debugging log
+            Log.d("BarcodeScanner", "Barcode button clicked");  // ✅ Debugging Log
             Intent intent = new Intent(InventoryActivity.this, BarcodeScannerActivity.class);
-            startActivity(intent);
+            startActivityForResult(intent, 1);  // ✅ Use startActivityForResult() instead of startActivity()
         });
+    }
+
+    private void checkCameraPermission() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.CAMERA)) {
+                // ✅ Show an explanation before requesting permission
+                new AlertDialog.Builder(this)
+                        .setTitle("Camera Permission Needed")
+                        .setMessage("This app requires camera access to scan barcodes. Please allow camera access.")
+                        .setPositiveButton("OK", (dialog, which) -> {
+                            ActivityCompat.requestPermissions(InventoryActivity.this, new String[]{Manifest.permission.CAMERA}, 101);
+                        })
+                        .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
+                        .create()
+                        .show();
+            } else {
+                // ✅ Directly request permission (for first-time users)
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, 101);
+            }
+        }
+    }
+
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode == 101) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Log.d("CameraPermission", "Camera permission granted.");
+                Toast.makeText(this, "Camera permission granted!", Toast.LENGTH_SHORT).show();
+            } else {
+                // ✅ If user selected "Don't ask again", show a dialog to open Settings
+                if (!ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.CAMERA)) {
+                    showSettingsDialog();
+                } else {
+                    Toast.makeText(this, "Camera permission is required for barcode scanning.", Toast.LENGTH_SHORT).show();
+                }
+            }
+        }
+    }
+
+    // ✅ Show a Dialog to Redirect User to App Settings
+    private void showSettingsDialog() {
+        new AlertDialog.Builder(this)
+                .setTitle("Camera Permission Denied")
+                .setMessage("This app needs camera access to scan barcodes. Please enable it in Settings.")
+                .setPositiveButton("Go to Settings", (dialog, which) -> {
+                    Intent intent = new Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                    intent.setData(Uri.parse("package:" + getPackageName()));
+                    startActivity(intent);
+                })
+                .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
+                .create()
+                .show();
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+
         if (requestCode == 1 && resultCode == RESULT_OK) {
-            String barcode = data.getStringExtra("scannedBarcode");
-            fetchProductData(barcode);
+            if (data != null && data.hasExtra("scannedBarcode")) {
+                String barcode = data.getStringExtra("scannedBarcode");
+                Log.d("InventoryActivity", "Received Barcode: " + barcode);  // ✅ Debugging Log
+                fetchProductData(barcode);
+            } else {
+                Log.e("InventoryActivity", "No barcode received");
+                Toast.makeText(this, "No barcode scanned", Toast.LENGTH_SHORT).show();
+            }
         }
     }
+
 
     private void fetchProductData(String barcode) {
         String url = "https://world.openfoodfacts.org/api/v0/product/" + barcode + ".json";
@@ -121,7 +191,10 @@ public class InventoryActivity extends AppCompatActivity {
     private void saveProductToFirebase(String barcode, String name, String brand) {
         Product product = new Product(barcode, name, brand);
         databaseReference.child(barcode).setValue(product)
-                .addOnSuccessListener(aVoid -> Toast.makeText(this, "Product added to inventory!", Toast.LENGTH_SHORT).show())
+                .addOnSuccessListener(aVoid -> {
+                    Toast.makeText(this, "Product added to inventory!", Toast.LENGTH_SHORT).show();
+                    Log.d("Firebase", "Product saved in inventory_product: " + barcode + " - " + name);
+                })
                 .addOnFailureListener(e -> Toast.makeText(this, "Failed to add product", Toast.LENGTH_SHORT).show());
     }
 
@@ -132,7 +205,10 @@ public class InventoryActivity extends AppCompatActivity {
                 productList.clear();
                 for (DataSnapshot productSnapshot : snapshot.getChildren()) {
                     Product product = productSnapshot.getValue(Product.class);
-                    productList.add(product);
+                    if (product != null) {
+                        Log.d("Firebase", "Loaded product from inventory_product: " + product.getName());
+                        productList.add(product);
+                    }
                 }
                 inventoryAdapter.notifyDataSetChanged();
             }
