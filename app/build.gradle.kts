@@ -38,6 +38,7 @@ dependencies {
     implementation(libs.material)
     implementation(libs.activity)
     implementation(libs.constraintlayout)
+    implementation(libs.firebase.crashlytics.buildtools)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
@@ -51,12 +52,28 @@ dependencies {
     // (Optional) Firestore for data storage (for future features)
     implementation("com.google.firebase:firebase-firestore")
 
-    // ✅ ViewPager2 for swipeable onboarding screens
+    // ViewPager2 for swipeable onboarding screens
     implementation("androidx.viewpager2:viewpager2:1.0.0")
 
-    // ✅ Material Components (for TabLayout dots)
+    // Material Components (for TabLayout dots)
     implementation("com.google.android.material:material:1.9.0")
 
-    // ✅ Firebase Realtime Database
+    //  Firebase Realtime Database
     implementation("com.google.firebase:firebase-database")
+
+    // Google ML Kit Barcode Scanning
+    implementation("com.google.mlkit:barcode-scanning:17.2.0")
+
+    // CameraX for Live Scanning
+    implementation("androidx.camera:camera-core:1.3.0")
+    implementation("androidx.camera:camera-camera2:1.3.0")
+    implementation("androidx.camera:camera-lifecycle:1.3.0")
+    implementation("androidx.camera:camera-view:1.3.0")
+
+    // Guava dependency for ListenableFuture (Required by CameraX)
+    implementation("com.google.guava:guava:31.0.1-android")
+
+    // Volley for API calls (Open Food Facts)
+    implementation("com.android.volley:volley:1.2.1")
+
 }
