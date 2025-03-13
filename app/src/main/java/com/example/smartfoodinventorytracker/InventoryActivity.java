@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -211,6 +212,16 @@ public class InventoryActivity extends AppCompatActivity {
                     }
                 }
                 inventoryAdapter.notifyDataSetChanged();
+
+                // ✅ Show "Inventory empty" if list is empty
+                TextView emptyMessage = findViewById(R.id.emptyInventoryMessage);
+                if (productList.isEmpty()) {
+                    emptyMessage.setVisibility(View.VISIBLE);
+                    inventoryRecyclerView.setVisibility(View.GONE);
+                } else {
+                    emptyMessage.setVisibility(View.GONE);
+                    inventoryRecyclerView.setVisibility(View.VISIBLE);
+                }
             }
 
             @Override
