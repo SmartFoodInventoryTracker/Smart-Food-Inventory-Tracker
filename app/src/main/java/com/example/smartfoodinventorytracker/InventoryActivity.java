@@ -194,7 +194,7 @@ public class InventoryActivity extends AppCompatActivity {
         databaseReference.child(barcode).setValue(product)
                 .addOnSuccessListener(aVoid -> {
                     Toast.makeText(this, "Product added to inventory!", Toast.LENGTH_SHORT).show();
-                    Log.d("Firebase", "Product saved in inventory_product: " + barcode + " - " + name);
+                    Log.d("Firebase", "Product saved: " + barcode + " - " + name);
                 })
                 .addOnFailureListener(e -> Toast.makeText(this, "Failed to add product", Toast.LENGTH_SHORT).show());
     }
