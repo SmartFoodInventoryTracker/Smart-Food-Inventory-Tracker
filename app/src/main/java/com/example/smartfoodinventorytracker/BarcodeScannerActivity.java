@@ -58,7 +58,7 @@ public class BarcodeScannerActivity extends AppCompatActivity {
 
                 imageAnalysis.setAnalyzer(Executors.newSingleThreadExecutor(), this::scanBarcode);
 
-                cameraProvider.unbindAll(); // ✅ Fix binding issues
+                cameraProvider.unbindAll();
                 Camera camera = cameraProvider.bindToLifecycle(this, cameraSelector, preview, imageAnalysis);
 
             } catch (Exception e) {
