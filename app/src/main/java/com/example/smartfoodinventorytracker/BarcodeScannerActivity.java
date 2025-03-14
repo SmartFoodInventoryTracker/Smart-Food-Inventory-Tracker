@@ -30,7 +30,7 @@ public class BarcodeScannerActivity extends AppCompatActivity {
     private ExecutorService cameraExecutor;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) {//removed comme
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_barcode_scanner);
 
