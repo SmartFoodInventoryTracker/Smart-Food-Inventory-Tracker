@@ -47,4 +47,17 @@ public class Product {
         this.expiryDate_info = new DateInfo(dateParts);*/
         this.expiryDate = expiryDate;
     }
+
+    public String getDateAdded() {
+        return expiryDate;
+    }
+
+    public void setDateAdded(String expiryDate) {
+        /*        String[] parts = expiryDate.split("/");
+
+// Reorder the parts to put the year at index 0
+        List<String> dateParts = Arrays.asList(parts[2], parts[1], parts[0]);
+        this.expiryDate_info = new DateInfo(dateParts);*/
+        this.expiryDate = expiryDate;
+    }
 }

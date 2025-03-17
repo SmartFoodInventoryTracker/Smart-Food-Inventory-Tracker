@@ -43,6 +43,8 @@ import com.google.firebase.database.ValueEventListener;
 import org.json.JSONObject;
 
 import java.text.NumberFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -104,6 +106,16 @@ public class InventoryActivity extends AppCompatActivity {
         sortButton = findViewById(R.id.sortbutton);
         sortnav = findViewById(R.id.sort_nav);
         ascended = findViewById(R.id.ascended);
+        descended = findViewById(R.id.descended);
+        expirydate = findViewById(R.id.expirydate);
+        dateadded = findViewById(R.id.dateadded);
+
+
+        ascended.setChecked(true);
+        descended.setChecked(false);
+
+
+
         addButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -148,7 +160,35 @@ public class InventoryActivity extends AppCompatActivity {
             }
         });
 
+        ascended.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isChecked) {
+                descended.setChecked(false); // Uncheck descended when ascended is checked
 
+            }
+        });
+
+        descended.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isChecked) {
+                ascended.setChecked(false); // Uncheck ascended when descended is checked
+
+            }
+        });
+
+        expirydate.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ExpirydateSort();
+
+            }
+        });
+
+        dateadded.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                DateAddedSort();
+
+            }
+        });
 
         // Fetch inventory data from Firebase
         fetchInventoryData();
@@ -164,11 +204,19 @@ public class InventoryActivity extends AppCompatActivity {
             return;
         }
         //in theory look for barcode here
+        LocalDate currentDate = LocalDate.now();
+        String formattedDate = currentDate.format(DateTimeFormatter.ofPattern("d/M/yyyy"));
+
         String expiration_date = expirationdate.get(2)+"/"+expirationdate.get(1)+"/"+expirationdate.get(0);
         String uni_name_brand = name +brand+expiration_date; //ensuring that each product have different id
         String barcode = UUID.nameUUIDFromBytes(uni_name_brand.getBytes()).toString();
         Product product = new Product(barcode,name, brand);
         product.setExpiryDate(expiration_date);
+        product.setDateAdded(formattedDate);
+
+
+
+
         databaseReference.child(barcode).setValue(product)
                 .addOnSuccessListener(aVoid -> {
                     Toast.makeText(this, "Product added to inventory!", Toast.LENGTH_SHORT).show();
@@ -204,6 +252,27 @@ public class InventoryActivity extends AppCompatActivity {
         }
     }
 
+    private void ExpirydateSort()
+    {
+        Product[] productArray = productList.toArray(new Product[0]);
+        if(ascended.isChecked())
+            MergeSort.sortexp(productArray,0,productArray.length-1, MergeSort.OrderType.ASCENDING);
+        else {
+            MergeSort.sortexp(productArray,0,productArray.length-1, MergeSort.OrderType.DESCENDING);
+        }
+
+    }
+
+    private void DateAddedSort()
+    {
+        Product[] productArray = productList.toArray(new Product[0]);
+        if(ascended.isChecked())
+            MergeSort.sortadded(productArray,0,productArray.length-1, MergeSort.OrderType.ASCENDING);
+        else {
+            MergeSort.sortadded(productArray,0,productArray.length-1, MergeSort.OrderType.DESCENDING);
+        }
+
+    }
     private void remove_sort()
     {
         sortnav.setVisibility(View.GONE);

@@ -112,6 +112,7 @@
         android:id="@+id/sort_nav"
         android:layout_width="193dp"
         android:layout_height="223dp"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="@+id/inventoryRecyclerView"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="1.0"
@@ -125,16 +126,16 @@
             android:orientation="vertical">
 
             <Button
-                android:id="@+id/button4"
+                android:id="@+id/expirydate"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Button" />
+                android:text="Expiry Date" />
 
             <Button
-                android:id="@+id/button5"
+                android:id="@+id/dateadded"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Button" />
+                android:text="Date Added" />
 
             <CheckBox
                 android:id="@+id/ascended"
