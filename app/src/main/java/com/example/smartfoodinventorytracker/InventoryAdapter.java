@@ -61,7 +61,7 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.View
 
         // ✅ Open Date Picker when item is clicked
         holder.itemView.setOnClickListener(v -> showDatePicker(holder, product));
-    
+
 
         holder.itemView.setOnLongClickListener(v -> {
             new AlertDialog.Builder(v.getContext())
