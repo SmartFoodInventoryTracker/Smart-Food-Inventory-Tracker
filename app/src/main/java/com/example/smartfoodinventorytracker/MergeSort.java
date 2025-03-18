@@ -89,8 +89,8 @@ public class MergeSort {
         int k = l;
         while (i < n1 && j < n2) {
 
-            if ( (type== OrderType.ASCENDING&&DateInfo.isOlder(L[i].expiryDate,R[j].expiryDate))||
-                    (type== OrderType.DESCENDING&&DateInfo.isNewer(L[i].expiryDate,R[j].expiryDate))
+            if ( (type== OrderType.ASCENDING&&DateInfo.isOlder(L[i].dateAdded,R[j].dateAdded))||
+                    (type== OrderType.DESCENDING&&DateInfo.isNewer(L[i].dateAdded,R[j].dateAdded))
             ){
 
                 arr[k] = L[i].copy() ;

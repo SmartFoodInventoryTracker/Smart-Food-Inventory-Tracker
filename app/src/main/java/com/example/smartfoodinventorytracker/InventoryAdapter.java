@@ -106,9 +106,9 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.View
         Calendar calendar = Calendar.getInstance();
         DatePickerDialog datePickerDialog = new DatePickerDialog(context, (view, year, month, dayOfMonth) -> {
             String selectedDate = dayOfMonth + "/" + (month + 1) + "/" + year;
-            String date = dayOfMonth + "/" + (month ) + "/" + year;
+
             product.setExpiryDate(selectedDate); // ✅ Update local object
-            product.setDateAdded(date);
+
             holder.expiryDate.setText("Expiry Date: " + selectedDate); // ✅ Update UI instantly
 
             // ✅ Save new expiry date to Firebase

@@ -175,6 +175,7 @@ public class InventoryActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 ExpirydateSort();
+                remove_sort();
 
             }
         });
@@ -183,6 +184,7 @@ public class InventoryActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 DateAddedSort();
+                remove_sort();
 
             }
         });
