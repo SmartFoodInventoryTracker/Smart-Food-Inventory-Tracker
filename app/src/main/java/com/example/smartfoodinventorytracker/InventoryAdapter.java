@@ -28,7 +28,7 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.View
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView name, brand, barcode, expiryDate;
+        TextView name, brand, barcode, expiryDate, DateAdded_h;
 
         public ViewHolder(View itemView) {
             super(itemView);
@@ -36,6 +36,7 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.View
             brand = itemView.findViewById(R.id.productBrand);
             barcode = itemView.findViewById(R.id.productBarcode);
             expiryDate = itemView.findViewById(R.id.productExpiryDate);
+            DateAdded_h = itemView.findViewById(R.id.prodcutDateAdded);
         }
     }
 
@@ -59,9 +60,16 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.View
             holder.expiryDate.setText("Expiry Date: " + product.getExpiryDate());
         }
 
+
+        if (product.getDateAdded() == null || product.getDateAdded().isEmpty()) {
+            holder.DateAdded_h.setText("Date Added: Not set");
+        } else {
+            holder.DateAdded_h.setText("Date Added: " + product.getDateAdded());
+        }
+
         // ✅ Open Date Picker when item is clicked
         holder.itemView.setOnClickListener(v -> showDatePicker(holder, product));
-    
+
 
         holder.itemView.setOnLongClickListener(v -> {
             new AlertDialog.Builder(v.getContext())
@@ -98,7 +106,9 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.View
         Calendar calendar = Calendar.getInstance();
         DatePickerDialog datePickerDialog = new DatePickerDialog(context, (view, year, month, dayOfMonth) -> {
             String selectedDate = dayOfMonth + "/" + (month + 1) + "/" + year;
+
             product.setExpiryDate(selectedDate); // ✅ Update local object
+
             holder.expiryDate.setText("Expiry Date: " + selectedDate); // ✅ Update UI instantly
 
             // ✅ Save new expiry date to Firebase

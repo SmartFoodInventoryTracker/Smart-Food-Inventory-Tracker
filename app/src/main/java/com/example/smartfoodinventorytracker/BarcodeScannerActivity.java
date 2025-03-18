@@ -30,7 +30,7 @@ public class BarcodeScannerActivity extends AppCompatActivity {
     private ExecutorService cameraExecutor;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) {//removed comme
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_barcode_scanner);
 
@@ -58,7 +58,7 @@ public class BarcodeScannerActivity extends AppCompatActivity {
 
                 imageAnalysis.setAnalyzer(Executors.newSingleThreadExecutor(), this::scanBarcode);
 
-                cameraProvider.unbindAll(); // ✅ Fix binding issues
+                cameraProvider.unbindAll();
                 Camera camera = cameraProvider.bindToLifecycle(this, cameraSelector, preview, imageAnalysis);
 
             } catch (Exception e) {

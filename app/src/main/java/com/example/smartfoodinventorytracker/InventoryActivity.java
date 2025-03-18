@@ -5,8 +5,13 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -25,6 +30,7 @@ import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -33,8 +39,12 @@ import com.google.firebase.database.ValueEventListener;
 
 import org.json.JSONObject;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 public class InventoryActivity extends AppCompatActivity {
     private RecyclerView inventoryRecyclerView;
@@ -42,7 +52,24 @@ public class InventoryActivity extends AppCompatActivity {
     private InventoryAdapter inventoryAdapter;
     private List<Product> productList = new ArrayList<>();
     private RequestQueue requestQueue; // For API calls
+    private ImageButton addButton;
+    private ImageButton sortButton;
+    private NavigationView infonav;
+    private NavigationView sortnav;
 
+    private Button donebutton;
+    private Button cancelbutton;
+
+    private EditText name;
+    private EditText brand;
+    private EditText year;
+    private EditText month;
+    private EditText day;
+
+    private Button expirydate;
+    private Button dateadded;
+    private CheckBox ascended;
+    private  CheckBox descended;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -64,13 +91,202 @@ public class InventoryActivity extends AppCompatActivity {
         inventoryAdapter = new InventoryAdapter(productList);
         inventoryRecyclerView.setAdapter(inventoryAdapter);
 
+        addButton = findViewById(R.id.addbutton);
+        infonav = findViewById(R.id.info_nav);
+        donebutton = findViewById(R.id.donebutton);
+        cancelbutton = findViewById(R.id.cancelbutton);
+        name = findViewById(R.id.productname);
+        brand = findViewById(R.id.productbrand);
+        year = findViewById(R.id.editTextNumber4);
+        month = findViewById(R.id.editTextNumber3);
+        day = findViewById(R.id.editTextNumber2);
+        sortButton = findViewById(R.id.sortbutton);
+        sortnav = findViewById(R.id.sort_nav);
+        ascended = findViewById(R.id.ascended);
+        descended = findViewById(R.id.descended);
+        expirydate = findViewById(R.id.expirydate);
+        dateadded = findViewById(R.id.dateadded_inv);
+
+
+        ascended.setChecked(true);
+        descended.setChecked(false);
+
+
+
+        addButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+              if(infonav.getVisibility()==View.GONE)
+              {
+                  infonav.setVisibility(View.VISIBLE);
+                  sortnav.setVisibility(View.GONE);
+              }
+
+            }
+        });
+
+        donebutton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String name_s = name.getText().toString();
+                String brand_s = brand.getText().toString();
+                String year_s = year.getText().toString();
+                String month_s = month.getText().toString();
+                String day_s = day.getText().toString();
+                List<String> date_ = List.of(year_s,month_s,day_s);
+                ClearTextValue();
+                AddProduct(name_s, brand_s, date_);
+                infonav.setVisibility(View.GONE);
+            }
+        });
+
+        cancelbutton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                remove_add();
+
+
+            }
+        });
+
+        sortButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Sortclick();
+
+            }
+        });
+
+        ascended.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isChecked) {
+                descended.setChecked(false); // Uncheck descended when ascended is checked
+
+            }
+        });
+
+        descended.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isChecked) {
+                ascended.setChecked(false); // Uncheck ascended when descended is checked
+
+            }
+        });
+
+        expirydate.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ExpirydateSort();
+                remove_sort();
+
+            }
+        });
+
+        dateadded.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                DateAddedSort();
+                remove_sort();
+
+            }
+        });
+
         // Fetch inventory data from Firebase
         fetchInventoryData();
 
         // ✅ Request Camera Permission
         checkCameraPermission();
+
+
+
     }
 
+    private void AddProduct(String name, String brand, List<String> expirationdate)
+    {
+        if (TextUtils.isEmpty(name) || TextUtils.isEmpty(brand) || expirationdate.isEmpty()) {
+            Toast.makeText(this, "Product details cannot be empty!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        //in theory look for barcode here
+        LocalDate currentDate = LocalDate.now();
+        String formattedDate = currentDate.format(DateTimeFormatter.ofPattern("d/M/yyyy"));
+        System.out.println(formattedDate);
+        String expiration_date = expirationdate.get(2)+"/"+expirationdate.get(1)+"/"+expirationdate.get(0);
+        String uni_name_brand = name +brand+expiration_date; //ensuring that each product have different id
+        String barcode = UUID.nameUUIDFromBytes(uni_name_brand.getBytes()).toString();
+        Product product = new Product(barcode,name, brand);
+        product.setExpiryDate(expiration_date);
+        product.setDateAdded(formattedDate);
+
+
+
+
+        databaseReference.child(barcode).setValue(product)
+                .addOnSuccessListener(aVoid -> {
+                    Toast.makeText(this, "Product added to inventory!", Toast.LENGTH_SHORT).show();
+                    Log.d("Firebase", "Product saved: " + barcode + " - " + name);
+                })
+                .addOnFailureListener(e -> Toast.makeText(this, "Failed to add product", Toast.LENGTH_SHORT).show());
+    }
+
+    private void ClearTextValue()
+    {
+        String empty= "";
+        this.name.setText(empty);
+        this.brand.setText(empty);
+        this.year.setText(empty);
+        this.month.setText(empty);
+        this.day.setText(empty);
+    }
+    private void remove_add()
+    {
+        ClearTextValue();
+        infonav.setVisibility(View.GONE);
+    }
+
+    private void Sortclick()
+    {
+        if(infonav.getVisibility()!=View.GONE)
+        {
+            remove_add();
+        }
+        if(sortnav.getVisibility()==View.GONE)
+        {
+            sortnav.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private void ExpirydateSort()
+    {
+        Product[] productArray = productList.toArray(new Product[0]);
+        if(ascended.isChecked())
+            MergeSort.sortexp(productArray,0,productArray.length-1, MergeSort.OrderType.ASCENDING);
+        else {
+            MergeSort.sortexp(productArray,0,productArray.length-1, MergeSort.OrderType.DESCENDING);
+        }
+
+        productList.clear();
+        productList.addAll(Arrays.asList(productArray));
+        inventoryAdapter.notifyDataSetChanged();
+
+    }
+
+    private void DateAddedSort()
+    {
+        Product[] productArray = productList.toArray(new Product[0]);
+        if(ascended.isChecked())
+            MergeSort.sortadded(productArray,0,productArray.length-1, MergeSort.OrderType.ASCENDING);
+        else {
+            MergeSort.sortadded(productArray,0,productArray.length-1, MergeSort.OrderType.DESCENDING);
+        }
+        productList.clear();
+        productList.addAll(Arrays.asList(productArray));
+        inventoryAdapter.notifyDataSetChanged();
+
+
+    }
+    private void remove_sort()
+    {
+        sortnav.setVisibility(View.GONE);
+    }
     private void setUpToolbar() {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -85,11 +301,16 @@ public class InventoryActivity extends AppCompatActivity {
 
         // Handle barcode scanner button click
         ImageView barcodeScannerButton = findViewById(R.id.barcodeLogo);
+
         barcodeScannerButton.setOnClickListener(v -> {
+            remove_add();
+            remove_sort();
             Log.d("BarcodeScanner", "Barcode button clicked");  // ✅ Debugging Log
             Intent intent = new Intent(InventoryActivity.this, BarcodeScannerActivity.class);
             startActivityForResult(intent, 1);  // ✅ Use startActivityForResult() instead of startActivity()
         });
+
+
     }
 
     private void checkCameraPermission() {
@@ -190,7 +411,11 @@ public class InventoryActivity extends AppCompatActivity {
     }
 
     private void saveProductToFirebase(String barcode, String name, String brand) {
+
         Product product = new Product(barcode, name, brand);
+        LocalDate currentDate = LocalDate.now();
+        String formattedDate = currentDate.format(DateTimeFormatter.ofPattern("d/M/yyyy"));
+        product.setDateAdded(formattedDate);
         databaseReference.child(barcode).setValue(product)
                 .addOnSuccessListener(aVoid -> {
                     Toast.makeText(this, "Product added to inventory!", Toast.LENGTH_SHORT).show();
