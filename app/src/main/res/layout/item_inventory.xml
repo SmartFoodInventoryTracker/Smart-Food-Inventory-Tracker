@@ -24,20 +24,29 @@
         android:textColor="#666"/>
 
     <TextView
-        android:id="@+id/productExpiryDate"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Expiry Date: Not set"
-        android:textSize="14sp"
-        android:textColor="@android:color/darker_gray"
-        android:layout_marginTop="4dp"/>
-
-    <TextView
         android:id="@+id/productBarcode"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Barcode:"
         android:textSize="14sp"
         android:textColor="@android:color/darker_gray"
-        android:visibility="gone" />  <!-- ✅ Hides the barcode -->
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/productExpiryDate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="Expiry Date: Not set"
+        android:textColor="@android:color/darker_gray"
+        android:textSize="14sp" />
+
+    <TextView
+        android:id="@+id/prodcutDateAdded"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="Date Added: Not set"
+        android:textColor="@android:color/darker_gray"
+        android:textSize="14sp" />  <!-- ✅ Hides the barcode -->
 </LinearLayout>

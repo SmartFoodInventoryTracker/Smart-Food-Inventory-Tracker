@@ -8,7 +8,7 @@ public class Product {
     public String name;
     public String brand;
     public String expiryDate;
-    public String DateAdded;
+    public String dateAdded;
 
     // Required empty constructor for Firebase
     public Product() {}
@@ -48,16 +48,25 @@ public class Product {
         this.expiryDate = expiryDate;
     }
 
-    public String getDateAdded() {
-        return expiryDate;
+    public Product copy()
+    {
+        Product product = new Product(this.barcode, this.name, this.brand);
+        product.setDateAdded(this.dateAdded);
+        product.setExpiryDate(this.expiryDate);
+        return product;
     }
 
-    public void setDateAdded(String expiryDate) {
+
+    public String getDateAdded() {
+        return this.dateAdded;
+    }
+
+    public void setDateAdded(String dateAdded) {
         /*        String[] parts = expiryDate.split("/");
 
 // Reorder the parts to put the year at index 0
         List<String> dateParts = Arrays.asList(parts[2], parts[1], parts[0]);
         this.expiryDate_info = new DateInfo(dateParts);*/
-        this.expiryDate = expiryDate;
+        this.dateAdded = dateAdded;
     }
 }

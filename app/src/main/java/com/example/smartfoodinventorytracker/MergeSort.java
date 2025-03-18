@@ -20,9 +20,9 @@ public class MergeSort {
 
         // Copy data to temp arrays
         for (int i = 0; i < n1; ++i)
-            L[i] = new Product(arr[l + i].barcode,arr[l + i].name,arr[l + i].brand) ;
+            L[i] = arr[l + i].copy() ;
         for (int j = 0; j < n2; ++j)
-            R[j] = new Product(arr[m + 1 + j].barcode,arr[m + 1 + j].name,arr[m + 1 + j].brand) ;
+            R[j] = arr[m + 1 + j].copy() ;
 
         // Merge the temp arrays
 
@@ -38,12 +38,12 @@ public class MergeSort {
                     (type== OrderType.DESCENDING&&DateInfo.isNewer(L[i].expiryDate,R[j].expiryDate))
             ) {
 
-                arr[k] = new Product(L[i].barcode,L[i].name,L[i].brand) ;
+                arr[k] = L[i].copy() ;
                 i++;
             }
             else {
 
-                arr[k] =  new Product(R[j].barcode,R[j].name,R[j].brand) ;
+                arr[k] =  R[j].copy() ;
                 j++;
             }
             k++;
@@ -51,14 +51,14 @@ public class MergeSort {
 
         // Copy remaining elements of L[] if any
         while (i < n1) {
-            arr[k] = new Product(L[i].barcode,L[i].name,L[i].brand) ;
+            arr[k] = L[i].copy();
             i++;
             k++;
         }
 
         // Copy remaining elements of R[] if any
         while (j < n2) {
-            arr[k] = new Product(R[j].barcode,R[j].name,R[j].brand) ;
+            arr[k] = R[j].copy();
             j++;
             k++;
         }
@@ -75,9 +75,9 @@ public class MergeSort {
 
         // Copy data to temp arrays
         for (int i = 0; i < n1; ++i)
-            L[i] = new Product(arr[l + i].barcode,arr[l + i].name,arr[l + i].brand) ;
+            L[i] = arr[l + i].copy();
         for (int j = 0; j < n2; ++j)
-            R[j] = new Product(arr[m + 1 + j].barcode,arr[m + 1 + j].name,arr[m + 1 + j].brand) ;
+            R[j] = arr[m + 1 + j].copy();
 
         // Merge the temp arrays
 
@@ -93,12 +93,12 @@ public class MergeSort {
                     (type== OrderType.DESCENDING&&DateInfo.isNewer(L[i].expiryDate,R[j].expiryDate))
             ){
 
-                arr[k] = new Product(L[i].barcode,L[i].name,L[i].brand) ;
+                arr[k] = L[i].copy() ;
                 i++;
             }
             else {
 
-                arr[k] =  new Product(R[j].barcode,R[j].name,R[j].brand) ;
+                arr[k] = R[j].copy();
                 j++;
             }
             k++;
@@ -106,14 +106,14 @@ public class MergeSort {
 
         // Copy remaining elements of L[] if any
         while (i < n1) {
-            arr[k] = new Product(L[i].barcode,L[i].name,L[i].brand) ;
+            arr[k] = L[i].copy();
             i++;
             k++;
         }
 
         // Copy remaining elements of R[] if any
         while (j < n2) {
-            arr[k] = new Product(R[j].barcode,R[j].name,R[j].brand) ;
+            arr[k] = R[j].copy();
             j++;
             k++;
         }

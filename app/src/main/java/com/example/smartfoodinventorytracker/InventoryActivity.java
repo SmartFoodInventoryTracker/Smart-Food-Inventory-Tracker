@@ -30,10 +30,7 @@ import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.android.material.navigation.NavigationView;
-import com.google.firebase.auth.AuthResult;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -42,10 +39,10 @@ import com.google.firebase.database.ValueEventListener;
 
 import org.json.JSONObject;
 
-import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -108,7 +105,7 @@ public class InventoryActivity extends AppCompatActivity {
         ascended = findViewById(R.id.ascended);
         descended = findViewById(R.id.descended);
         expirydate = findViewById(R.id.expirydate);
-        dateadded = findViewById(R.id.dateadded);
+        dateadded = findViewById(R.id.dateadded_inv);
 
 
         ascended.setChecked(true);
@@ -195,6 +192,9 @@ public class InventoryActivity extends AppCompatActivity {
 
         // ✅ Request Camera Permission
         checkCameraPermission();
+
+
+
     }
 
     private void AddProduct(String name, String brand, List<String> expirationdate)
@@ -206,7 +206,7 @@ public class InventoryActivity extends AppCompatActivity {
         //in theory look for barcode here
         LocalDate currentDate = LocalDate.now();
         String formattedDate = currentDate.format(DateTimeFormatter.ofPattern("d/M/yyyy"));
-
+        System.out.println(formattedDate);
         String expiration_date = expirationdate.get(2)+"/"+expirationdate.get(1)+"/"+expirationdate.get(0);
         String uni_name_brand = name +brand+expiration_date; //ensuring that each product have different id
         String barcode = UUID.nameUUIDFromBytes(uni_name_brand.getBytes()).toString();
@@ -261,6 +261,10 @@ public class InventoryActivity extends AppCompatActivity {
             MergeSort.sortexp(productArray,0,productArray.length-1, MergeSort.OrderType.DESCENDING);
         }
 
+        productList.clear();
+        productList.addAll(Arrays.asList(productArray));
+        inventoryAdapter.notifyDataSetChanged();
+
     }
 
     private void DateAddedSort()
@@ -271,6 +275,10 @@ public class InventoryActivity extends AppCompatActivity {
         else {
             MergeSort.sortadded(productArray,0,productArray.length-1, MergeSort.OrderType.DESCENDING);
         }
+        productList.clear();
+        productList.addAll(Arrays.asList(productArray));
+        inventoryAdapter.notifyDataSetChanged();
+
 
     }
     private void remove_sort()
@@ -299,6 +307,8 @@ public class InventoryActivity extends AppCompatActivity {
             Intent intent = new Intent(InventoryActivity.this, BarcodeScannerActivity.class);
             startActivityForResult(intent, 1);  // ✅ Use startActivityForResult() instead of startActivity()
         });
+
+
     }
 
     private void checkCameraPermission() {
@@ -401,6 +411,9 @@ public class InventoryActivity extends AppCompatActivity {
     private void saveProductToFirebase(String barcode, String name, String brand) {
 
         Product product = new Product(barcode, name, brand);
+        LocalDate currentDate = LocalDate.now();
+        String formattedDate = currentDate.format(DateTimeFormatter.ofPattern("d/M/yyyy"));
+        product.setDateAdded(formattedDate);
         databaseReference.child(barcode).setValue(product)
                 .addOnSuccessListener(aVoid -> {
                     Toast.makeText(this, "Product added to inventory!", Toast.LENGTH_SHORT).show();

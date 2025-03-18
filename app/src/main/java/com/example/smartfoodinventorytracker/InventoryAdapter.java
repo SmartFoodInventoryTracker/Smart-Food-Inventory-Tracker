@@ -28,7 +28,7 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.View
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView name, brand, barcode, expiryDate;
+        TextView name, brand, barcode, expiryDate, DateAdded_h;
 
         public ViewHolder(View itemView) {
             super(itemView);
@@ -36,6 +36,7 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.View
             brand = itemView.findViewById(R.id.productBrand);
             barcode = itemView.findViewById(R.id.productBarcode);
             expiryDate = itemView.findViewById(R.id.productExpiryDate);
+            DateAdded_h = itemView.findViewById(R.id.prodcutDateAdded);
         }
     }
 
@@ -57,6 +58,13 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.View
             holder.expiryDate.setText("Expiry Date: Not set");
         } else {
             holder.expiryDate.setText("Expiry Date: " + product.getExpiryDate());
+        }
+
+
+        if (product.getDateAdded() == null || product.getDateAdded().isEmpty()) {
+            holder.DateAdded_h.setText("Date Added: Not set");
+        } else {
+            holder.DateAdded_h.setText("Date Added: " + product.getDateAdded());
         }
 
         // ✅ Open Date Picker when item is clicked
