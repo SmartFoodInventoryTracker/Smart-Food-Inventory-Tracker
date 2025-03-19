@@ -13,6 +13,7 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import androidx.appcompat.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -118,6 +119,31 @@ public class InventoryActivity extends AppCompatActivity
         fabAddProduct.setOnClickListener(v -> {
             AddProductDialogFragment dialog = new AddProductDialogFragment();
             dialog.show(getSupportFragmentManager(), "AddProductDialog");
+        });
+
+        SearchView searchView = findViewById(R.id.searchView);
+        Button filterButton = findViewById(R.id.btn_filter);
+
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                inventoryAdapter.filter(query);  // Apply filter
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                if (newText.isEmpty()) {
+                    searchView.setQueryHint("Search for a product");  // ✅ Restore hint when empty
+                }
+                inventoryAdapter.filter(newText);  // Apply filter on text change
+                return true;
+            }
+        });
+
+        // Handle Filter Button Click (just for now, no sorting logic yet)
+        filterButton.setOnClickListener(v -> {
+            Toast.makeText(InventoryActivity.this, "Filter button clicked!", Toast.LENGTH_SHORT).show();
         });
 
 
@@ -449,14 +475,24 @@ public class InventoryActivity extends AppCompatActivity
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 productList.clear();
+                List<Product> tempProductList = new ArrayList<>(); // Temporary list for adapter
+
+                Log.d("Firebase", "Snapshot Children Count: " + snapshot.getChildrenCount()); // ✅ Log Firebase data count
+
                 for (DataSnapshot productSnapshot : snapshot.getChildren()) {
                     Product product = productSnapshot.getValue(Product.class);
                     if (product != null) {
-                        Log.d("Firebase", "Loaded product from inventory_product: " + product.getName());
-                        productList.add(product);
+                        Log.d("Firebase", "Loaded product: " + product.getName() + ", Expiry: " + product.getExpiryDate()); // ✅ Log product info
+                        tempProductList.add(product);
                     }
                 }
-                inventoryAdapter.notifyDataSetChanged();
+
+                if (tempProductList.isEmpty()) {
+                    Log.e("Firebase", "No products were retrieved!"); // 🚨 Debugging message
+                }
+
+                productList.addAll(tempProductList);
+                inventoryAdapter.updateList(tempProductList);
 
                 // ✅ Show "Inventory empty" if list is empty
                 TextView emptyMessage = findViewById(R.id.emptyInventoryMessage);
