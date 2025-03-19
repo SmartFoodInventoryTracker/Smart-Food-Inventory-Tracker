@@ -17,11 +17,15 @@
         android:layout_height="wrap_content"
         android:hint="Brand"/>
 
-    <EditText
-        android:id="@+id/et_product_expiry"
+    <Button
+        android:id="@+id/btn_pick_expiry_date"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Expiry Date (DD/MM/YYYY)"/>
+        android:text="Select Expiry Date"
+        android:backgroundTint="@android:color/darker_gray"
+        android:textColor="@android:color/white"
+        android:padding="10dp"/>
+
 
     <Button
         android:id="@+id/btn_done"

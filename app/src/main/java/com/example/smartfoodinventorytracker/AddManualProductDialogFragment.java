@@ -1,5 +1,6 @@
 package com.example.smartfoodinventorytracker;
 
+import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.os.Bundle;
@@ -14,12 +15,15 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
 
+import java.util.Calendar;
 import java.util.UUID;
 
 public class AddManualProductDialogFragment extends DialogFragment {
 
     private EditText etName, etBrand, etExpiryDate;
     private Button btnDone, btnCancel;
+    private String selectedExpiryDate;
+    private Button btnExpiryDate;
 
     public interface ManualProductListener {
         void onProductAdded(Product product);
@@ -47,23 +51,24 @@ public class AddManualProductDialogFragment extends DialogFragment {
 
         etName = view.findViewById(R.id.et_product_name);
         etBrand = view.findViewById(R.id.et_product_brand);
-        etExpiryDate = view.findViewById(R.id.et_product_expiry);
+        btnExpiryDate = view.findViewById(R.id.btn_pick_expiry_date);
         btnDone = view.findViewById(R.id.btn_done);
         btnCancel = view.findViewById(R.id.btn_cancel);
+
+        btnExpiryDate.setOnClickListener(v -> showDatePickerDialog());
 
         btnDone.setOnClickListener(v -> {
             String name = etName.getText().toString();
             String brand = etBrand.getText().toString();
-            String expiryDate = etExpiryDate.getText().toString();
 
-            if (name.isEmpty() || brand.isEmpty() || expiryDate.isEmpty()) {
+            if (name.isEmpty() || brand.isEmpty() || selectedExpiryDate == null) {
                 Toast.makeText(getContext(), "All fields must be filled!", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            String barcode = UUID.nameUUIDFromBytes((name + brand + expiryDate).getBytes()).toString();
+            String barcode = UUID.nameUUIDFromBytes((name + brand + selectedExpiryDate).getBytes()).toString();
             Product product = new Product(barcode, name, brand);
-            product.setExpiryDate(expiryDate);
+            product.setExpiryDate(selectedExpiryDate);
 
             listener.onProductAdded(product);
             dismiss();
@@ -73,5 +78,20 @@ public class AddManualProductDialogFragment extends DialogFragment {
 
         builder.setView(view).setTitle("Add Product Manually");
         return builder.create();
+    }
+
+    private void showDatePickerDialog() {
+        Calendar calendar = Calendar.getInstance();
+        DatePickerDialog datePickerDialog = new DatePickerDialog(
+                requireContext(),
+                (view, year, month, dayOfMonth) -> {
+                    selectedExpiryDate = dayOfMonth + "/" + (month + 1) + "/" + year;
+                    btnExpiryDate.setText("Expiry Date: " + selectedExpiryDate);
+                },
+                calendar.get(Calendar.YEAR),
+                calendar.get(Calendar.MONTH),
+                calendar.get(Calendar.DAY_OF_MONTH)
+        );
+        datePickerDialog.show();
     }
 }
