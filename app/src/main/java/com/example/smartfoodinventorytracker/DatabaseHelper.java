@@ -76,40 +76,35 @@ public class DatabaseHelper {
             @Override
             public void onDataChange(DataSnapshot snapshot) {
                 for (DataSnapshot inventorySnapshot : snapshot.getChildren()) {
-                    Long newTemperature = inventorySnapshot.child("temperature").getValue(Long.class);
-                    Long newHumidity = inventorySnapshot.child("humidity").getValue(Long.class);
-                    Long newCO = inventorySnapshot.child("co").getValue(Long.class);
-                    Long newLPG = inventorySnapshot.child("lpg").getValue(Long.class);
-                    Long newSmoke = inventorySnapshot.child("smoke").getValue(Long.class);
+                    // ✅ Fetch sensor values
+                    Long temperature = inventorySnapshot.child("temperature").getValue(Long.class);
+                    Long humidity = inventorySnapshot.child("humidity").getValue(Long.class);
+                    Long co = inventorySnapshot.child("co").getValue(Long.class);
+                    Long lpg = inventorySnapshot.child("lpg").getValue(Long.class);
+                    Long smoke = inventorySnapshot.child("smoke").getValue(Long.class);
 
-                    // ✅ Temperature
-                    if (newTemperature != null && !newTemperature.equals(lastTemperature)) {
-                        lastTemperature = newTemperature;
-                        notificationHelper.sendConditionNotification("Temperature", newTemperature);
+                    // ✅ Fetch condition values
+                    Long temperatureCondition = inventorySnapshot.child("temperature condition").getValue(Long.class);
+                    Long humidityCondition = inventorySnapshot.child("humidity condition").getValue(Long.class);
+                    Long coCondition = inventorySnapshot.child("co condition").getValue(Long.class);
+                    Long lpgCondition = inventorySnapshot.child("lpg condition").getValue(Long.class);
+                    Long smokeCondition = inventorySnapshot.child("smoke condition").getValue(Long.class);
+
+                    // ✅ Send notifications only if condition is greater than 7
+                    if (temperatureCondition != null && temperatureCondition > 7) {
+                        notificationHelper.sendConditionNotification("Temperature", temperature);
                     }
-
-                    // ✅ Humidity
-                    if (newHumidity != null && !newHumidity.equals(lastHumidity)) {
-                        lastHumidity = newHumidity;
-                        notificationHelper.sendConditionNotification("Humidity", newHumidity);
+                    if (humidityCondition != null && humidityCondition > 7) {
+                        notificationHelper.sendConditionNotification("Humidity", humidity);
                     }
-
-                    // ✅ CO (Carbon Monoxide)
-                    if (newCO != null && !newCO.equals(lastCO)) {
-                        lastCO = newCO;
-                        notificationHelper.sendConditionNotification("CO Level", newCO);
+                    if (coCondition != null && coCondition > 7) {
+                        notificationHelper.sendConditionNotification("CO Level", co);
                     }
-
-                    // ✅ LPG
-                    if (newLPG != null && !newLPG.equals(lastLPG)) {
-                        lastLPG = newLPG;
-                        notificationHelper.sendConditionNotification("LPG Level", newLPG);
+                    if (lpgCondition != null && lpgCondition > 7) {
+                        notificationHelper.sendConditionNotification("LPG Level", lpg);
                     }
-
-                    // ✅ Smoke
-                    if (newSmoke != null && !newSmoke.equals(lastSmoke)) {
-                        lastSmoke = newSmoke;
-                        notificationHelper.sendConditionNotification("Smoke Level", newSmoke);
+                    if (smokeCondition != null && smokeCondition > 7) {
+                        notificationHelper.sendConditionNotification("Smoke Level", smoke);
                     }
                 }
             }
@@ -120,7 +115,6 @@ public class DatabaseHelper {
             }
         });
     }
-
 
 
     public static void listenForNotificationUpdates(Runnable callback) {

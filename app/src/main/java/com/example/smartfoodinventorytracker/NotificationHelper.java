@@ -13,8 +13,13 @@ import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
+
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
 import java.util.HashMap;
 import java.util.Map;
 import androidx.work.WorkManager;
@@ -39,6 +44,8 @@ public class NotificationHelper {
     private final Context context;
     private final DatabaseReference databaseRef;
     private static final String PREFS_NAME = "NotificationPrefs";
+    private static final String LAST_RESET_TIME_KEY = "LastResetTime";
+    private static final long FRIDGE_NOTIFICATION_INTERVAL = 30 * 60 * 1000; // ✅ 30 minutes in milliseconds
 
     public NotificationHelper(Context context, boolean startExpiryCheck) {
         this.context = context;
@@ -101,51 +108,98 @@ public class NotificationHelper {
     }
 
     public void sendNotification(String title, String message, Class<?> targetActivity, String data) {
-        // ✅ Check if this notification was already sent
-        if (isNotificationAlreadySent(title, message)) {
-            return; // ✅ Prevent duplicate notifications
-        }
+        isNotificationAlreadySent(title, message, new NotificationCallback() {
+            @Override
+            public void onCheckCompleted(boolean allowNotification) {
+                if (!allowNotification) {
+                    return; // ✅ Skip sending duplicate notifications
+                }
 
-        storeNotificationInFirebase(title, message);
-        saveSentNotification(title, message); // ✅ Track the notification
+                storeNotificationInFirebase(title, message); // ✅ Store in Firebase before sending
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-                ActivityCompat.checkSelfPermission(context, android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-            return;
-        }
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                        ActivityCompat.checkSelfPermission(context, android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                    return;
+                }
 
-        Intent intent = new Intent(context, targetActivity);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        intent.putExtra("data", data);
-        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_MUTABLE);
+                Intent intent = new Intent(context, targetActivity);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                intent.putExtra("data", data);
+                PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_MUTABLE);
 
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_notification)
-                .setContentTitle(title)
-                .setContentText(message)
-                .setAutoCancel(true)
-                .setPriority(NotificationCompat.PRIORITY_HIGH)
-                .setContentIntent(pendingIntent);
+                NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
+                        .setSmallIcon(R.drawable.ic_notification)
+                        .setContentTitle(title)
+                        .setContentText(message)
+                        .setAutoCancel(true)
+                        .setPriority(NotificationCompat.PRIORITY_HIGH)
+                        .setContentIntent(pendingIntent);
 
-        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
-        notificationManager.notify((int) System.currentTimeMillis(), builder.build());
+                NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
+                notificationManager.notify((int) System.currentTimeMillis(), builder.build());
+            }
+        });
     }
 
-    // ✅ Check if a notification was already sent
-    private boolean isNotificationAlreadySent(String title, String message) {
-        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-        String key = title + "_" + message;
-        return prefs.getBoolean(key, false);
+    public interface NotificationCallback {
+        void onCheckCompleted(boolean allowNotification);
     }
 
-    // ✅ Mark a notification as sent
+
+    private void isNotificationAlreadySent(String title, String message, NotificationCallback callback) {
+        long oneHourAgo = (System.currentTimeMillis() / 1000) - 3600; // ✅ Get timestamp from 1 hour ago
+
+        databaseRef.orderByChild("timestamp").startAt(oneHourAgo) // ✅ Fetch only recent notifications
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        boolean allowNotification = true;
+
+                        for (DataSnapshot child : snapshot.getChildren()) {
+                            String storedTitle = child.child("title").getValue(String.class);
+                            String storedMessage = child.child("message").getValue(String.class);
+                            Long storedTimestamp = child.child("timestamp").getValue(Long.class);
+
+                            if (storedTitle != null && storedMessage != null && storedTimestamp != null) {
+                                // ✅ Check for exact duplicate message within the last hour
+                                if (storedTitle.equals(title) && storedMessage.equals(message)) {
+                                    allowNotification = false;
+                                    break; // ✅ Stop checking once we find a match
+                                }
+                            }
+                        }
+
+                        callback.onCheckCompleted(allowNotification);
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        callback.onCheckCompleted(true); // ✅ Default to allow notification if there's an error
+                    }
+                });
+    }
+
+
+    // ✅ Save notification timestamp for fridge alerts
     private void saveSentNotification(String title, String message) {
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
+
+        long currentTime = System.currentTimeMillis();
         String key = title + "_" + message;
-        editor.putBoolean(key, true);
+
+        if (title.equals(FRIDGE_ALERT_TITLE)) {
+            editor.putLong(key, currentTime); // ✅ Store last sent time for fridge notifications
+        } else if (title.equals(EXPIRY_ALERT_TITLE)) {
+            editor.putLong(key, currentTime); // ✅ Reset expiry alerts every 15 minutes
+        } else {
+            editor.putBoolean(key, true); // ✅ Mark general notifications
+        }
+
         editor.apply();
     }
+
+
 
     private void storeNotificationInFirebase(String title, String message) {
         String notificationId = databaseRef.push().getKey();
