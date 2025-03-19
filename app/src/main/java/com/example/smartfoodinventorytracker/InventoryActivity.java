@@ -478,12 +478,17 @@ public class InventoryActivity extends AppCompatActivity
 
     @Override
     public void onProductAdded(Product product) {
-        // ✅ Save to Firebase
+        // ✅ Ensure Date Added is set
+        if (product.getDateAdded() == null || product.getDateAdded().isEmpty()) {
+            LocalDate currentDate = LocalDate.now();
+            String formattedDate = currentDate.format(DateTimeFormatter.ofPattern("d/M/yyyy"));
+            product.setDateAdded(formattedDate);
+        }
+
+        // ✅ Save to Firebase (This will automatically trigger fetchInventoryData())
         databaseReference.child(product.getBarcode()).setValue(product)
                 .addOnSuccessListener(aVoid -> {
                     Toast.makeText(this, "Product added successfully!", Toast.LENGTH_SHORT).show();
-                    productList.add(product);
-                    inventoryAdapter.notifyDataSetChanged();  // Refresh RecyclerView
                 })
                 .addOnFailureListener(e -> Toast.makeText(this, "Failed to add product", Toast.LENGTH_SHORT).show());
     }

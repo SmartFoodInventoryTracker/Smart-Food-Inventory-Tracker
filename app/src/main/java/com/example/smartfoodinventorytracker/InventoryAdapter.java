@@ -53,19 +53,15 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.View
         holder.name.setText(product.getName());
         holder.brand.setText("Brand: " + product.getBrand());
 
-        // ✅ Show expiry date or "Not set" if missing
-        if (product.getExpiryDate() == null || product.getExpiryDate().isEmpty()) {
-            holder.expiryDate.setText("Expiry Date: Not set");
-        } else {
-            holder.expiryDate.setText("Expiry Date: " + product.getExpiryDate());
-        }
+        // ✅ Show Expiry Date
+        holder.expiryDate.setText(product.getExpiryDate() == null || product.getExpiryDate().isEmpty()
+                ? "Expiry Date: Not set"
+                : "Expiry Date: " + product.getExpiryDate());
 
-
-        if (product.getDateAdded() == null || product.getDateAdded().isEmpty()) {
-            holder.DateAdded_h.setText("Date Added: Not set");
-        } else {
-            holder.DateAdded_h.setText("Date Added: " + product.getDateAdded());
-        }
+        // ✅ Show Correct "Date Added"
+        holder.DateAdded_h.setText(product.getDateAdded() == null || product.getDateAdded().isEmpty()
+                ? "Date Added: Not set"
+                : "Date Added: " + product.getDateAdded());
 
         // ✅ Open Date Picker when item is clicked
         holder.itemView.setOnClickListener(v -> showDatePicker(holder, product));
