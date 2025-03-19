@@ -15,6 +15,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
 
+import java.time.LocalDate;
 import java.util.Calendar;
 import java.util.UUID;
 
@@ -81,17 +82,33 @@ public class AddManualProductDialogFragment extends DialogFragment {
     }
 
     private void showDatePickerDialog() {
-        Calendar calendar = Calendar.getInstance();
+        Calendar calendar = Calendar.getInstance(); // Get current date
         DatePickerDialog datePickerDialog = new DatePickerDialog(
                 requireContext(),
                 (view, year, month, dayOfMonth) -> {
-                    selectedExpiryDate = dayOfMonth + "/" + (month + 1) + "/" + year;
-                    btnExpiryDate.setText("Expiry Date: " + selectedExpiryDate);
+                    // Convert selected date to LocalDate
+                    LocalDate selectedDate = LocalDate.of(year, month + 1, dayOfMonth);
+
+                    // Get today's date
+                    LocalDate today = LocalDate.now();
+
+                    // ✅ Check if expiry date is before today
+                    if (selectedDate.isBefore(today)) {
+                        Toast.makeText(getContext(), "Expiry date cannot be before today's date!", Toast.LENGTH_SHORT).show();
+                    } else {
+                        selectedExpiryDate = dayOfMonth + "/" + (month + 1) + "/" + year;
+                        btnExpiryDate.setText("Expiry Date: " + selectedExpiryDate);
+                    }
                 },
                 calendar.get(Calendar.YEAR),
                 calendar.get(Calendar.MONTH),
                 calendar.get(Calendar.DAY_OF_MONTH)
         );
+
+        // ✅ Prevent selecting past dates
+        datePickerDialog.getDatePicker().setMinDate(System.currentTimeMillis() - 1000);
+
         datePickerDialog.show();
     }
+
 }
