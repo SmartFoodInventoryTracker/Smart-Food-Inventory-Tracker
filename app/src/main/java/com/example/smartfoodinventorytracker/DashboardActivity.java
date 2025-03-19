@@ -33,6 +33,8 @@ public class DashboardActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dashboard);
 
+        NotificationHelper notificationHelper = new NotificationHelper(this, true); // ✅ Start expiry checks
+
         // ✅ Initialize Firebase
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();

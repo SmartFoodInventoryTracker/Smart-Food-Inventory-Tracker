@@ -8,6 +8,8 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.Build;
+
+import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
@@ -15,6 +17,14 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import java.util.HashMap;
 import java.util.Map;
+import androidx.work.WorkManager;
+import androidx.work.PeriodicWorkRequest;
+import androidx.work.ExistingPeriodicWorkPolicy;
+import androidx.work.WorkRequest;
+import androidx.work.Worker;
+import androidx.work.WorkerParameters;
+
+import java.util.concurrent.TimeUnit;
 
 public class NotificationHelper {
 
@@ -28,10 +38,40 @@ public class NotificationHelper {
     private final Context context;
     private final DatabaseReference databaseRef;
 
-    public NotificationHelper(Context context) {
+    public NotificationHelper(Context context, boolean startExpiryCheck) {
         this.context = context;
         this.databaseRef = FirebaseDatabase.getInstance().getReference("notifications");
         createNotificationChannel();
+
+        if (startExpiryCheck) {
+            scheduleExpiryNotificationCheck(); // ✅ Only start expiry checks when requested
+        }
+    }
+
+    public void scheduleExpiryNotificationCheck() {
+        WorkRequest workRequest = new PeriodicWorkRequest.Builder(
+                ExpiryWorker.class, // ✅ Create this worker inside NotificationHelper (Step 3)
+                15, TimeUnit.MINUTES) // ✅ Android enforces a minimum of 15 minutes for periodic tasks
+                .build();
+
+        WorkManager.getInstance(context).enqueueUniquePeriodicWork(
+                "ExpiryNotificationWorker",
+                ExistingPeriodicWorkPolicy.UPDATE,
+                (PeriodicWorkRequest) workRequest
+        );
+    }
+    public static class ExpiryWorker extends Worker {
+        public ExpiryWorker(@NonNull Context context, @NonNull WorkerParameters workerParams) {
+            super(context, workerParams);
+        }
+
+        @NonNull
+        @Override
+        public Result doWork() {
+            NotificationHelper notificationHelper = new NotificationHelper(getApplicationContext(), true); // ✅ Start expiry check
+            DatabaseHelper.checkExpiryNotifications(notificationHelper); // ✅ Run expiry check
+            return Result.success();
+        }
     }
 
     private void createNotificationChannel() {

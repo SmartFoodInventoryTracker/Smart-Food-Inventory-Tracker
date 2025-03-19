@@ -42,7 +42,7 @@ public class NotificationCenter extends AppCompatActivity {
         setUpToolbar();
 
         // UI Initialization
-        notificationHelper = new NotificationHelper(this);
+        notificationHelper = new NotificationHelper(this, false); // Prevent immediate expiry check
         notificationListView = findViewById(R.id.Notification_ListView);
 
         // Initialize ListView
@@ -55,13 +55,6 @@ public class NotificationCenter extends AppCompatActivity {
         DatabaseHelper.listenToInventoryChanges(this, notificationHelper);
 
         // Fetch Notifications
-        loadNotifications();
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        DatabaseHelper.checkExpiryNotifications(notificationHelper); // ✅ Trigger expiry check every time Notification Center is opened
         loadNotifications();
     }
 
