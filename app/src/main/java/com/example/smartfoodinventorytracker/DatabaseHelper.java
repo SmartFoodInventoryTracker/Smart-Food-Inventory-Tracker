@@ -7,6 +7,10 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,6 +18,7 @@ public class DatabaseHelper {
 
     private static final DatabaseReference notificationsRef = FirebaseDatabase.getInstance().getReference("notifications");
     private static final DatabaseReference inventoryRef = FirebaseDatabase.getInstance().getReference("inventory");
+    private static final DatabaseReference inventoryProdRef = FirebaseDatabase.getInstance().getReference("inventory_product");
 
     private static Long lastTemperature = null;
     private static Long lastHumidity = null;
@@ -38,7 +43,11 @@ public class DatabaseHelper {
                     Long timestamp = snapshot.child("timestamp").getValue(Long.class);
 
                     if (message != null && timestamp != null) {
-                        notifications.add(new NotificationItem("Fridge Alert ⚠️", message, timestamp));
+                        // ✅ Use constants from NotificationHelper for clarity
+                        String title = message.contains("expires")
+                                ? NotificationHelper.EXPIRY_ALERT_TITLE
+                                : NotificationHelper.FRIDGE_ALERT_TITLE;
+                        notifications.add(new NotificationItem(title, message, timestamp));
                     }
                 }
 
@@ -46,9 +55,7 @@ public class DatabaseHelper {
             }
 
             @Override
-            public void onCancelled(DatabaseError error) {
-                Log.e("DatabaseHelper", "Error fetching notifications", error.toException());
-            }
+            public void onCancelled(DatabaseError error) {}
         });
     }
 
@@ -158,4 +165,38 @@ public class DatabaseHelper {
             return timestamp;
         }
     }
+
+    public static void checkExpiryNotifications(NotificationHelper notificationHelper) {
+        inventoryProdRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                LocalDate today = LocalDate.now();
+
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    Product product = snapshot.getValue(Product.class);
+                    if (product == null || product.getExpiryDate() == null || product.getExpiryDate().equals("Not set")) {
+                        continue; // Skip invalid products
+                    }
+
+                    // Parse expiry date
+                    String expiryDate = product.getExpiryDate();
+                    try {
+                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d/M/yyyy");
+                        LocalDate expiry = LocalDate.parse(expiryDate, formatter);
+                        long daysLeft = ChronoUnit.DAYS.between(today, expiry);
+
+                        if (daysLeft >= 0 && daysLeft <= 7) {
+                            notificationHelper.sendExpiryNotification(product.getName(), daysLeft);
+                        }
+                    } catch (Exception ignored) {}
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {}
+        });
+    }
+
+
+
 }

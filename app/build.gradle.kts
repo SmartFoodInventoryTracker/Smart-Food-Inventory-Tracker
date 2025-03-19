@@ -76,4 +76,6 @@ dependencies {
     // Volley for API calls (Open Food Facts)
     implementation("com.android.volley:volley:1.2.1")
 
+    implementation("androidx.work:work-runtime:2.8.1")
+
 }

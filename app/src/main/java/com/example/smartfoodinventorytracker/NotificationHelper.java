@@ -18,6 +18,10 @@ import java.util.Map;
 
 public class NotificationHelper {
 
+    // ✅ Define public static variables for notification titles
+    public static final String FRIDGE_ALERT_TITLE = "Fridge Alert ❄️";
+    public static final String EXPIRY_ALERT_TITLE = "Food Expiry 🥛";
+
     private static final String CHANNEL_ID = "CHANNEL_ID_NOTIFICATION";
     private static final String CHANNEL_NAME = "Smart Food Alerts";
     private static final String CHANNEL_DESCRIPTION = "Notifications for fridge and inventory alerts";
@@ -66,7 +70,7 @@ public class NotificationHelper {
                 .setContentIntent(pendingIntent);
 
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
-        notificationManager.notify(0, builder.build());
+        notificationManager.notify((int) System.currentTimeMillis(), builder.build());
     }
 
     private void storeNotificationInFirebase(String title, String message) {
@@ -74,6 +78,8 @@ public class NotificationHelper {
         Map<String, Object> notificationData = new HashMap<>();
         notificationData.put("timestamp", System.currentTimeMillis() / 1000);
         notificationData.put("message", message);
+        notificationData.put("title", title); // ✅ Store correct title in Firebase
+
         if (notificationId != null) {
             databaseRef.child(notificationId).setValue(notificationData);
         }
@@ -92,19 +98,33 @@ public class NotificationHelper {
             case "CO Level":
             case "LPG Level":
             case "Smoke Level":
-                unit = " ppm"; // ✅ Set correct unit for gases
+                unit = " ppm";
                 break;
             default:
                 unit = "";
         }
 
+        // ✅ Use FRIDGE_ALERT_TITLE instead of hardcoded string
         sendNotification(
-                "Fridge Alert ⚠️",
+                FRIDGE_ALERT_TITLE,
                 type + " changed! Current: " + value + unit,
                 FridgeConditions.class,
                 ""
         );
     }
 
+    public void sendExpiryNotification(String productName, long daysLeft) {
+        String message;
 
+        if (daysLeft == 0) {
+            message = productName + " expires today! Use it before it's too late.";
+        } else if (daysLeft == 1) {
+            message = productName + " expires tomorrow! Don't forget to use it.";
+        } else {
+            message = productName + " expires in " + daysLeft + " days! Consume it soon.";
+        }
+
+        // ✅ Use EXPIRY_ALERT_TITLE instead of hardcoded string
+        sendNotification(EXPIRY_ALERT_TITLE, message, InventoryActivity.class, productName);
+    }
 }
