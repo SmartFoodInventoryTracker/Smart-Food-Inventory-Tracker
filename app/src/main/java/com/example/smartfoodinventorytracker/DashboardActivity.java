@@ -34,6 +34,7 @@ public class DashboardActivity extends AppCompatActivity {
         setContentView(R.layout.activity_dashboard);
 
         NotificationHelper notificationHelper = new NotificationHelper(this, true); // ✅ Start expiry checks
+        notificationHelper.startFridgeMonitoringService(); // ✅ Keep monitoring fridge conditions
 
         // ✅ Initialize Firebase
         mAuth = FirebaseAuth.getInstance();

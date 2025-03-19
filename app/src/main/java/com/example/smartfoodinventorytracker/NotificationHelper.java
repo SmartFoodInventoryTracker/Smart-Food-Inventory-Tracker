@@ -23,6 +23,7 @@ import androidx.work.ExistingPeriodicWorkPolicy;
 import androidx.work.WorkRequest;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
+import android.content.SharedPreferences;
 
 import java.util.concurrent.TimeUnit;
 
@@ -37,6 +38,7 @@ public class NotificationHelper {
     private static final String CHANNEL_DESCRIPTION = "Notifications for fridge and inventory alerts";
     private final Context context;
     private final DatabaseReference databaseRef;
+    private static final String PREFS_NAME = "NotificationPrefs";
 
     public NotificationHelper(Context context, boolean startExpiryCheck) {
         this.context = context;
@@ -44,7 +46,7 @@ public class NotificationHelper {
         createNotificationChannel();
 
         if (startExpiryCheck) {
-            scheduleExpiryNotificationCheck(); // ✅ Only start expiry checks when requested
+            scheduleExpiryNotificationCheck(); // ✅ Only starts expiry checks when needed
         }
     }
 
@@ -74,6 +76,16 @@ public class NotificationHelper {
         }
     }
 
+    public void startFridgeMonitoringService() {
+        Intent serviceIntent = new Intent(context, FridgeMonitoringService.class);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            context.startForegroundService(serviceIntent); // ✅ Required for Android 8+
+        } else {
+            context.startService(serviceIntent);
+        }
+    }
+
+
     private void createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
@@ -89,7 +101,13 @@ public class NotificationHelper {
     }
 
     public void sendNotification(String title, String message, Class<?> targetActivity, String data) {
+        // ✅ Check if this notification was already sent
+        if (isNotificationAlreadySent(title, message)) {
+            return; // ✅ Prevent duplicate notifications
+        }
+
         storeNotificationInFirebase(title, message);
+        saveSentNotification(title, message); // ✅ Track the notification
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
                 ActivityCompat.checkSelfPermission(context, android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
@@ -111,6 +129,22 @@ public class NotificationHelper {
 
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
         notificationManager.notify((int) System.currentTimeMillis(), builder.build());
+    }
+
+    // ✅ Check if a notification was already sent
+    private boolean isNotificationAlreadySent(String title, String message) {
+        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        String key = title + "_" + message;
+        return prefs.getBoolean(key, false);
+    }
+
+    // ✅ Mark a notification as sent
+    private void saveSentNotification(String title, String message) {
+        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        String key = title + "_" + message;
+        editor.putBoolean(key, true);
+        editor.apply();
     }
 
     private void storeNotificationInFirebase(String title, String message) {
