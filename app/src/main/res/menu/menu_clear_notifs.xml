@@ -3,6 +3,9 @@
     xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
+        android:icon="@drawable/ic_menu"
+        android:title="Fridge/Inventory" />
+    <item
         android:id="@+id/clear_notifs"
         android:icon="@android:drawable/ic_menu_delete"
         android:title="Clear notifications"
