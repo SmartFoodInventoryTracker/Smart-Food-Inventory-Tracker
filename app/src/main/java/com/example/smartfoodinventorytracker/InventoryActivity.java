@@ -30,6 +30,7 @@ import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -46,7 +47,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-public class InventoryActivity extends AppCompatActivity {
+public class InventoryActivity extends AppCompatActivity
+        implements AddProductDialogFragment.AddProductDialogListener,
+        AddManualProductDialogFragment.ManualProductListener {
     private RecyclerView inventoryRecyclerView;
     private DatabaseReference databaseReference;
     private InventoryAdapter inventoryAdapter;
@@ -111,6 +114,11 @@ public class InventoryActivity extends AppCompatActivity {
         ascended.setChecked(true);
         descended.setChecked(false);
 
+        FloatingActionButton fabAddProduct = findViewById(R.id.fab_add_product);
+        fabAddProduct.setOnClickListener(v -> {
+            AddProductDialogFragment dialog = new AddProductDialogFragment();
+            dialog.show(getSupportFragmentManager(), "AddProductDialog");
+        });
 
 
         addButton.setOnClickListener(new View.OnClickListener() {
@@ -384,6 +392,18 @@ public class InventoryActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    public void onAddManually() {
+        AddManualProductDialogFragment manualDialog = new AddManualProductDialogFragment();
+        manualDialog.show(getSupportFragmentManager(), "ManualProductDialog");
+    }
+
+    @Override
+    public void onScanBarcode() {
+        Intent intent = new Intent(this, BarcodeScannerActivity.class);
+        startActivityForResult(intent, 1);
+    }
+
 
     private void fetchProductData(String barcode) {
         String url = "https://world.openfoodfacts.org/api/v0/product/" + barcode + ".json";
@@ -454,6 +474,18 @@ public class InventoryActivity extends AppCompatActivity {
                 Log.e("Firebase", "Error fetching data", error.toException());
             }
         });
+    }
+
+    @Override
+    public void onProductAdded(Product product) {
+        // ✅ Save to Firebase
+        databaseReference.child(product.getBarcode()).setValue(product)
+                .addOnSuccessListener(aVoid -> {
+                    Toast.makeText(this, "Product added successfully!", Toast.LENGTH_SHORT).show();
+                    productList.add(product);
+                    inventoryAdapter.notifyDataSetChanged();  // Refresh RecyclerView
+                })
+                .addOnFailureListener(e -> Toast.makeText(this, "Failed to add product", Toast.LENGTH_SHORT).show());
     }
 
 }

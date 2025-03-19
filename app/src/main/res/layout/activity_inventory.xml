@@ -108,6 +108,21 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/toolbar" />
 
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab_add_product"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:src="@drawable/ic_add"
+        app:backgroundTint="@color/blue"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.98"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/toolbar"
+        app:layout_constraintVertical_bias="0.979" />
+
     <com.google.android.material.navigation.NavigationView
         android:id="@+id/sort_nav"
         android:layout_width="193dp"
@@ -234,6 +249,8 @@
         </LinearLayout>
 
     </com.google.android.material.navigation.NavigationView>
+
+
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
