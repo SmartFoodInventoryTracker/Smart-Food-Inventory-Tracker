@@ -13,7 +13,12 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+
+import androidx.appcompat.view.menu.MenuBuilder;
+import androidx.appcompat.view.menu.MenuPopupHelper;
 import androidx.appcompat.widget.SearchView;
+
+import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -41,6 +46,8 @@ import com.google.firebase.database.ValueEventListener;
 
 import org.json.JSONObject;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -56,7 +63,6 @@ public class InventoryActivity extends AppCompatActivity
     private InventoryAdapter inventoryAdapter;
     private List<Product> productList = new ArrayList<>();
     private RequestQueue requestQueue; // For API calls
-    private ImageButton addButton;
     private ImageButton sortButton;
     private NavigationView infonav;
     private NavigationView sortnav;
@@ -74,6 +80,7 @@ public class InventoryActivity extends AppCompatActivity
     private Button dateadded;
     private CheckBox ascended;
     private  CheckBox descended;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -95,7 +102,6 @@ public class InventoryActivity extends AppCompatActivity
         inventoryAdapter = new InventoryAdapter(productList);
         inventoryRecyclerView.setAdapter(inventoryAdapter);
 
-        addButton = findViewById(R.id.addbutton);
         infonav = findViewById(R.id.info_nav);
         donebutton = findViewById(R.id.donebutton);
         cancelbutton = findViewById(R.id.cancelbutton);
@@ -122,7 +128,12 @@ public class InventoryActivity extends AppCompatActivity
         });
 
         SearchView searchView = findViewById(R.id.searchView);
-        Button filterButton = findViewById(R.id.btn_filter);
+        ImageButton filterButton = findViewById(R.id.btn_filter);
+
+        searchView.setQuery("", false); // Clear any previous input
+        searchView.clearFocus(); // Remove focus to hide blinking cursor
+        searchView.setQueryHint("Search for a product"); //  Always show the hint
+
 
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
@@ -143,45 +154,28 @@ public class InventoryActivity extends AppCompatActivity
 
         // Handle Filter Button Click (just for now, no sorting logic yet)
         filterButton.setOnClickListener(v -> {
-            Toast.makeText(InventoryActivity.this, "Filter button clicked!", Toast.LENGTH_SHORT).show();
-        });
+            PopupMenu popup = new PopupMenu(InventoryActivity.this, v);
+            popup.getMenuInflater().inflate(R.menu.sort_menu, popup.getMenu());
 
+            try {
+                Field popupField = popup.getClass().getDeclaredField("mPopup");
+                popupField.setAccessible(true);
+                Object menuPopupHelper = popupField.get(popup);
+                Class<?> classPopupHelper = Class.forName(menuPopupHelper.getClass().getName());
+                Method setForceIcons = classPopupHelper.getMethod("setForceShowIcon", boolean.class);
+                setForceIcons.invoke(menuPopupHelper, true);
 
-        addButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-              if(infonav.getVisibility()==View.GONE)
-              {
-                  infonav.setVisibility(View.VISIBLE);
-                  sortnav.setVisibility(View.GONE);
-              }
+                // ✅ Apply Custom Background
+                View popupView = ((View) menuPopupHelper.getClass().getMethod("getPopup").invoke(menuPopupHelper));
+                popupView.setBackgroundResource(R.drawable.popup_background);
 
+            } catch (Exception e) {
+                e.printStackTrace();
             }
+
+            popup.show();
         });
 
-        donebutton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String name_s = name.getText().toString();
-                String brand_s = brand.getText().toString();
-                String year_s = year.getText().toString();
-                String month_s = month.getText().toString();
-                String day_s = day.getText().toString();
-                List<String> date_ = List.of(year_s,month_s,day_s);
-                ClearTextValue();
-                AddProduct(name_s, brand_s, date_);
-                infonav.setVisibility(View.GONE);
-            }
-        });
-
-        cancelbutton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                remove_add();
-
-
-            }
-        });
 
         sortButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -332,18 +326,6 @@ public class InventoryActivity extends AppCompatActivity
         }
 
         toolbar.setNavigationOnClickListener(v -> finish());
-
-        // Handle barcode scanner button click
-        ImageView barcodeScannerButton = findViewById(R.id.barcodeLogo);
-
-        barcodeScannerButton.setOnClickListener(v -> {
-            remove_add();
-            remove_sort();
-            Log.d("BarcodeScanner", "Barcode button clicked");  // ✅ Debugging Log
-            Intent intent = new Intent(InventoryActivity.this, BarcodeScannerActivity.class);
-            startActivityForResult(intent, 1);  // ✅ Use startActivityForResult() instead of startActivity()
-        });
-
 
     }
 

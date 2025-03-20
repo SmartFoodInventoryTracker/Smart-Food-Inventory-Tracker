@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/sort_expiry_asc"
+        android:title="Expiry Date (Oldest First)"
+        android:icon="@drawable/expiry_ascending"
+        android:textAppearance="@style/PopupMenuTextStyle"/>
+
+    <item
+        android:id="@+id/sort_expiry_desc"
+        android:title="Expiry Date (Newest First)"
+        android:icon="@drawable/expiry_descending"
+        android:textAppearance="@style/PopupMenuTextStyle"/>
+
+    <item
+        android:id="@+id/sort_date_added_asc"
+        android:title="Date Added (Oldest First)"
+        android:icon="@drawable/date_added_ascending"
+        android:textAppearance="@style/PopupMenuTextStyle"/>
+
+    <item
+        android:id="@+id/sort_date_added_desc"
+        android:title="Date Added (Newest First)"
+        android:icon="@drawable/date_added_descending"
+        android:textAppearance="@style/PopupMenuTextStyle"/>
+</menu>
