@@ -1,13 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:android="http://schemas.android.com/apk/res/android">
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <item
-        android:icon="@drawable/ic_menu"
-        android:title="Fridge/Inventory" />
     <item
         android:id="@+id/clear_notifs"
         android:icon="@android:drawable/ic_menu_delete"
         android:title="Clear notifications"
         app:showAsAction="ifRoom|withText" />
+    <item
+        android:id="@+id/filter_all"
+        android:title="🔔 All Notifications"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/filter_fridge"
+        android:title=" 🚨 Fridge Alerts only"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/filter_inventory"
+        android:title="🍏 Inventory Alerts only"
+        app:showAsAction="never" />
+
 </menu>

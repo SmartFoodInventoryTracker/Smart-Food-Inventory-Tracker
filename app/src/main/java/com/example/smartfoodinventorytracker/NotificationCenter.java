@@ -4,7 +4,9 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.text.Html;
+import android.text.SpannableString;
 import android.text.format.DateUtils;
+import android.text.style.ForegroundColorSpan;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -75,17 +77,55 @@ public class NotificationCenter extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_clear_notifs, menu);
+
+        // Change text color dynamically
+        for (int i = 0; i < menu.size(); i++) {
+            MenuItem item = menu.getItem(i);
+            SpannableString spanString = new SpannableString(item.getTitle());
+            spanString.setSpan(new ForegroundColorSpan(Color.BLACK), 0, spanString.length(), 0);
+            item.setTitle(spanString);
+        }
+
         return true;
     }
 
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.clear_notifs) {
+        int id = item.getItemId();
+
+        if (id == R.id.clear_notifs) {
             clearAllNotifications();
             return true;
+        } else if (id == R.id.filter_all) {
+            loadNotifications(); // Show all notifications
+            return true;
+        } else if (id == R.id.filter_fridge) {
+            loadFilteredNotifications("Fridge Alert");
+            return true;
+        } else if (id == R.id.filter_inventory) {
+            loadFilteredNotifications("Inventory");
+            return true;
         }
+
         return super.onOptionsItemSelected(item);
     }
+
+    private void loadFilteredNotifications(String filterType) {
+        DatabaseHelper.fetchNotifications(notifications -> {
+            notificationList.clear();
+
+            // Filter notifications by type
+            for (DatabaseHelper.NotificationItem notification : notifications) {
+                if (notification.getTitle().contains(filterType)) {
+                    notificationList.add(notification);
+                }
+            }
+
+            adapter.notifyDataSetChanged();
+        });
+    }
+
 
     private void clearAllNotifications() {
         new androidx.appcompat.app.AlertDialog.Builder(this)

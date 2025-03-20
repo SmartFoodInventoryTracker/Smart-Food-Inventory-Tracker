@@ -36,7 +36,7 @@ public class NotificationHelper {
 
     // ✅ Define public static variables for notification titles
     public static final String FRIDGE_ALERT_TITLE = "Fridge Alert 🚨";
-    public static final String EXPIRY_ALERT_TITLE = "Food Expiry 🍏";
+    public static final String EXPIRY_ALERT_TITLE = "Inventory Alert 🍏";
 
     private static final String CHANNEL_ID = "CHANNEL_ID_NOTIFICATION";
     private static final String CHANNEL_NAME = "Smart Food Alerts";
