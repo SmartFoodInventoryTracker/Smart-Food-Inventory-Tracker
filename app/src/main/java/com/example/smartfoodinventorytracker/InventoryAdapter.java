@@ -3,6 +3,7 @@ package com.example.smartfoodinventorytracker;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,17 +16,34 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
 public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.ViewHolder> {
     private List<Product> itemList;
+    private List<Product> originalList;
     private DatabaseReference databaseReference;
 
     public InventoryAdapter(List<Product> itemList) {
-        this.itemList = itemList;
+        this.itemList = new ArrayList<>(itemList); // Current displayed list
+        this.originalList = new ArrayList<>(itemList); // Full original list
         this.databaseReference = FirebaseDatabase.getInstance().getReference("inventory_product"); // ✅ Connect to Firebase
     }
+
+    public void updateList(List<Product> newList) {
+        Log.d("Adapter", "Updating list with " + newList.size() + " items"); // ✅ Debugging log
+
+        itemList.clear();
+        itemList.addAll(newList);
+
+        originalList.clear();  // ✅ Ensure original list is updated
+        originalList.addAll(newList);
+
+        notifyDataSetChanged();
+    }
+
+
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView name, brand, barcode, expiryDate, DateAdded_h;
@@ -53,19 +71,15 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.View
         holder.name.setText(product.getName());
         holder.brand.setText("Brand: " + product.getBrand());
 
-        // ✅ Show expiry date or "Not set" if missing
-        if (product.getExpiryDate() == null || product.getExpiryDate().isEmpty()) {
-            holder.expiryDate.setText("Expiry Date: Not set");
-        } else {
-            holder.expiryDate.setText("Expiry Date: " + product.getExpiryDate());
-        }
+        // ✅ Show Expiry Date
+        holder.expiryDate.setText(product.getExpiryDate() == null || product.getExpiryDate().isEmpty()
+                ? "Expiry Date: Not set"
+                : "Expiry Date: " + product.getExpiryDate());
 
-
-        if (product.getDateAdded() == null || product.getDateAdded().isEmpty()) {
-            holder.DateAdded_h.setText("Date Added: Not set");
-        } else {
-            holder.DateAdded_h.setText("Date Added: " + product.getDateAdded());
-        }
+        // ✅ Show Correct "Date Added"
+        holder.DateAdded_h.setText(product.getDateAdded() == null || product.getDateAdded().isEmpty()
+                ? "Date Added: Not set"
+                : "Date Added: " + product.getDateAdded());
 
         // ✅ Open Date Picker when item is clicked
         holder.itemView.setOnClickListener(v -> showDatePicker(holder, product));
@@ -123,6 +137,26 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.View
 
         datePickerDialog.show();
     }
+
+    public void filter(String query) {
+        itemList.clear();
+        Log.d("Search", "Filtering for: " + query);  // ✅ Debugging log
+        Log.d("Search", "Original list size: " + originalList.size());  // ✅ Check if originalList has data
+
+        if (query.isEmpty()) {
+            itemList.addAll(originalList);  // Reset to full list
+        } else {
+            for (Product product : originalList) {
+                if (product.getName().toLowerCase().contains(query.toLowerCase())) {
+                    itemList.add(product);
+                }
+            }
+        }
+
+        Log.d("Search", "Items after filtering: " + itemList.size()); // ✅ Log filtered items
+        notifyDataSetChanged();
+    }
+
 
 
     @Override
