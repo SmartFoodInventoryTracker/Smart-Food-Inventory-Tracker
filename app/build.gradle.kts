@@ -61,13 +61,10 @@ dependencies {
     //  Firebase Realtime Database
     implementation("com.google.firebase:firebase-database")
 
-<<<<<<< HEAD
     // For SpeedView gauges:
     implementation("com.github.anastr:speedviewlib:1.6.1")
 
 
-    }
-=======
     // Google ML Kit Barcode Scanning
     implementation("com.google.mlkit:barcode-scanning:17.2.0")
 
@@ -84,4 +81,4 @@ dependencies {
     implementation("com.android.volley:volley:1.2.1")
 
 }
->>>>>>> 53aeb98ac8ce318581c88d6b65ec50b2daf914a0
+
