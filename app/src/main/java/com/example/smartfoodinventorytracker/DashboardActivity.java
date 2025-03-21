@@ -1,13 +1,9 @@
 package com.example.smartfoodinventorytracker;
 
-import static com.example.smartfoodinventorytracker.R.id.fridgeConditionButton;
-
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.view.MenuItem;
-import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -96,7 +92,7 @@ public class DashboardActivity extends AppCompatActivity {
                 Toast.makeText(this, "Dashboard", Toast.LENGTH_SHORT).show();
             } else if (id == R.id.nav_inventory) {
                 Toast.makeText(this, "Inventory", Toast.LENGTH_SHORT).show();
-                startActivity(new Intent(this, Inventory.class));
+                startActivity(new Intent(this, InventoryActivity.class));
             } else if (id == R.id.nav_shopping_lists) {
                 Toast.makeText(this, "Shopping Lists", Toast.LENGTH_SHORT).show();
                 startActivity(new Intent(this, ShoppingList.class));
@@ -175,7 +171,7 @@ public class DashboardActivity extends AppCompatActivity {
 
     private void goToInventory() {
         Toast.makeText(this, "Inventory Clicked", Toast.LENGTH_SHORT).show();
-        Intent intent = new Intent(this, Inventory.class);
+        Intent intent = new Intent(this, InventoryActivity.class);
         startActivity(intent);
     }
 
