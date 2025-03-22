@@ -405,7 +405,16 @@ public class InventoryActivity extends AppCompatActivity
                             String productName = product.optString("product_name", "Unknown Product");
                             String brand = product.optString("brands", "Unknown Brand");
 
-                            saveProductToFirebase(barcode, productName, brand);
+                            // ✅ Correctly fetch the image URL
+                            String imageUrl = product.optString("image_url", null);
+                            if (imageUrl == null || imageUrl.isEmpty()) {
+                                Log.w("ProductImage", "No image URL found for barcode: " + barcode);
+                            } else {
+                                Log.d("ProductImage", "Fetched image URL: " + imageUrl);
+                            }
+
+                            // ✅ Pass image URL to Firebase
+                            saveProductToFirebase(barcode, productName, brand, imageUrl);
                         } else {
                             Toast.makeText(this, "Product not found", Toast.LENGTH_SHORT).show();
                         }
@@ -419,12 +428,18 @@ public class InventoryActivity extends AppCompatActivity
         requestQueue.add(request);
     }
 
-    private void saveProductToFirebase(String barcode, String name, String brand) {
+    private void saveProductToFirebase(String barcode, String name, String brand, String imageUrl) {
 
         Product product = new Product(barcode, name, brand);
+
+        if (imageUrl != null && !imageUrl.isEmpty()) {
+            product.setImageUrl(imageUrl);
+        }
+
         LocalDate currentDate = LocalDate.now();
         String formattedDate = currentDate.format(DateTimeFormatter.ofPattern("d/M/yyyy"));
         product.setDateAdded(formattedDate);
+
         databaseReference.child(barcode).setValue(product)
                 .addOnSuccessListener(aVoid -> {
                     Toast.makeText(this, "Product added to inventory!", Toast.LENGTH_SHORT).show();

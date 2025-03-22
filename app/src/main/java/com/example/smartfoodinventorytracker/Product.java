@@ -10,6 +10,8 @@ public class Product {
     public String expiryDate;
     public String dateAdded;
     public int Quantity;
+    private String imageUrl;
+
     // Required empty constructor for Firebase
     public Product() {}
 
@@ -66,6 +68,7 @@ public class Product {
 
 
     public String getDateAdded() {
+
         return this.dateAdded;
     }
 
@@ -77,4 +80,13 @@ public class Product {
         this.expiryDate_info = new DateInfo(dateParts);*/
         this.dateAdded = dateAdded;
     }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
 }

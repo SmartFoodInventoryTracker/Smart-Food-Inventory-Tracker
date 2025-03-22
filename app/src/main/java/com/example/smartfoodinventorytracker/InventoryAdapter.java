@@ -7,12 +7,14 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
@@ -56,6 +58,7 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.View
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView name, brand, barcode, expiryDate, DateAdded_h;
+        ImageView productImage;
 
         public ViewHolder(View itemView) {
             super(itemView);
@@ -64,6 +67,7 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.View
             barcode = itemView.findViewById(R.id.productBarcode);
             expiryDate = itemView.findViewById(R.id.productExpiryDate);
             DateAdded_h = itemView.findViewById(R.id.prodcutDateAdded);
+            productImage = itemView.findViewById(R.id.productImage);
         }
     }
 
@@ -92,6 +96,22 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.View
 
         // ✅ Open Date Picker when item is clicked
         holder.itemView.setOnClickListener(v -> showDatePicker(holder, product));
+
+        String imageUrl = product.getImageUrl();
+
+        if (imageUrl != null && !imageUrl.isEmpty()) {
+            Log.d("GlideImage", "Loading image from: " + imageUrl);
+            Glide.with(holder.itemView.getContext())
+                    .load(imageUrl)
+                    .placeholder(R.drawable.placeholder_image)
+                    .error(R.drawable.placeholder_image)
+                    .into(holder.productImage);
+        } else {
+            Log.w("GlideImage", "Image URL is null or empty, using placeholder.");
+            holder.productImage.setImageResource(R.drawable.placeholder_image);
+        }
+
+
 
 
         holder.itemView.setOnLongClickListener(v -> {
