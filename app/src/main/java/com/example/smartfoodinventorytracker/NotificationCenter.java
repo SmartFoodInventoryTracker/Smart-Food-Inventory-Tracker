@@ -39,9 +39,9 @@ public class NotificationCenter extends AppCompatActivity {
 
     private NotificationAdapter adapter;
     private RecyclerView recyclerView;
-    private SwipeRefreshLayout swipeRefreshLayout;
     private List<DatabaseHelper.NotificationItem> notificationList = new ArrayList<>();
     private NotificationHelper notificationHelper;
+    private String currentFilter = null; // null means "All"
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,13 +64,6 @@ public class NotificationCenter extends AppCompatActivity {
         adapter = new NotificationAdapter(notificationList);
         recyclerView.setAdapter(adapter);
 
-        swipeRefreshLayout = findViewById(R.id.swipeRefresh);
-        swipeRefreshLayout.setOnRefreshListener(this::loadNotifications);
-
-        setupSwipeToDelete();
-        DatabaseHelper.listenForNotificationUpdates(this::loadNotifications);
-        DatabaseHelper.listenToInventoryChanges(this, notificationHelper);
-
         loadNotifications();
     }
 
@@ -78,12 +71,28 @@ public class NotificationCenter extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_clear_notifs, menu);
 
-        // Change text color dynamically
         for (int i = 0; i < menu.size(); i++) {
             MenuItem item = menu.getItem(i);
-            SpannableString spanString = new SpannableString(item.getTitle());
-            spanString.setSpan(new ForegroundColorSpan(Color.BLACK), 0, spanString.length(), 0);
-            item.setTitle(spanString);
+
+            // Force black text for top-level items
+            if (item.getTitle() != null) {
+                SpannableString spanString = new SpannableString(item.getTitle());
+                spanString.setSpan(new ForegroundColorSpan(Color.BLACK), 0, spanString.length(), 0);
+                item.setTitle(spanString);
+            }
+
+            // If this item has a submenu (like your filter)
+            if (item.hasSubMenu()) {
+                android.view.SubMenu subMenu = item.getSubMenu();
+                for (int j = 0; j < subMenu.size(); j++) {
+                    MenuItem subItem = subMenu.getItem(j);
+                    if (subItem.getTitle() != null) {
+                        SpannableString spanString = new SpannableString(subItem.getTitle());
+                        spanString.setSpan(new ForegroundColorSpan(Color.BLACK), 0, spanString.length(), 0);
+                        subItem.setTitle(spanString);
+                    }
+                }
+            }
         }
 
         return true;
@@ -112,16 +121,17 @@ public class NotificationCenter extends AppCompatActivity {
     }
 
     private void loadFilteredNotifications(String filterType) {
+        currentFilter = filterType;
         DatabaseHelper.fetchNotifications(notifications -> {
             notificationList.clear();
 
-            // Filter notifications by type
             for (DatabaseHelper.NotificationItem notification : notifications) {
                 if (notification.getTitle().contains(filterType)) {
                     notificationList.add(notification);
                 }
             }
 
+            Collections.sort(notificationList, (a, b) -> Long.compare(b.getTimestamp(), a.getTimestamp()));
             adapter.notifyDataSetChanged();
         });
     }
@@ -142,31 +152,13 @@ public class NotificationCenter extends AppCompatActivity {
     }
 
     private void loadNotifications() {
+        currentFilter = null;
         DatabaseHelper.fetchNotifications(notifications -> {
             notificationList.clear();
             Collections.sort(notifications, (a, b) -> Long.compare(b.getTimestamp(), a.getTimestamp()));
             notificationList.addAll(notifications);
             adapter.notifyDataSetChanged();
-            swipeRefreshLayout.setRefreshing(false);
         });
-    }
-
-    private void setupSwipeToDelete() {
-        ItemTouchHelper.SimpleCallback simpleCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
-            @Override
-            public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
-                return false;
-            }
-
-            @Override
-            public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
-                int position = viewHolder.getAdapterPosition();
-                notificationList.remove(position);
-                adapter.notifyItemRemoved(position);
-                Toast.makeText(NotificationCenter.this, "Notification deleted", Toast.LENGTH_SHORT).show();
-            }
-        };
-        new ItemTouchHelper(simpleCallback).attachToRecyclerView(recyclerView);
     }
 
     private void setUpToolbar() {

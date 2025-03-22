@@ -8,17 +8,21 @@
         android:title="Clear notifications"
         app:showAsAction="ifRoom|withText" />
     <item
-        android:id="@+id/filter_all"
-        android:title="🔔 All Notifications"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/filter_fridge"
-        android:title=" 🚨 Fridge Alerts only"
-        app:showAsAction="never" />
-
-    <item
-        android:id="@+id/filter_inventory"
-        android:title="🍏 Inventory Alerts only"
-        app:showAsAction="never" />
+        android:id="@+id/filter_menu"
+        android:icon="@drawable/filter"
+        android:title="Filter"
+        app:showAsAction="always">
+        <menu>
+            <item
+                android:id="@+id/filter_all"
+                android:title="🔔 All Notifications" />
+            <item
+                android:id="@+id/filter_fridge"
+                android:title="🚨 Fridge Alerts" />
+            <item
+                android:id="@+id/filter_inventory"
+                android:title="🍏 Inventory Alerts" />
+        </menu>
+    </item>
 
 </menu>
