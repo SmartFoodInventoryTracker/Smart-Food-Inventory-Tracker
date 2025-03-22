@@ -7,12 +7,19 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+
+import androidx.appcompat.view.menu.MenuBuilder;
+import androidx.appcompat.view.menu.MenuPopupHelper;
+import androidx.appcompat.widget.SearchView;
+
+import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -30,6 +37,7 @@ import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -39,6 +47,8 @@ import com.google.firebase.database.ValueEventListener;
 
 import org.json.JSONObject;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -46,30 +56,18 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-public class InventoryActivity extends AppCompatActivity {
+public class InventoryActivity extends AppCompatActivity
+        implements AddProductDialogFragment.AddProductDialogListener,
+        AddManualProductDialogFragment.ManualProductListener {
     private RecyclerView inventoryRecyclerView;
     private DatabaseReference databaseReference;
     private InventoryAdapter inventoryAdapter;
     private List<Product> productList = new ArrayList<>();
     private RequestQueue requestQueue; // For API calls
-    private ImageButton addButton;
-    private ImageButton sortButton;
-    private NavigationView infonav;
-    private NavigationView sortnav;
 
-    private Button donebutton;
-    private Button cancelbutton;
 
-    private EditText name;
-    private EditText brand;
-    private EditText year;
-    private EditText month;
-    private EditText day;
+    private int selectedSortOption = -1; // Default: No sort selected
 
-    private Button expirydate;
-    private Button dateadded;
-    private CheckBox ascended;
-    private  CheckBox descended;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -91,110 +89,143 @@ public class InventoryActivity extends AppCompatActivity {
         inventoryAdapter = new InventoryAdapter(productList);
         inventoryRecyclerView.setAdapter(inventoryAdapter);
 
-        addButton = findViewById(R.id.addbutton);
-        infonav = findViewById(R.id.info_nav);
-        donebutton = findViewById(R.id.donebutton);
-        cancelbutton = findViewById(R.id.cancelbutton);
-        name = findViewById(R.id.productname);
-        brand = findViewById(R.id.productbrand);
-        year = findViewById(R.id.editTextNumber4);
-        month = findViewById(R.id.editTextNumber3);
-        day = findViewById(R.id.editTextNumber2);
-        sortButton = findViewById(R.id.sortbutton);
-        sortnav = findViewById(R.id.sort_nav);
-        ascended = findViewById(R.id.ascended);
-        descended = findViewById(R.id.descended);
-        expirydate = findViewById(R.id.expirydate);
-        dateadded = findViewById(R.id.dateadded_inv);
 
 
-        ascended.setChecked(true);
-        descended.setChecked(false);
+        FloatingActionButton fabAddProduct = findViewById(R.id.fab_add_product);
+        fabAddProduct.setOnClickListener(v -> {
+            AddProductDialogFragment dialog = new AddProductDialogFragment();
+            dialog.show(getSupportFragmentManager(), "AddProductDialog");
+        });
+
+        SearchView searchView = findViewById(R.id.searchView);
+        ImageButton filterButton = findViewById(R.id.btn_filter);
+
+        searchView.setQuery("", false); // Clear any previous input
+        searchView.clearFocus(); // Remove focus to hide blinking cursor
+        searchView.setQueryHint("Search for a product"); //  Always show the hint
 
 
-
-        addButton.setOnClickListener(new View.OnClickListener() {
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
-            public void onClick(View v) {
-              if(infonav.getVisibility()==View.GONE)
-              {
-                  infonav.setVisibility(View.VISIBLE);
-                  sortnav.setVisibility(View.GONE);
-              }
-
+            public boolean onQueryTextSubmit(String query) {
+                inventoryAdapter.filter(query);  // Apply filter
+                return false;
             }
-        });
 
-        donebutton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
-                String name_s = name.getText().toString();
-                String brand_s = brand.getText().toString();
-                String year_s = year.getText().toString();
-                String month_s = month.getText().toString();
-                String day_s = day.getText().toString();
-                List<String> date_ = List.of(year_s,month_s,day_s);
-                ClearTextValue();
-                AddProduct(name_s, brand_s, date_);
-                infonav.setVisibility(View.GONE);
+            public boolean onQueryTextChange(String newText) {
+                if (newText.isEmpty()) {
+                    searchView.setQueryHint("Search for a product");  // ✅ Restore hint when empty
+                }
+                inventoryAdapter.filter(newText);  // Apply filter on text change
+                return true;
             }
         });
 
-        cancelbutton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                remove_add();
+        // Handle Filter Button Click (just for now, no sorting logic yet)
+        filterButton.setOnClickListener(v -> {
+            PopupMenu popup = new PopupMenu(InventoryActivity.this, v);
+            popup.getMenuInflater().inflate(R.menu.sort_menu, popup.getMenu());
 
-
+            // ✅ Make all items checkable
+            for (int i = 0; i < popup.getMenu().size(); i++) {
+                popup.getMenu().getItem(i).setCheckable(true);
             }
+
+            // ✅ Restore the last selected sort
+            if (selectedSortOption != -1) {
+                popup.getMenu().findItem(selectedSortOption).setChecked(true);
+            }
+
+            try {
+                Field popupField = popup.getClass().getDeclaredField("mPopup");
+                popupField.setAccessible(true);
+                Object menuPopupHelper = popupField.get(popup);
+                Class<?> classPopupHelper = Class.forName(menuPopupHelper.getClass().getName());
+                Method setForceIcons = classPopupHelper.getMethod("setForceShowIcon", boolean.class);
+                setForceIcons.invoke(menuPopupHelper, true);
+
+                // ✅ Apply Custom Background
+                View popupView = ((View) menuPopupHelper.getClass().getMethod("getPopup").invoke(menuPopupHelper));
+                popupView.setBackgroundResource(R.drawable.popup_background);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            popup.setOnMenuItemClickListener(item -> {
+                int itemId = item.getItemId();
+
+                // ✅ Uncheck previous selection
+                if (selectedSortOption != -1) {
+                    popup.getMenu().findItem(selectedSortOption).setChecked(false);
+                }
+
+                // ✅ Update the selected sort option
+                selectedSortOption = itemId;
+                item.setChecked(true);
+
+                // ✅ Apply Sorting Logic
+                if (itemId == R.id.sort_expiry_asc) {
+
+                    ExpirydateSort(true);
+                    this.inventoryAdapter.sorting = InventoryAdapter.Sorting.EXP_DATE_ASC;
+
+                } else if (itemId == R.id.sort_expiry_desc) {
+
+                    ExpirydateSort(false);
+                    this.inventoryAdapter.sorting = InventoryAdapter.Sorting.EXP_DATE_DES;
+                } else if (itemId == R.id.sort_date_added_asc) {
+
+                    DateAddedSort(true);
+                    this.inventoryAdapter.sorting = InventoryAdapter.Sorting.DATE_ADD_ASC;
+                } else if (itemId == R.id.sort_date_added_desc) {
+
+                    DateAddedSort(false);
+                    this.inventoryAdapter.sorting = InventoryAdapter.Sorting.DATE_ADD_DES;
+                }
+
+                return true;
+            });
+
+            popup.show();
         });
 
-        sortButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Sortclick();
-
-            }
-        });
-
-        ascended.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if (isChecked) {
-                descended.setChecked(false); // Uncheck descended when ascended is checked
-
-            }
-        });
-
-        descended.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if (isChecked) {
-                ascended.setChecked(false); // Uncheck ascended when descended is checked
-
-            }
-        });
-
-        expirydate.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                ExpirydateSort();
-                remove_sort();
-
-            }
-        });
-
-        dateadded.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                DateAddedSort();
-                remove_sort();
-
-            }
-        });
 
         // Fetch inventory data from Firebase
         fetchInventoryData();
 
-        // ✅ Request Camera Permission
+        // Request Camera Permission
         checkCameraPermission();
 
+    }
+
+    public void UpdatingSorting()
+    {
+        InventoryAdapter.Sorting sorting = inventoryAdapter.sorting;
+        System.out.println();
+        Log.d("G", "Inventory sorting " + inventoryAdapter.sorting + " items"); // ✅ Debugging log
+
+
+        if (inventoryAdapter.sorting== InventoryAdapter.Sorting.EXP_DATE_ASC) {
+            Toast.makeText(getApplicationContext(), "Sorting Exp", Toast.LENGTH_SHORT).show();
+
+            ExpirydateSort(true);
+
+
+        } else if (inventoryAdapter.sorting== InventoryAdapter.Sorting.EXP_DATE_DES) {
+            Toast.makeText(getApplicationContext(), "Sorting Exp2", Toast.LENGTH_SHORT).show();
+            ExpirydateSort(false);
+
+        } else if (inventoryAdapter.sorting== InventoryAdapter.Sorting.DATE_ADD_ASC) {
+
+            DateAddedSort(true);
+
+        } else if (inventoryAdapter.sorting== InventoryAdapter.Sorting.DATE_ADD_DES) {
+
+            DateAddedSort(false);
+
+        }
 
 
     }
@@ -217,8 +248,6 @@ public class InventoryActivity extends AppCompatActivity {
         product.setDateAdded(formattedDate);
 
 
-
-
         databaseReference.child(barcode).setValue(product)
                 .addOnSuccessListener(aVoid -> {
                     Toast.makeText(this, "Product added to inventory!", Toast.LENGTH_SHORT).show();
@@ -227,66 +256,38 @@ public class InventoryActivity extends AppCompatActivity {
                 .addOnFailureListener(e -> Toast.makeText(this, "Failed to add product", Toast.LENGTH_SHORT).show());
     }
 
-    private void ClearTextValue()
-    {
-        String empty= "";
-        this.name.setText(empty);
-        this.brand.setText(empty);
-        this.year.setText(empty);
-        this.month.setText(empty);
-        this.day.setText(empty);
-    }
-    private void remove_add()
-    {
-        ClearTextValue();
-        infonav.setVisibility(View.GONE);
-    }
 
-    private void Sortclick()
-    {
-        if(infonav.getVisibility()!=View.GONE)
-        {
-            remove_add();
-        }
-        if(sortnav.getVisibility()==View.GONE)
-        {
-            sortnav.setVisibility(View.VISIBLE);
-        }
-    }
+    private void ExpirydateSort(boolean ascended) {
+        if (productList.isEmpty()) return;
 
-    private void ExpirydateSort()
-    {
         Product[] productArray = productList.toArray(new Product[0]);
-        if(ascended.isChecked())
-            MergeSort.sortexp(productArray,0,productArray.length-1, MergeSort.OrderType.ASCENDING);
-        else {
-            MergeSort.sortexp(productArray,0,productArray.length-1, MergeSort.OrderType.DESCENDING);
-        }
+
+        if (ascended)
+            MergeSort.sortexp(productArray, 0, productArray.length - 1, MergeSort.OrderType.ASCENDING);
+        else
+            MergeSort.sortexp(productArray, 0, productArray.length - 1, MergeSort.OrderType.DESCENDING);
 
         productList.clear();
         productList.addAll(Arrays.asList(productArray));
-        inventoryAdapter.notifyDataSetChanged();
 
+        runOnUiThread(() -> inventoryAdapter.updateList(productList));
     }
 
-    private void DateAddedSort()
-    {
+
+    private void DateAddedSort(boolean ascended) {
         Product[] productArray = productList.toArray(new Product[0]);
-        if(ascended.isChecked())
-            MergeSort.sortadded(productArray,0,productArray.length-1, MergeSort.OrderType.ASCENDING);
-        else {
-            MergeSort.sortadded(productArray,0,productArray.length-1, MergeSort.OrderType.DESCENDING);
-        }
+
+        if (ascended)
+            MergeSort.sortadded(productArray, 0, productArray.length - 1, MergeSort.OrderType.ASCENDING);
+        else
+            MergeSort.sortadded(productArray, 0, productArray.length - 1, MergeSort.OrderType.DESCENDING);
+
+        // ✅ Update the list in Adapter correctly
         productList.clear();
         productList.addAll(Arrays.asList(productArray));
-        inventoryAdapter.notifyDataSetChanged();
-
-
+        inventoryAdapter.updateList(productList);
     }
-    private void remove_sort()
-    {
-        sortnav.setVisibility(View.GONE);
-    }
+
     private void setUpToolbar() {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -298,18 +299,6 @@ public class InventoryActivity extends AppCompatActivity {
         }
 
         toolbar.setNavigationOnClickListener(v -> finish());
-
-        // Handle barcode scanner button click
-        ImageView barcodeScannerButton = findViewById(R.id.barcodeLogo);
-
-        barcodeScannerButton.setOnClickListener(v -> {
-            remove_add();
-            remove_sort();
-            Log.d("BarcodeScanner", "Barcode button clicked");  // ✅ Debugging Log
-            Intent intent = new Intent(InventoryActivity.this, BarcodeScannerActivity.class);
-            startActivityForResult(intent, 1);  // ✅ Use startActivityForResult() instead of startActivity()
-        });
-
 
     }
 
@@ -384,6 +373,26 @@ public class InventoryActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    public void onAddManually() {
+        AddManualProductDialogFragment manualDialog = new AddManualProductDialogFragment();
+        manualDialog.show(getSupportFragmentManager(), "ManualProductDialog");
+
+    }
+
+    @Override
+    public void onScanBarcode() {
+        Intent intent = new Intent(this, BarcodeScannerActivity.class);
+        startActivityForResult(intent, 1);
+
+    }
+
+    @Deprecated
+    @Override
+    public void onProductAdded() {
+
+    }
+
 
     private void fetchProductData(String barcode) {
         String url = "https://world.openfoodfacts.org/api/v0/product/" + barcode + ".json";
@@ -396,6 +405,15 @@ public class InventoryActivity extends AppCompatActivity {
                             String productName = product.optString("product_name", "Unknown Product");
                             String brand = product.optString("brands", "Unknown Brand");
 
+                            // ✅ Correctly fetch the image URL
+                            String imageUrl = product.optString("image_url", null);
+                            if (imageUrl == null || imageUrl.isEmpty()) {
+                                Log.w("ProductImage", "No image URL found for barcode: " + barcode);
+                            } else {
+                                Log.d("ProductImage", "Fetched image URL: " + imageUrl);
+                            }
+
+                            // ✅ Pass image URL to Firebase
                             saveProductToFirebase(barcode, productName, brand);
                         } else {
                             Toast.makeText(this, "Product not found", Toast.LENGTH_SHORT).show();
@@ -413,9 +431,11 @@ public class InventoryActivity extends AppCompatActivity {
     private void saveProductToFirebase(String barcode, String name, String brand) {
 
         Product product = new Product(barcode, name, brand);
+
         LocalDate currentDate = LocalDate.now();
         String formattedDate = currentDate.format(DateTimeFormatter.ofPattern("d/M/yyyy"));
         product.setDateAdded(formattedDate);
+
         databaseReference.child(barcode).setValue(product)
                 .addOnSuccessListener(aVoid -> {
                     Toast.makeText(this, "Product added to inventory!", Toast.LENGTH_SHORT).show();
@@ -429,14 +449,24 @@ public class InventoryActivity extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 productList.clear();
+                List<Product> tempProductList = new ArrayList<>(); // Temporary list for adapter
+
+                Log.d("Firebase", "Snapshot Children Count: " + snapshot.getChildrenCount()); // ✅ Log Firebase data count
+
                 for (DataSnapshot productSnapshot : snapshot.getChildren()) {
                     Product product = productSnapshot.getValue(Product.class);
                     if (product != null) {
-                        Log.d("Firebase", "Loaded product from inventory_product: " + product.getName());
-                        productList.add(product);
+                        Log.d("Firebase", "Loaded product: " + product.getName() + ", Expiry: " + product.getExpiryDate()); // ✅ Log product info
+                        tempProductList.add(product);
                     }
                 }
-                inventoryAdapter.notifyDataSetChanged();
+
+                if (tempProductList.isEmpty()) {
+                    Log.e("Firebase", "No products were retrieved!"); // 🚨 Debugging message
+                }
+
+                productList.addAll(tempProductList);
+                inventoryAdapter.updateList(tempProductList);
 
                 // ✅ Show "Inventory empty" if list is empty
                 TextView emptyMessage = findViewById(R.id.emptyInventoryMessage);
@@ -447,6 +477,8 @@ public class InventoryActivity extends AppCompatActivity {
                     emptyMessage.setVisibility(View.GONE);
                     inventoryRecyclerView.setVisibility(View.VISIBLE);
                 }
+
+                UpdatingSorting();
             }
 
             @Override
@@ -454,6 +486,25 @@ public class InventoryActivity extends AppCompatActivity {
                 Log.e("Firebase", "Error fetching data", error.toException());
             }
         });
+    }
+
+    @Override
+    public void onProductAdded(Product product) {
+        // ✅ Ensure Date Added is set
+        if (product.getDateAdded() == null || product.getDateAdded().isEmpty()) {
+            LocalDate currentDate = LocalDate.now();
+            String formattedDate = currentDate.format(DateTimeFormatter.ofPattern("d/M/yyyy"));
+            product.setDateAdded(formattedDate);
+        }
+
+        // ✅ Save to Firebase (This will automatically trigger fetchInventoryData())
+        databaseReference.child(product.getBarcode()).setValue(product)
+                .addOnSuccessListener(aVoid -> {
+                    Toast.makeText(this, "Product added successfully!", Toast.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e -> Toast.makeText(this, "Failed to add product", Toast.LENGTH_SHORT).show());
+
+
     }
 
 }

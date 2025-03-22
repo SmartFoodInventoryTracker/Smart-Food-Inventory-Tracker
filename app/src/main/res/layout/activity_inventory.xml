@@ -33,7 +33,7 @@
 
             <ImageView
                 android:id="@+id/inventoryLogo"
-                android:layout_width="25dp"
+                android:layout_width="47dp"
                 android:layout_height="25dp"
                 android:layout_gravity="center_vertical"
                 android:layout_marginStart="0dp"
@@ -52,34 +52,39 @@
                 android:textSize="20sp"
                 android:textStyle="bold" />
 
-            <ImageButton
-                android:id="@+id/addbutton"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:layout_weight="1"
-                android:backgroundTint="#00FFFFFF"
-                app:srcCompat="@drawable/ic_add" />
-
-            <ImageView
-                android:id="@+id/barcodeLogo"
-                android:layout_width="25dp"
-                android:layout_height="25dp"
-                android:layout_gravity="center_vertical|end"
-                android:layout_marginStart="12dp"
-                android:layout_weight="1"
-                android:src="@drawable/icons8_barcode_scanner_100" />
-
-            <ImageButton
-                android:id="@+id/sortbutton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:background="#00FFFFFF"
-                app:srcCompat="@drawable/ic_menu" />
 
         </LinearLayout>
 
     </androidx.appcompat.widget.Toolbar>
+
+    <!-- Search Bar and Filter Button -->
+    <LinearLayout
+        android:id="@+id/search_filter_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="8dp"
+        app:layout_constraintTop_toBottomOf="@id/toolbar"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <androidx.appcompat.widget.SearchView
+            android:id="@+id/searchView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:queryHint="Search for a product"
+            app:iconifiedByDefault="false"/>
+
+        <ImageButton
+            android:id="@+id/btn_filter"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:padding="8dp"
+            android:src="@drawable/sort"
+            android:contentDescription="Sort items"/>
+    </LinearLayout>
 
     <!-- RecyclerView for Inventory List -->
     <androidx.recyclerview.widget.RecyclerView
@@ -87,10 +92,8 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:padding="10dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/toolbar"
-        app:layout_constraintVertical_bias="1.0"
-        tools:layout_editor_absoluteX="0dp" />
+        app:layout_constraintTop_toBottomOf="@id/search_filter_layout"
+        app:layout_constraintBottom_toBottomOf="parent"/>
 
     <!-- Empty Inventory Message -->
     <TextView
@@ -108,11 +111,26 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/toolbar" />
 
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab_add_product"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:src="@drawable/ic_add"
+        app:backgroundTint="@color/blue"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.98"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/toolbar"
+        app:layout_constraintVertical_bias="0.979" />
+
     <com.google.android.material.navigation.NavigationView
         android:id="@+id/sort_nav"
         android:layout_width="193dp"
         android:layout_height="223dp"
-        android:visibility="gone"
+        android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="@+id/inventoryRecyclerView"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="1.0"
@@ -234,6 +252,8 @@
         </LinearLayout>
 
     </com.google.android.material.navigation.NavigationView>
+
+
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,52 +1,73 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
+    android:orientation="horizontal"
     android:padding="10dp"
     android:background="#EEEEEE"
     android:layout_margin="5dp">
 
-    <TextView
-        android:id="@+id/productName"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Product Name"
-        android:textSize="18sp"
-        android:textStyle="bold"/>
 
-    <TextView
-        android:id="@+id/productBrand"
-        android:layout_width="wrap_content"
+    <!-- Text Content on the left -->
+    <LinearLayout
+        android:paddingStart="8dp"
+        android:lineSpacingExtra="4dp"
+        android:layout_width="240dp"
         android:layout_height="wrap_content"
-        android:text="Brand"
-        android:textSize="16sp"
-        android:textColor="#666"/>
+        android:layout_weight="1"
+        android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/productBarcode"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Barcode:"
-        android:textSize="14sp"
-        android:textColor="@android:color/darker_gray"
-        android:visibility="gone" />
+        <TextView
+            android:id="@+id/productName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Product Name"
+            android:textSize="18sp"
+            android:textStyle="bold" />
 
-    <TextView
-        android:id="@+id/productExpiryDate"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:text="Expiry Date: Not set"
-        android:textColor="@android:color/darker_gray"
-        android:textSize="14sp" />
+        <TextView
+            android:id="@+id/productBrand"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Brand"
+            android:textColor="#666"
+            android:textSize="16sp" />
 
-    <TextView
-        android:id="@+id/prodcutDateAdded"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:text="Date Added: Not set"
-        android:textColor="@android:color/darker_gray"
-        android:textSize="14sp" />  <!-- ✅ Hides the barcode -->
+        <TextView
+            android:id="@+id/productBarcode"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Barcode:"
+            android:textSize="14sp"
+            android:textColor="@android:color/darker_gray"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/productExpiryDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Expiry Date: Not set"
+            android:textColor="@android:color/darker_gray"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/prodcutDateAdded"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Date Added: Not set"
+            android:textColor="@android:color/darker_gray"
+            android:textSize="14sp" />
+    </LinearLayout>
+
+    <!-- Product Image on the right -->
+    <ImageView
+        android:id="@+id/productImage"
+        android:layout_width="94dp"
+        android:layout_height="84dp"
+        android:layout_gravity="center_vertical"
+        android:contentDescription="Product image"
+        android:src="@drawable/placeholder_image" />
 </LinearLayout>
