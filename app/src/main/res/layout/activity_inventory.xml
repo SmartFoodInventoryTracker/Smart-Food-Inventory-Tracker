@@ -37,7 +37,7 @@
                 android:layout_height="25dp"
                 android:layout_gravity="center_vertical"
                 android:layout_marginStart="0dp"
-                android:layout_weight="1"
+                android:layout_weight="0.03"
                 android:src="@drawable/ic_inventory" />
 
             <TextView

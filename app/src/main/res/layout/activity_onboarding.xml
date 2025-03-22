@@ -9,24 +9,27 @@
     android:background="@color/white">
 
     <!-- ✅ App Logo -->
-    <ImageView
-        android:id="@+id/appLogo"
-        android:layout_width="120dp"
-        android:layout_height="120dp"
-        android:src="@mipmap/ic_launcher"
-        android:contentDescription="App Logo" />
 
     <!-- ✅ Rotating Titles (Changing Texts) -->
+
+    <ImageView
+        android:id="@+id/appLogo"
+        android:layout_width="312dp"
+        android:layout_height="200dp"
+        android:layout_marginTop="60dp"
+        android:contentDescription="App Logo"
+        android:src="@drawable/smart_food_inventory_logo" />
+
     <TextView
         android:id="@+id/rotatingTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Welcome to Smart Food Inventory!"
-        android:textSize="18sp"
-        android:textStyle="bold"
         android:layout_marginTop="32dp"
-        android:textColor="@color/green"
-        android:textAlignment="center" />
+        android:text="Welcome to Smart Food Inventory!"
+        android:textAlignment="center"
+        android:textColor="@color/blue"
+        android:textSize="20sp"
+        android:textStyle="bold" />
 
     <!-- ✅ Rotating Descriptions -->
     <TextView
@@ -34,7 +37,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Manage your food inventory efficiently."
-        android:textSize="14sp"
+        android:textSize="16sp"
         android:layout_marginTop="8dp"
         android:textAlignment="center"
         android:textColor="@color/black" />
@@ -45,8 +48,9 @@
         android:layout_width="181dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="40dp"
-        android:backgroundTint="@color/green"
+        android:backgroundTint="@color/blue"
         android:text="Login"
+        android:textSize="16sp"
         android:textColor="@android:color/white" />
 
     <!-- ✅ Sign Up Button -->
@@ -55,8 +59,9 @@
         android:layout_width="181dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:backgroundTint="@color/purple"
+        android:backgroundTint="@color/blue"
         android:text="Sign Up"
+        android:textSize="16sp"
         android:textColor="@android:color/white" />
 
 </LinearLayout>
