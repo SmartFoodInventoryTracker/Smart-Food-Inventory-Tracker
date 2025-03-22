@@ -18,6 +18,9 @@ import com.bumptech.glide.Glide;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.FragmentManager;
+
 import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -96,8 +99,40 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.View
                 ? "Date Added: Not set"
                 : "Date Added: " + product.getDateAdded());
 
-        // ✅ Open Date Picker when item is clicked
-        holder.itemView.setOnClickListener(v -> showDatePicker(holder, product));
+        holder.itemView.setOnClickListener(v -> {
+            FragmentManager fm = ((FragmentActivity) v.getContext()).getSupportFragmentManager();
+            ProductDetailsDialogFragment dialog = ProductDetailsDialogFragment.newInstance(product);
+
+            dialog.setProductDialogListener(new ProductDetailsDialogFragment.ProductDialogListener() {
+                @Override
+                public void onProductUpdated(Product updatedProduct) {
+                    int currentPos = holder.getAdapterPosition();
+                    if (currentPos != RecyclerView.NO_POSITION) {
+                        itemList.set(currentPos, updatedProduct);
+                        int indexInOriginal = originalList.indexOf(product);
+                        if (indexInOriginal != -1) {
+                            originalList.set(indexInOriginal, updatedProduct);
+                        }
+                        notifyItemChanged(currentPos);
+                    }
+                }
+
+                @Override
+                public void onProductDeleted(String barcode) {
+                    int currentPos = holder.getAdapterPosition();
+                    if (currentPos != RecyclerView.NO_POSITION) {
+                        itemList.remove(currentPos);
+                        originalList.remove(product);
+                        notifyItemRemoved(currentPos);
+                        Toast.makeText(v.getContext(), "Product deleted", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+
+            dialog.show(fm, "ProductDetailsDialog");
+        });
+
+
 
         // 🔁 Set icon based on product name (French + English)
         int iconResId = getCategoryIcon(product.getName());
