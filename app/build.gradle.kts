@@ -63,6 +63,9 @@ dependencies {
     //  Firebase Realtime Database
     implementation("com.google.firebase:firebase-database")
 
+    implementation("androidx.cardview:cardview:1.0.0")
+
+
     // Google ML Kit Barcode Scanning
     implementation("com.google.mlkit:barcode-scanning:17.2.0")
 

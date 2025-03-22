@@ -22,6 +22,8 @@ import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
+import androidx.cardview.widget.CardView;
+
 
 public class DashboardActivity extends AppCompatActivity {
 
@@ -29,7 +31,7 @@ public class DashboardActivity extends AppCompatActivity {
     private MaterialToolbar toolbar;
     private NavigationView navView;
     private TextView greetingText;
-    private LinearLayout inventoryButton, shoppingListButton, fridgeConditionButton;
+    private CardView inventoryButton, shoppingListButton, fridgeConditionButton;
     private SharedPreferences shared;
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
