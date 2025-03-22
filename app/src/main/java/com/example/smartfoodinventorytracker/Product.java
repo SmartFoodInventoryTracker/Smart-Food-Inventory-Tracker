@@ -9,7 +9,7 @@ public class Product {
     public String brand;
     public String expiryDate;
     public String dateAdded;
-
+    public int Quantity;
     // Required empty constructor for Firebase
     public Product() {}
 
@@ -31,7 +31,15 @@ public class Product {
     public String getName() {
         return name;
     }
+    public void SetQuantity(int quantity)
+    {
+        this.Quantity =quantity;
+    }
 
+    public int ItemQuantity()
+    {
+        return this.Quantity;
+    }
     public String getBrand() {
         return brand;
     }

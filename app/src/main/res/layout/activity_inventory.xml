@@ -130,7 +130,7 @@
         android:id="@+id/sort_nav"
         android:layout_width="193dp"
         android:layout_height="223dp"
-        android:visibility="gone"
+        android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="@+id/inventoryRecyclerView"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="1.0"
