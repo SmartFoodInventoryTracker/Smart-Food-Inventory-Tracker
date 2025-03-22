@@ -21,15 +21,20 @@
             android:id="@+id/greetingText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="28dp"
-            android:padding="8dp"
-            android:text="Hi, User"
-            android:textColor="@android:color/black"
+            android:layout_marginTop="45dp"
+            android:paddingVertical="12dp"
+            android:paddingHorizontal="24dp"
+            android:text="👋 Good morning, User"
+            android:textColor="@android:color/white"
             android:textSize="20sp"
             android:textStyle="bold"
-            app:layout_constraintEnd_toEndOf="parent"
+            android:gravity="center"
+            android:background="@android:drawable/editbox_background_normal"
+            android:backgroundTint="#009EE0"
+            android:backgroundTintMode="src_in"
+            app:layout_constraintTop_toBottomOf="@id/toolbar"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/toolbar" />
+            app:layout_constraintEnd_toEndOf="parent" />
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
@@ -129,7 +134,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="12 items listed"
+                            android:text="Manage food stock and expiry dates"
                             android:textColor="@android:color/white"
                             android:textSize="14sp" />
                     </LinearLayout>
@@ -199,7 +204,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="5 items listed"
+                            android:text="Plan your next grocery trip"
                             android:textColor="@android:color/white"
                             android:textSize="14sp" />
                     </LinearLayout>
@@ -262,7 +267,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Fridge Condition"
+                            android:text="Fridge Conditions"
                             android:textColor="@android:color/white"
                             android:textSize="18sp"
                             android:textStyle="bold" />
@@ -270,7 +275,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Normal"
+                            android:text="Monitor storage conditions"
                             android:textColor="@android:color/white"
                             android:textSize="14sp" />
                     </LinearLayout>

@@ -3,6 +3,7 @@ package com.example.smartfoodinventorytracker;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.LinearLayout;
@@ -148,22 +149,46 @@ public class DashboardActivity extends AppCompatActivity {
 
     // ✅ Load User Name from Firestore
     private void loadUserName() {
+        // Determine greeting based on time of day
+        String greeting;
+        int hour = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY);
+
+        if (hour >= 5 && hour < 12) {
+            greeting = "Good morning";
+        } else if (hour >= 12 && hour < 18) {
+            greeting = "Good afternoon";
+        } else {
+            greeting = "Good evening";
+        }
+
+        // Set rounded background programmatically
+        GradientDrawable bg = new GradientDrawable();
+        bg.setColor(ContextCompat.getColor(this, android.R.color.black));  // black background
+        bg.setCornerRadius(100); // large radius for round edges
+        greetingText.setBackground(bg);
+
+        // Load from Firestore
         String userId = mAuth.getCurrentUser().getUid();
         db.collection("users").document(userId).get()
                 .addOnSuccessListener(document -> {
+                    String name = null;
+
                     if (document.exists()) {
-                        String name = document.getString("name");
-                        if (name == null || name.isEmpty()) {
-                            greetingText.setText("Hi, User");
-                        } else {
-                            greetingText.setText("Hi, " + name);
-                        }
+                        name = document.getString("name");
+                    }
+
+                    if (name != null && !name.trim().isEmpty()) {
+                        greetingText.setText("👋 " + greeting + ", " + name);
                     } else {
-                        greetingText.setText("Hi, User");
+                        greetingText.setText("👋 " + greeting);
                     }
                 })
-                .addOnFailureListener(e -> Toast.makeText(this, "Failed to load user data", Toast.LENGTH_SHORT).show());
+                .addOnFailureListener(e -> {
+                    greetingText.setText("👋 " + greeting);
+                    Toast.makeText(this, "Failed to load user data", Toast.LENGTH_SHORT).show();
+                });
     }
+
 
     // ✅ Handle Logout Logic
     private void logout() {
