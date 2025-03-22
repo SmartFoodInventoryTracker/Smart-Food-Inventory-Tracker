@@ -17,6 +17,7 @@ public class AddProductDialogFragment extends DialogFragment {
     public interface AddProductDialogListener {
         void onAddManually();
         void onScanBarcode();
+        void onProductAdded();
     }
 
     private AddProductDialogListener listener;
@@ -43,13 +44,20 @@ public class AddProductDialogFragment extends DialogFragment {
 
         btnManual.setOnClickListener(v -> {
             listener.onAddManually();
+
             dismiss();
         });
 
         btnScan.setOnClickListener(v -> {
             listener.onScanBarcode();
+
             dismiss();
         });
+
+
+
+
+
 
         builder.setView(view).setTitle("Add Product");
         return builder.create();

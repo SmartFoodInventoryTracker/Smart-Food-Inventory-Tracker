@@ -65,8 +65,7 @@ public class InventoryActivity extends AppCompatActivity
     private List<Product> productList = new ArrayList<>();
     private RequestQueue requestQueue; // For API calls
 
-    private CheckBox ascended;
-    private CheckBox descended;
+
     private int selectedSortOption = -1; // Default: No sort selected
 
     @Override
@@ -90,13 +89,6 @@ public class InventoryActivity extends AppCompatActivity
         inventoryAdapter = new InventoryAdapter(productList);
         inventoryRecyclerView.setAdapter(inventoryAdapter);
 
-        ascended = findViewById(R.id.ascended);
-        descended = findViewById(R.id.descended);
-
-        if (ascended != null && descended != null) {
-            ascended.setChecked(true);
-            descended.setChecked(false);
-        }
 
 
         FloatingActionButton fabAddProduct = findViewById(R.id.fab_add_product);
@@ -175,17 +167,22 @@ public class InventoryActivity extends AppCompatActivity
 
                 // ✅ Apply Sorting Logic
                 if (itemId == R.id.sort_expiry_asc) {
-                    ascended.setChecked(true);
-                    ExpirydateSort();
+
+                    ExpirydateSort(true);
+                    this.inventoryAdapter.sorting = InventoryAdapter.Sorting.EXP_DATE_ASC;
+
                 } else if (itemId == R.id.sort_expiry_desc) {
-                    descended.setChecked(true);
-                    ExpirydateSort();
+
+                    ExpirydateSort(false);
+                    this.inventoryAdapter.sorting = InventoryAdapter.Sorting.EXP_DATE_DES;
                 } else if (itemId == R.id.sort_date_added_asc) {
-                    ascended.setChecked(true);
-                    DateAddedSort();
+
+                    DateAddedSort(true);
+                    this.inventoryAdapter.sorting = InventoryAdapter.Sorting.DATE_ADD_ASC;
                 } else if (itemId == R.id.sort_date_added_desc) {
-                    descended.setChecked(true);
-                    DateAddedSort();
+
+                    DateAddedSort(false);
+                    this.inventoryAdapter.sorting = InventoryAdapter.Sorting.DATE_ADD_DES;
                 }
 
                 return true;
@@ -200,6 +197,36 @@ public class InventoryActivity extends AppCompatActivity
 
         // Request Camera Permission
         checkCameraPermission();
+
+    }
+
+    public void UpdatingSorting()
+    {
+        InventoryAdapter.Sorting sorting = inventoryAdapter.sorting;
+        System.out.println();
+        Log.d("G", "Inventory sorting " + inventoryAdapter.sorting + " items"); // ✅ Debugging log
+
+
+        if (inventoryAdapter.sorting== InventoryAdapter.Sorting.EXP_DATE_ASC) {
+            Toast.makeText(getApplicationContext(), "Sorting Exp", Toast.LENGTH_SHORT).show();
+
+            ExpirydateSort(true);
+
+
+        } else if (inventoryAdapter.sorting== InventoryAdapter.Sorting.EXP_DATE_DES) {
+            Toast.makeText(getApplicationContext(), "Sorting Exp2", Toast.LENGTH_SHORT).show();
+            ExpirydateSort(false);
+
+        } else if (inventoryAdapter.sorting== InventoryAdapter.Sorting.DATE_ADD_ASC) {
+
+            DateAddedSort(true);
+
+        } else if (inventoryAdapter.sorting== InventoryAdapter.Sorting.DATE_ADD_DES) {
+
+            DateAddedSort(false);
+
+        }
+
 
     }
 
@@ -230,12 +257,12 @@ public class InventoryActivity extends AppCompatActivity
     }
 
 
-    private void ExpirydateSort() {
+    private void ExpirydateSort(boolean ascended) {
         if (productList.isEmpty()) return;
 
         Product[] productArray = productList.toArray(new Product[0]);
 
-        if (ascended != null && ascended.isChecked())
+        if (ascended)
             MergeSort.sortexp(productArray, 0, productArray.length - 1, MergeSort.OrderType.ASCENDING);
         else
             MergeSort.sortexp(productArray, 0, productArray.length - 1, MergeSort.OrderType.DESCENDING);
@@ -247,10 +274,10 @@ public class InventoryActivity extends AppCompatActivity
     }
 
 
-    private void DateAddedSort() {
+    private void DateAddedSort(boolean ascended) {
         Product[] productArray = productList.toArray(new Product[0]);
 
-        if (ascended.isChecked())
+        if (ascended)
             MergeSort.sortadded(productArray, 0, productArray.length - 1, MergeSort.OrderType.ASCENDING);
         else
             MergeSort.sortadded(productArray, 0, productArray.length - 1, MergeSort.OrderType.DESCENDING);
@@ -350,12 +377,20 @@ public class InventoryActivity extends AppCompatActivity
     public void onAddManually() {
         AddManualProductDialogFragment manualDialog = new AddManualProductDialogFragment();
         manualDialog.show(getSupportFragmentManager(), "ManualProductDialog");
+
     }
 
     @Override
     public void onScanBarcode() {
         Intent intent = new Intent(this, BarcodeScannerActivity.class);
         startActivityForResult(intent, 1);
+
+    }
+
+    @Deprecated
+    @Override
+    public void onProductAdded() {
+
     }
 
 
@@ -431,6 +466,8 @@ public class InventoryActivity extends AppCompatActivity
                     emptyMessage.setVisibility(View.GONE);
                     inventoryRecyclerView.setVisibility(View.VISIBLE);
                 }
+
+                UpdatingSorting();
             }
 
             @Override
@@ -455,6 +492,8 @@ public class InventoryActivity extends AppCompatActivity
                     Toast.makeText(this, "Product added successfully!", Toast.LENGTH_SHORT).show();
                 })
                 .addOnFailureListener(e -> Toast.makeText(this, "Failed to add product", Toast.LENGTH_SHORT).show());
+
+
     }
 
 }

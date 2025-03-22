@@ -24,7 +24,16 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.View
     private List<Product> itemList;
     private List<Product> originalList;
     private DatabaseReference databaseReference;
+    public Sorting sorting = Sorting.NONE;
+    public enum Sorting
+    {
+        EXP_DATE_ASC,
+        EXP_DATE_DES,
+        DATE_ADD_ASC,
+        DATE_ADD_DES,
+        NONE
 
+    }
     public InventoryAdapter(List<Product> itemList) {
         this.itemList = new ArrayList<>(itemList); // Current displayed list
         this.originalList = new ArrayList<>(itemList); // Full original list
