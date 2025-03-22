@@ -1,100 +1,98 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/dialogRoot"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="16dp"
-    android:background="@android:color/white">
+    android:padding="20dp"
+    android:background="@drawable/dialog_background"
+    android:gravity="center_horizontal">
 
     <ImageView
         android:id="@+id/productImageDialog"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:layout_gravity="center_horizontal"
-        android:scaleType="centerCrop"
-        android:src="@drawable/placeholder_image"
-        android:contentDescription="Product image" />
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_marginBottom="12dp"
+        android:contentDescription="Category Icon"
+        android:scaleType="centerInside" />
 
     <EditText
         android:id="@+id/nameText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:enabled="false"
-        android:textStyle="bold"
-        android:textSize="18sp"
-        android:text="Name" />
+        android:hint="Product Name"
+        android:enabled="false" />
 
     <EditText
         android:id="@+id/brandText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:enabled="false"
-        android:text="Brand" />
+        android:hint="Brand"
+        android:enabled="false" />
 
     <EditText
         android:id="@+id/expiryText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:enabled="false"
-        android:text="Expiry" />
+        android:hint="Expiry Date"
+        android:enabled="false" />
 
     <EditText
         android:id="@+id/quantityText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:hint="Quantity"
         android:inputType="number"
-        android:enabled="false"
-        android:text="Quantity" />
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginTop="16dp"
-        android:gravity="end">
-
-        <Button
-            android:id="@+id/editButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Edit" />
-
-        <Button android:id="@+id/deleteButton"
-            android:text="Delete"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp" />
-    </LinearLayout>
+        android:enabled="false" />
 
     <LinearLayout
         android:id="@+id/saveCancelRow"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:gravity="end"
         android:orientation="horizontal"
         android:visibility="gone"
-        android:gravity="end">
+        android:layout_marginTop="8dp">
 
         <Button
             android:id="@+id/saveButton"
-            android:text="Save"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:text="Save" />
 
         <Button
             android:id="@+id/cancelEditButton"
-            android:text="Cancel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp" />
+            android:text="Cancel" />
     </LinearLayout>
 
-
-    <Button android:id="@+id/closeButton"
-        android:text="Close"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="end"
-        android:layout_marginTop="10dp" />
+        android:layout_marginTop="12dp"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:weightSum="3">
 
+        <Button
+            android:id="@+id/editButton"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="Edit" />
+
+        <Button
+            android:id="@+id/deleteButton"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="Delete" />
+
+        <Button
+            android:id="@+id/closeButton"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="Close" />
+    </LinearLayout>
 </LinearLayout>

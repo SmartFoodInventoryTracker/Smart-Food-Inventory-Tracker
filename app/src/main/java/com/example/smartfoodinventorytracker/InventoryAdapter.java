@@ -64,6 +64,7 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.View
     public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView name, brand, barcode, expiryDate, DateAdded_h;
         ImageView productImage;
+        TextView quantityBadge;
 
         public ViewHolder(View itemView) {
             super(itemView);
@@ -73,6 +74,7 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.View
             expiryDate = itemView.findViewById(R.id.productExpiryDate);
             DateAdded_h = itemView.findViewById(R.id.prodcutDateAdded);
             productImage = itemView.findViewById(R.id.productImage);
+            quantityBadge = itemView.findViewById(R.id.quantityBadge);
         }
     }
 
@@ -98,6 +100,14 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.View
         holder.DateAdded_h.setText(product.getDateAdded() == null || product.getDateAdded().isEmpty()
                 ? "Date Added: Not set"
                 : "Date Added: " + product.getDateAdded());
+
+        int qty = product.getQuantity();
+        if (qty > 1) {
+            holder.quantityBadge.setVisibility(View.VISIBLE);
+            holder.quantityBadge.setText("Qty: " + qty);
+        } else {
+            holder.quantityBadge.setVisibility(View.GONE);
+        }
 
         holder.itemView.setOnClickListener(v -> {
             FragmentManager fm = ((FragmentActivity) v.getContext()).getSupportFragmentManager();
@@ -134,35 +144,67 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.View
 
 
 
-        // 🔁 Set icon based on product name (French + English)
-        int iconResId = getCategoryIcon(product.getName());
+        int iconResId = CategoryUtils.getCategoryIcon(product.getName());
         holder.productImage.setImageResource(iconResId);
 
 
         holder.itemView.setOnLongClickListener(v -> {
-            new AlertDialog.Builder(v.getContext())
-                    .setTitle("Delete Product")
-                    .setMessage("Are you sure you want to remove this product?")
-                    .setPositiveButton("Yes", (dialog, which) -> {
-                        String barcodeToDelete = product.getBarcode(); // ✅ Store the barcode before deletion
+            if (product.getQuantity() > 1) {
+                new AlertDialog.Builder(v.getContext())
+                        .setTitle("Multiple Quantities")
+                        .setMessage("This product has a quantity of " + product.getQuantity() + ". Do you want to delete one or all?")
+                        .setPositiveButton("Delete One", (dialog, which) -> {
+                            product.setQuantity(product.getQuantity() - 1);
 
-                        // ✅ Delete from Firebase first
-                        databaseReference.child(barcodeToDelete).removeValue()
-                                .addOnSuccessListener(aVoid -> {
-                                    // ✅ Find the correct index after Firebase confirms deletion
-                                    int itemPosition = holder.getAdapterPosition();
-                                    if (itemPosition != RecyclerView.NO_POSITION) {
-                                        itemList.remove(itemPosition);
-                                        notifyItemRemoved(itemPosition);
-                                    }
-                                    Toast.makeText(v.getContext(), "Product removed!", Toast.LENGTH_SHORT).show();
-                                })
-                                .addOnFailureListener(e -> Toast.makeText(v.getContext(), "Failed to remove", Toast.LENGTH_SHORT).show());
-                    })
-                    .setNegativeButton("No", (dialog, which) -> dialog.dismiss())
-                    .show();
-            return true; // ✅ Event is handled
+                            databaseReference.child(product.getBarcode())
+                                    .setValue(product)
+                                    .addOnSuccessListener(aVoid -> {
+                                        Toast.makeText(v.getContext(), "One item removed", Toast.LENGTH_SHORT).show();
+                                        notifyItemChanged(holder.getAdapterPosition());
+                                    })
+                                    .addOnFailureListener(e ->
+                                            Toast.makeText(v.getContext(), "Failed to update", Toast.LENGTH_SHORT).show());
+                        })
+                        .setNegativeButton("Delete All", (dialog, which) -> {
+                            databaseReference.child(product.getBarcode())
+                                    .removeValue()
+                                    .addOnSuccessListener(aVoid -> {
+                                        int itemPosition = holder.getAdapterPosition();
+                                        if (itemPosition != RecyclerView.NO_POSITION) {
+                                            itemList.remove(itemPosition);
+                                            notifyItemRemoved(itemPosition);
+                                        }
+                                        Toast.makeText(v.getContext(), "Product removed!", Toast.LENGTH_SHORT).show();
+                                    })
+                                    .addOnFailureListener(e ->
+                                            Toast.makeText(v.getContext(), "Failed to remove", Toast.LENGTH_SHORT).show());
+                        })
+                        .setNeutralButton("Cancel", null)
+                        .show();
+            } else {
+                new AlertDialog.Builder(v.getContext())
+                        .setTitle("Delete Product")
+                        .setMessage("Are you sure you want to remove this product?")
+                        .setPositiveButton("Yes", (dialog, which) -> {
+                            databaseReference.child(product.getBarcode())
+                                    .removeValue()
+                                    .addOnSuccessListener(aVoid -> {
+                                        int itemPosition = holder.getAdapterPosition();
+                                        if (itemPosition != RecyclerView.NO_POSITION) {
+                                            itemList.remove(itemPosition);
+                                            notifyItemRemoved(itemPosition);
+                                        }
+                                        Toast.makeText(v.getContext(), "Product removed!", Toast.LENGTH_SHORT).show();
+                                    })
+                                    .addOnFailureListener(e ->
+                                            Toast.makeText(v.getContext(), "Failed to remove", Toast.LENGTH_SHORT).show());
+                        })
+                        .setNegativeButton("No", null)
+                        .show();
+            }
+            return true;
         });
+
 
 
     }
@@ -211,93 +253,6 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.View
         notifyDataSetChanged();
     }
 
-    private String normalizeText(String input) {
-        if (input == null) return "";
-        String normalized = Normalizer.normalize(input, Normalizer.Form.NFD);
-        return normalized.replaceAll("\\p{InCombiningDiacriticalMarks}+", "").toLowerCase();
-    }
-
-    private int getCategoryIcon(String productName) {
-        productName = normalizeText(productName); // Normalize accents + lower case
-
-        class Category {
-            int iconResId;
-            List<String> keywords;
-            Category(int iconResId, String... keywords) {
-                this.iconResId = iconResId;
-                this.keywords = Arrays.asList(keywords);
-            }
-        }
-
-        List<Category> categories = new ArrayList<>();
-        categories.add(new Category(R.drawable.ic_milk, "milk", "lait"));
-        categories.add(new Category(R.drawable.ic_cheese, "cheese", "fromage", "shredded"));
-        categories.add(new Category(R.drawable.ic_juice, "juice", "jus"));
-        categories.add(new Category(R.drawable.ic_eggs, "egg", "oeuf", "oeufs"));
-        categories.add(new Category(R.drawable.ic_water, "water", "eau"));
-        categories.add(new Category(R.drawable.ic_oats, "oats", "oat"));
-
-        // Fruits
-        categories.add(new Category(R.drawable.ic_fruits, "apple", "banana", "orange", "mango", "apricot", "fruit", "fraise", "blueberries", "berries", "pommes", "bananes", "mangue", "abricot", "fruits"));
-
-        // Meat & Fish
-        categories.add(new Category(R.drawable.ic_meat, "meat", "steak", "beef", "poulet", "chicken", "saucisse", "sausage", "viande", "boeuf"));
-        categories.add(new Category(R.drawable.ic_fish, "fish", "tuna", "salmon", "saumon", "poisson", "thon", "morue", "shrimps", "crabe", "cod", "crab"));
-
-        // Vegetables
-        categories.add(new Category(R.drawable.ic_vegetable, "lettuce", "carrot", "maïs", "spinach", "pomme de terre", "garlic", "vegetables", "laitue", "carotte", "epinard", "ail", "legumes", "potato"));
-
-        // Nuts & Grains
-        categories.add(new Category(R.drawable.ic_nuts, "peanut", "almond", "nuts", "noix", "amande", "arachide", "datte", "date"));
-
-        // Cereals
-        categories.add(new Category(R.drawable.ic_cereal, "cereal", "granola", "muesli", "cereale"));
-
-        // Snacks
-        categories.add(new Category(R.drawable.ic_snacks, "chips", "crackers", "snack", "bar", "barre", "gateau", "cookie"));
-
-        // Canned
-        categories.add(new Category(R.drawable.ic_canned, "can", "canned", "soup", "beans", "conserve", "haricots"));
-
-        // Condiments
-        categories.add(new Category(R.drawable.ic_condiments, "ketchup", "mustard", "mayo", "sauce", "vinaigrette"));
-
-        // Bread & bakery
-        categories.add(new Category(R.drawable.ic_bread, "bread", "bun", "buns", "bagel", "croissant", "brioche", "toast", "roll"));
-
-        // Pasta
-        categories.add(new Category(R.drawable.ic_pasta, "spaghetti", "penne", "macaroni", "farfalle", "rigatoni", "pasta", "pate"));
-
-        // Dessert / Sweet
-        categories.add(new Category(R.drawable.ic_dessert, "chocolate", "chocolat", "vanilla", "vanille", "cacao", "cocoa", "sweet", "sucre", "dessert"));
-
-        // Score matching
-        int bestScore = 0;
-        int bestIcon = R.drawable.ic_food_default;
-
-        for (Category category : categories) {
-            int score = 0;
-            for (String keyword : category.keywords) {
-                if (productName.equals(keyword)) {
-                    score += 3; // ✅ Strong match
-                } else if (productName.contains(keyword)) {
-                    // ✅ Boost "juice"/"jus" matching
-                    if (keyword.equals("juice") || keyword.equals("jus")) {
-                        score += 3;
-                    } else {
-                        score += 1;
-                    }
-                }
-            }
-
-            if (score > bestScore) {
-                bestScore = score;
-                bestIcon = category.iconResId;
-            }
-        }
-
-        return bestIcon;
-    }
 
     @Override
     public int getItemCount() {

@@ -71,14 +71,7 @@ public class ProductDetailsDialogFragment extends DialogFragment {
         expiry.setText(product.getExpiryDate());
         quantity.setText(String.valueOf(product.getQuantity()));
 
-        if (product.getImageUrl() != null && !product.getImageUrl().isEmpty()) {
-            Glide.with(requireContext())
-                    .load(product.getImageUrl())
-                    .placeholder(R.drawable.placeholder_image)
-                    .into(productImage);
-        } else {
-            productImage.setImageResource(R.drawable.placeholder_image);
-        }
+        productImage.setImageResource(CategoryUtils.getCategoryIcon(product.getName()));
 
         editBtn.setOnClickListener(v -> {
             name.setEnabled(true);
@@ -149,24 +142,55 @@ public class ProductDetailsDialogFragment extends DialogFragment {
         });
 
         deleteBtn.setOnClickListener(v -> {
-            new AlertDialog.Builder(requireContext())
-                    .setTitle("Delete Product")
-                    .setMessage("Are you sure you want to delete this product?")
-                    .setPositiveButton("Yes", (dialog, which) -> {
-                        FirebaseDatabase.getInstance().getReference("inventory_product")
-                                .child(product.getBarcode())
-                                .removeValue()
-                                .addOnSuccessListener(aVoid -> {
-                                    Toast.makeText(getContext(), "Product deleted", Toast.LENGTH_SHORT).show();
-                                    if (listener != null) listener.onProductDeleted(product.getBarcode()); // ✅ notify
-                                    dismiss();
-                                })
-                                .addOnFailureListener(e ->
-                                        Toast.makeText(getContext(), "Failed to delete", Toast.LENGTH_SHORT).show());
-                    })
-                    .setNegativeButton("No", null)
-                    .show();
+            if (product.getQuantity() > 1) {
+                new AlertDialog.Builder(requireContext())
+                        .setTitle("Multiple Quantities")
+                        .setMessage("This product has a quantity of " + product.getQuantity() + ". Do you want to delete one or all?")
+                        .setPositiveButton("Delete One", (dialog, which) -> {
+                            product.setQuantity(product.getQuantity() - 1);
+                            FirebaseDatabase.getInstance().getReference("inventory_product")
+                                    .child(product.getBarcode())
+                                    .setValue(product)
+                                    .addOnSuccessListener(aVoid -> {
+                                        Toast.makeText(getContext(), "One item removed", Toast.LENGTH_SHORT).show();
+                                        dismiss();
+                                    })
+                                    .addOnFailureListener(e ->
+                                            Toast.makeText(getContext(), "Failed to update", Toast.LENGTH_SHORT).show());
+                        })
+                        .setNegativeButton("Delete All", (dialog, which) -> {
+                            FirebaseDatabase.getInstance().getReference("inventory_product")
+                                    .child(product.getBarcode())
+                                    .removeValue()
+                                    .addOnSuccessListener(aVoid -> {
+                                        Toast.makeText(getContext(), "Product deleted", Toast.LENGTH_SHORT).show();
+                                        dismiss();
+                                    })
+                                    .addOnFailureListener(e ->
+                                            Toast.makeText(getContext(), "Failed to delete", Toast.LENGTH_SHORT).show());
+                        })
+                        .setNeutralButton("Cancel", null)
+                        .show();
+            } else {
+                new AlertDialog.Builder(requireContext())
+                        .setTitle("Delete Product")
+                        .setMessage("Are you sure you want to delete this product?")
+                        .setPositiveButton("Yes", (dialog, which) -> {
+                            FirebaseDatabase.getInstance().getReference("inventory_product")
+                                    .child(product.getBarcode())
+                                    .removeValue()
+                                    .addOnSuccessListener(aVoid -> {
+                                        Toast.makeText(getContext(), "Product deleted", Toast.LENGTH_SHORT).show();
+                                        dismiss();
+                                    })
+                                    .addOnFailureListener(e ->
+                                            Toast.makeText(getContext(), "Failed to delete", Toast.LENGTH_SHORT).show());
+                        })
+                        .setNegativeButton("No", null)
+                        .show();
+            }
         });
+
 
         closeBtn.setOnClickListener(v -> dismiss());
 
