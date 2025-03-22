@@ -35,6 +35,11 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:background="@color/blue"
+            android:elevation="4dp"
+            app:title="Dashboard"
+            app:titleTextColor="@android:color/white"
+            app:titleCentered="true"
+            app:navigationIcon="@drawable/ic_menu"
             app:layout_constraintTop_toTopOf="parent">
 
             <LinearLayout
@@ -57,15 +62,14 @@
 
                 <TextView
                     android:id="@+id/dashboardTitle"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="12dp"
-                    android:layout_weight="1"
+                    android:gravity="center"
                     android:text="Dashboard"
                     android:textColor="@android:color/white"
                     android:textSize="20sp"
                     android:textStyle="bold"
-                    android:layout_gravity="center_vertical"/>
+                    android:layout_gravity="center" />
             </LinearLayout>
 
         </com.google.android.material.appbar.MaterialToolbar>

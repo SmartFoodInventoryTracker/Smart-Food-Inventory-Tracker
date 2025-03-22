@@ -4,12 +4,18 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.EdgeToEdge;
+import androidx.core.content.ContextCompat;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GravityCompat;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
 import com.google.android.material.appbar.MaterialToolbar;
@@ -30,28 +36,31 @@ public class DashboardActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        EdgeToEdge.enable(this); // ✅ Modern edge-to-edge mode
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dashboard);
 
-        NotificationHelper notificationHelper = new NotificationHelper(this, true); // ✅ Start expiry checks
-        notificationHelper.startFridgeMonitoringService(); // ✅ Keep monitoring fridge conditions
+        getWindow().setStatusBarColor(ContextCompat.getColor(this, R.color.blue)); // ✅ Blue status bar
 
-        // ✅ Initialize Firebase
+        NotificationHelper notificationHelper = new NotificationHelper(this, true);
+        notificationHelper.startFridgeMonitoringService();
+
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
-        // ✅ Initialize Views
         setUpUi();
-
-        // ✅ Setup Toolbar
         setUpToolBar();
-
-        // ✅ Setup Navigation Drawer with Full Menu
         setUpNavBar();
-
-        // ✅ Load User Name for Dynamic Greeting
         loadUserName();
+
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.toolbar), (view, insets) -> {
+            int statusBarHeight = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top;
+            view.setTranslationY(statusBarHeight);
+            return insets;
+        });
     }
+
 
     @Override
     protected void onResume() {
