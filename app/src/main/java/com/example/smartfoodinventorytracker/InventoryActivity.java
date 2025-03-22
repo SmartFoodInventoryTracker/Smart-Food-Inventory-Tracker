@@ -414,7 +414,7 @@ public class InventoryActivity extends AppCompatActivity
                             }
 
                             // ✅ Pass image URL to Firebase
-                            saveProductToFirebase(barcode, productName, brand, imageUrl);
+                            saveProductToFirebase(barcode, productName, brand);
                         } else {
                             Toast.makeText(this, "Product not found", Toast.LENGTH_SHORT).show();
                         }
@@ -428,13 +428,9 @@ public class InventoryActivity extends AppCompatActivity
         requestQueue.add(request);
     }
 
-    private void saveProductToFirebase(String barcode, String name, String brand, String imageUrl) {
+    private void saveProductToFirebase(String barcode, String name, String brand) {
 
         Product product = new Product(barcode, name, brand);
-
-        if (imageUrl != null && !imageUrl.isEmpty()) {
-            product.setImageUrl(imageUrl);
-        }
 
         LocalDate currentDate = LocalDate.now();
         String formattedDate = currentDate.format(DateTimeFormatter.ofPattern("d/M/yyyy"));
