@@ -58,11 +58,18 @@ dependencies {
     // Material Components (for TabLayout dots)
     implementation("com.google.android.material:material:1.9.0")
 
+    implementation("androidx.work:work-runtime:2.9.0")
+
     //  Firebase Realtime Database
     implementation("com.google.firebase:firebase-database")
 
+    implementation("androidx.cardview:cardview:1.0.0")
+
+
     // Google ML Kit Barcode Scanning
     implementation("com.google.mlkit:barcode-scanning:17.2.0")
+
+    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
 
     // CameraX for Live Scanning
     implementation("androidx.camera:camera-core:1.3.0")
@@ -76,8 +83,5 @@ dependencies {
     // Volley for API calls (Open Food Facts)
     implementation("com.android.volley:volley:1.2.1")
 
-    // Glide
     implementation("com.github.bumptech.glide:glide:4.16.0")
-    annotationProcessor("com.github.bumptech.glide:compiler:4.16.0")
-
 }

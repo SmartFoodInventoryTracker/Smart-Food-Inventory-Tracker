@@ -1,30 +1,47 @@
 package com.example.smartfoodinventorytracker;
 
+import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.text.Html;
+import android.text.SpannableString;
+import android.text.format.DateUtils;
+import android.text.style.ForegroundColorSpan;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.recyclerview.widget.ItemTouchHelper;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
-import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 public class NotificationCenter extends AppCompatActivity {
 
+    private NotificationAdapter adapter;
+    private RecyclerView recyclerView;
+    private List<DatabaseHelper.NotificationItem> notificationList = new ArrayList<>();
     private NotificationHelper notificationHelper;
-
-    private ListView notificationListView;
-    private ArrayAdapter<String> adapter;
-    private List<String> notificationList;
+    private String currentFilter = null; // null means "All"
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,78 +57,108 @@ public class NotificationCenter extends AppCompatActivity {
 
         setUpToolbar();
 
-        // UI Initialization
-        notificationHelper = new NotificationHelper(this);
-        notificationListView = findViewById(R.id.Notification_ListView);
+        notificationHelper = new NotificationHelper(this, false);
 
-        // Initialize ListView
-        notificationList = new ArrayList<>();
-        adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, notificationList);
-        notificationListView.setAdapter(adapter);
+        recyclerView = findViewById(R.id.notificationRecyclerView);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        adapter = new NotificationAdapter(notificationList);
+        recyclerView.setAdapter(adapter);
 
-        // Fetch Notifications
         loadNotifications();
-
-        // ✅ Auto-refresh when new notifications are added
-        DatabaseHelper.listenForNotificationUpdates(this::loadNotifications);
-        DatabaseHelper.listenToInventoryChanges(this, notificationHelper);
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_clear_notifs, menu);
+
+        for (int i = 0; i < menu.size(); i++) {
+            MenuItem item = menu.getItem(i);
+
+            // Force black text for top-level items
+            if (item.getTitle() != null) {
+                SpannableString spanString = new SpannableString(item.getTitle());
+                spanString.setSpan(new ForegroundColorSpan(Color.BLACK), 0, spanString.length(), 0);
+                item.setTitle(spanString);
+            }
+
+            // If this item has a submenu (like your filter)
+            if (item.hasSubMenu()) {
+                android.view.SubMenu subMenu = item.getSubMenu();
+                for (int j = 0; j < subMenu.size(); j++) {
+                    MenuItem subItem = subMenu.getItem(j);
+                    if (subItem.getTitle() != null) {
+                        SpannableString spanString = new SpannableString(subItem.getTitle());
+                        spanString.setSpan(new ForegroundColorSpan(Color.BLACK), 0, spanString.length(), 0);
+                        subItem.setTitle(spanString);
+                    }
+                }
+            }
+        }
+
         return true;
     }
 
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.clear_notifs) {
-            clearAllNotifications(); // Call method to clear notifications
+        int id = item.getItemId();
+
+        if (id == R.id.clear_notifs) {
+            clearAllNotifications();
+            return true;
+        } else if (id == R.id.filter_all) {
+            loadNotifications(); // Show all notifications
+            return true;
+        } else if (id == R.id.filter_fridge) {
+            loadFilteredNotifications("Fridge Alert");
+            return true;
+        } else if (id == R.id.filter_inventory) {
+            loadFilteredNotifications("Inventory");
             return true;
         }
+
         return super.onOptionsItemSelected(item);
     }
+
+    private void loadFilteredNotifications(String filterType) {
+        currentFilter = filterType;
+        DatabaseHelper.fetchNotifications(notifications -> {
+            notificationList.clear();
+
+            for (DatabaseHelper.NotificationItem notification : notifications) {
+                if (notification.getTitle().contains(filterType)) {
+                    notificationList.add(notification);
+                }
+            }
+
+            Collections.sort(notificationList, (a, b) -> Long.compare(b.getTimestamp(), a.getTimestamp()));
+            adapter.notifyDataSetChanged();
+        });
+    }
+
 
     private void clearAllNotifications() {
         new androidx.appcompat.app.AlertDialog.Builder(this)
                 .setTitle("Clear All Notifications")
                 .setMessage("Are you sure you want to delete all notifications?")
                 .setPositiveButton("Yes", (dialog, which) -> {
-                    // Call the method to clear notifications if confirmed
                     DatabaseHelper.clearNotifications(() -> {
                         Toast.makeText(this, "All notifications cleared!", Toast.LENGTH_SHORT).show();
-                        loadNotifications(); // Refresh the ListView
+                        loadNotifications();
                     });
                 })
-                .setNegativeButton("Cancel", (dialog, which) -> {
-                    // Do nothing if canceled
-                    dialog.dismiss();
-                })
+                .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
                 .show();
     }
 
-
     private void loadNotifications() {
+        currentFilter = null;
         DatabaseHelper.fetchNotifications(notifications -> {
             notificationList.clear();
-
-            // ✅ Sort notifications from most recent to least recent
-            notifications.sort((a, b) -> Long.compare(b.getTimestamp(), a.getTimestamp()));
-
-            for (DatabaseHelper.NotificationItem notification : notifications) {
-                String formattedTime = formatTimestamp(notification.getTimestamp());
-                String displayText = Html.fromHtml(
-                        "<b>" + notification.getTitle() + "</b><br/>" +
-                                notification.getMessage() + "<br/>📅 " + formattedTime + "<br/>",
-                        Html.FROM_HTML_MODE_LEGACY).toString();
-                notificationList.add(displayText);
-            }
+            Collections.sort(notifications, (a, b) -> Long.compare(b.getTimestamp(), a.getTimestamp()));
+            notificationList.addAll(notifications);
             adapter.notifyDataSetChanged();
         });
-    }
-
-    private String formatTimestamp(long timestamp) {
-        return new SimpleDateFormat("yyyy-MM-dd @ HH:mm", Locale.getDefault()).format(new Date(timestamp * 1000));
     }
 
     private void setUpToolbar() {
@@ -120,8 +167,82 @@ public class NotificationCenter extends AppCompatActivity {
         getSupportActionBar().setDisplayShowTitleEnabled(false);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setDisplayShowHomeEnabled(true);
         }
         toolbar.setNavigationOnClickListener(v -> finish());
+    }
+
+    // ==========================
+    // Embedded NotificationAdapter Class
+    // ==========================
+    private class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapter.ViewHolder> {
+
+        private final List<DatabaseHelper.NotificationItem> notificationList;
+        private final Map<String, Integer> colorMap;
+
+        public NotificationAdapter(List<DatabaseHelper.NotificationItem> notifications) {
+            this.notificationList = notifications;
+            this.colorMap = new HashMap<>();
+            colorMap.put(NotificationHelper.FRIDGE_ALERT_TITLE, Color.RED);
+            colorMap.put(NotificationHelper.EXPIRY_ALERT_TITLE, Color.YELLOW);
+        }
+
+        @NonNull
+        @Override
+        public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_notification, parent, false);
+            return new ViewHolder(view);
+        }
+
+        @Override
+        public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+            DatabaseHelper.NotificationItem notification = notificationList.get(position);
+            holder.notificationTitle.setText(notification.getTitle());
+            holder.notificationMessage.setText(notification.getMessage());
+            holder.notificationTime.setText(DateUtils.getRelativeTimeSpanString(notification.getTimestamp() * 1000));
+
+            // Assign correct icons
+            if (notification.getTitle().contains("Fridge Alert")) {
+                holder.notificationIcon.setImageResource(R.drawable.ic_fridge);
+            } else if (notification.getTitle().contains("Food Expiry") || notification.getTitle().contains("Inventory")) {
+                holder.notificationIcon.setImageResource(R.drawable.ic_inventory);
+            } else {
+                holder.notificationIcon.setImageResource(R.drawable.ic_notification); // Default fallback
+            }
+
+            // Set onClickListener to open respective activity
+            holder.itemView.setOnClickListener(v -> {
+                Intent intent;
+                if (notification.getTitle().contains("Fridge Alert")) {
+                    intent = new Intent(v.getContext(), FridgeConditions.class);
+                } else if (notification.getTitle().contains("Food Expiry") || notification.getTitle().contains("Inventory")) {
+                    intent = new Intent(v.getContext(), InventoryActivity.class);
+                } else {
+                    intent = new Intent(v.getContext(), NotificationCenter.class); // Default fallback
+                }
+                v.getContext().startActivity(intent);
+            });
+        }
+
+
+
+        @Override
+        public int getItemCount() {
+            return notificationList.size();
+        }
+
+        public class ViewHolder extends RecyclerView.ViewHolder {
+            ImageView notificationIcon;
+            TextView notificationTitle, notificationMessage, notificationTime;
+
+            public ViewHolder(View itemView) {
+                super(itemView);
+                notificationIcon = itemView.findViewById(R.id.notificationIcon);
+                notificationTitle = itemView.findViewById(R.id.notificationTitle);
+                notificationMessage = itemView.findViewById(R.id.notificationMessage);
+                notificationTime = itemView.findViewById(R.id.notificationTime);
+            }
+        }
+
+
     }
 }

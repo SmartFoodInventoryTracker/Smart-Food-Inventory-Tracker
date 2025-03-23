@@ -17,6 +17,13 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.AuthResult;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.widget.ImageView;
+
+import androidx.core.graphics.drawable.RoundedBitmapDrawable;
+import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory;
+
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -48,6 +55,18 @@ public class LoginActivity extends AppCompatActivity {
         loginButton = findViewById(R.id.loginButton);
         signupTextView = findViewById(R.id.signupTextView);
         forgotPasswordTextView = findViewById(R.id.forgotPasswordTextView);
+
+        ImageView logo = findViewById(R.id.appLogo); // or whatever the ID is for each page
+
+        Bitmap originalBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.smart_food_inventory_logo);
+        RoundedBitmapDrawable roundedDrawable = RoundedBitmapDrawableFactory.create(getResources(), originalBitmap);
+
+        // Adjust this to control roundness (the higher, the rounder)
+        roundedDrawable.setCornerRadius(400f);
+        roundedDrawable.setAntiAlias(true);
+
+        logo.setImageDrawable(roundedDrawable);
+
 
         // ✅ Login Button Logic
         loginButton.setOnClickListener(new View.OnClickListener() {

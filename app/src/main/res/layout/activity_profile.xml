@@ -4,6 +4,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="24dp"
+    android:theme="@style/Theme.SmartFoodInventoryTracker"
     android:gravity="center">
 
     <TextView

@@ -7,6 +7,10 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,6 +18,7 @@ public class DatabaseHelper {
 
     private static final DatabaseReference notificationsRef = FirebaseDatabase.getInstance().getReference("notifications");
     private static final DatabaseReference inventoryRef = FirebaseDatabase.getInstance().getReference("inventory");
+    private static final DatabaseReference inventoryProdRef = FirebaseDatabase.getInstance().getReference("inventory_product");
 
     private static Long lastTemperature = null;
     private static Long lastHumidity = null;
@@ -38,7 +43,11 @@ public class DatabaseHelper {
                     Long timestamp = snapshot.child("timestamp").getValue(Long.class);
 
                     if (message != null && timestamp != null) {
-                        notifications.add(new NotificationItem("Fridge Alert ⚠️", message, timestamp));
+                        // ✅ Use constants from NotificationHelper for clarity
+                        String title = message.contains("expires")
+                                ? NotificationHelper.EXPIRY_ALERT_TITLE
+                                : NotificationHelper.FRIDGE_ALERT_TITLE;
+                        notifications.add(new NotificationItem(title, message, timestamp));
                     }
                 }
 
@@ -46,9 +55,7 @@ public class DatabaseHelper {
             }
 
             @Override
-            public void onCancelled(DatabaseError error) {
-                Log.e("DatabaseHelper", "Error fetching notifications", error.toException());
-            }
+            public void onCancelled(DatabaseError error) {}
         });
     }
 
@@ -69,40 +76,35 @@ public class DatabaseHelper {
             @Override
             public void onDataChange(DataSnapshot snapshot) {
                 for (DataSnapshot inventorySnapshot : snapshot.getChildren()) {
-                    Long newTemperature = inventorySnapshot.child("temperature").getValue(Long.class);
-                    Long newHumidity = inventorySnapshot.child("humidity").getValue(Long.class);
-                    Long newCO = inventorySnapshot.child("co").getValue(Long.class);
-                    Long newLPG = inventorySnapshot.child("lpg").getValue(Long.class);
-                    Long newSmoke = inventorySnapshot.child("smoke").getValue(Long.class);
+                    // ✅ Fetch sensor values
+                    Long temperature = inventorySnapshot.child("temperature").getValue(Long.class);
+                    Long humidity = inventorySnapshot.child("humidity").getValue(Long.class);
+                    Long co = inventorySnapshot.child("co").getValue(Long.class);
+                    Long lpg = inventorySnapshot.child("lpg").getValue(Long.class);
+                    Long smoke = inventorySnapshot.child("smoke").getValue(Long.class);
 
-                    // ✅ Temperature
-                    if (newTemperature != null && !newTemperature.equals(lastTemperature)) {
-                        lastTemperature = newTemperature;
-                        notificationHelper.sendConditionNotification("Temperature", newTemperature);
+                    // ✅ Fetch condition values
+                    Long temperatureCondition = inventorySnapshot.child("temperature condition").getValue(Long.class);
+                    Long humidityCondition = inventorySnapshot.child("humidity condition").getValue(Long.class);
+                    Long coCondition = inventorySnapshot.child("co condition").getValue(Long.class);
+                    Long lpgCondition = inventorySnapshot.child("lpg condition").getValue(Long.class);
+                    Long smokeCondition = inventorySnapshot.child("smoke condition").getValue(Long.class);
+
+                    // ✅ Send notifications only if condition is greater than 7
+                    if (temperatureCondition != null && temperatureCondition > 7) {
+                        notificationHelper.sendConditionNotification("Temperature", temperature);
                     }
-
-                    // ✅ Humidity
-                    if (newHumidity != null && !newHumidity.equals(lastHumidity)) {
-                        lastHumidity = newHumidity;
-                        notificationHelper.sendConditionNotification("Humidity", newHumidity);
+                    if (humidityCondition != null && humidityCondition > 7) {
+                        notificationHelper.sendConditionNotification("Humidity", humidity);
                     }
-
-                    // ✅ CO (Carbon Monoxide)
-                    if (newCO != null && !newCO.equals(lastCO)) {
-                        lastCO = newCO;
-                        notificationHelper.sendConditionNotification("CO Level", newCO);
+                    if (coCondition != null && coCondition > 7) {
+                        notificationHelper.sendConditionNotification("CO Level", co);
                     }
-
-                    // ✅ LPG
-                    if (newLPG != null && !newLPG.equals(lastLPG)) {
-                        lastLPG = newLPG;
-                        notificationHelper.sendConditionNotification("LPG Level", newLPG);
+                    if (lpgCondition != null && lpgCondition > 7) {
+                        notificationHelper.sendConditionNotification("LPG Level", lpg);
                     }
-
-                    // ✅ Smoke
-                    if (newSmoke != null && !newSmoke.equals(lastSmoke)) {
-                        lastSmoke = newSmoke;
-                        notificationHelper.sendConditionNotification("Smoke Level", newSmoke);
+                    if (smokeCondition != null && smokeCondition > 7) {
+                        notificationHelper.sendConditionNotification("Smoke Level", smoke);
                     }
                 }
             }
@@ -113,7 +115,6 @@ public class DatabaseHelper {
             }
         });
     }
-
 
 
     public static void listenForNotificationUpdates(Runnable callback) {
@@ -158,4 +159,38 @@ public class DatabaseHelper {
             return timestamp;
         }
     }
+
+    public static void checkExpiryNotifications(NotificationHelper notificationHelper) {
+        inventoryProdRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                LocalDate today = LocalDate.now();
+
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    Product product = snapshot.getValue(Product.class);
+                    if (product == null || product.getExpiryDate() == null || product.getExpiryDate().equals("Not set")) {
+                        continue; // Skip invalid products
+                    }
+
+                    // Parse expiry date
+                    String expiryDate = product.getExpiryDate();
+                    try {
+                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d/M/yyyy");
+                        LocalDate expiry = LocalDate.parse(expiryDate, formatter);
+                        long daysLeft = ChronoUnit.DAYS.between(today, expiry);
+
+                        if (daysLeft >= 0 && daysLeft <= 7) {
+                            notificationHelper.sendExpiryNotification(product.getName(), daysLeft);
+                        }
+                    } catch (Exception ignored) {}
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {}
+        });
+    }
+
+
+
 }
