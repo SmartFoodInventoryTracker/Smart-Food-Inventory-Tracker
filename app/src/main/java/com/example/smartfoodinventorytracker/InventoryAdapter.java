@@ -25,6 +25,7 @@ import java.util.Calendar;
 import java.util.List;
 
 public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.ViewHolder> {
+    private String userId; // ✅ Declare userId at the top
     private List<Product> itemList;
     private List<Product> originalList;
     private DatabaseReference databaseReference;
@@ -38,10 +39,12 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.View
         NONE
 
     }
-    public InventoryAdapter(List<Product> itemList) {
-        this.itemList = new ArrayList<>(itemList); // Current displayed list
-        this.originalList = new ArrayList<>(itemList); // Full original list
-        this.databaseReference = FirebaseDatabase.getInstance().getReference("inventory_product"); // ✅ Connect to Firebase
+    public InventoryAdapter(List<Product> itemList, String userId) {
+        this.userId = userId; // ✅ store user ID
+        this.itemList = new ArrayList<>(itemList);
+        this.originalList = new ArrayList<>(itemList);
+        this.databaseReference = FirebaseDatabase.getInstance()
+                .getReference("users").child(userId).child("inventory_product"); // ✅ update reference
     }
 
     public void updateList(List<Product> newList) {
@@ -145,7 +148,9 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.View
             holder.expiryDate.setText("Expiry Date: " + selectedDate); // ✅ Update UI instantly
 
             // ✅ Save new expiry date to Firebase
-            DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("inventory_product");
+            DatabaseReference databaseReference = FirebaseDatabase.getInstance()
+                    .getReference("users").child(userId).child("inventory_product");
+
             databaseReference.child(product.getBarcode()).child("expiryDate").setValue(selectedDate)
                     .addOnSuccessListener(aVoid -> {
                         Toast.makeText(context, "Expiry date updated!", Toast.LENGTH_SHORT).show();

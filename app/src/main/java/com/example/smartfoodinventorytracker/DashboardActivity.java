@@ -48,7 +48,8 @@ public class DashboardActivity extends AppCompatActivity {
 
         requestNotificationPermissionIfNeeded(); // ✅ Ask permission early
 
-        NotificationHelper notificationHelper = new NotificationHelper(this, true);
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        NotificationHelper notificationHelper = new NotificationHelper(this, true, userId);
         notificationHelper.startFridgeMonitoringService();
 
         mAuth = FirebaseAuth.getInstance();
