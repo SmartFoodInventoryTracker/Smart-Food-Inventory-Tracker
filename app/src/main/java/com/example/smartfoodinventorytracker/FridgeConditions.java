@@ -1,7 +1,11 @@
 package com.example.smartfoodinventorytracker;
 
+import android.graphics.Color;
 import android.os.Bundle;
+import android.view.Gravity;
+import android.view.View;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.activity.EdgeToEdge;
@@ -10,17 +14,24 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+
+import com.github.anastr.speedviewlib.AwesomeSpeedometer;
+import com.github.anastr.speedviewlib.SpeedView;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class FridgeConditions extends AppCompatActivity {
 
     private TextView tempText, humidityText, coText, lpgText, smokeText;
+    private SpeedView speedTemp, speedHum, speedLPG, speedCO,speedSmoke;
     private DatabaseReference databaseRef;
-    private Button updateButton;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,11 +56,15 @@ public class FridgeConditions extends AppCompatActivity {
         coText = findViewById(R.id.coText);
         lpgText = findViewById(R.id.lpgText);
         smokeText = findViewById(R.id.smokeText);
-        updateButton = findViewById(R.id.updateButton);
 
-        // ✅ Refresh data when button is clicked
-        updateButton.setOnClickListener(v -> fetchDataFromFirebase());
+        speedSmoke=findViewById(R.id.speedViewSmoke);
+        speedCO=findViewById(R.id.speedViewCO);
+        speedTemp=findViewById(R.id.speedViewTemp);
+        speedHum=findViewById(R.id.speedViewHum);
+        speedLPG=findViewById(R.id.speedViewLPG);
+
     }
+
 
     private void setUpToolbar(){
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -77,12 +92,25 @@ public class FridgeConditions extends AppCompatActivity {
                         Integer co = snapshot.child("co").getValue(Integer.class);
                         Integer lpg = snapshot.child("lpg").getValue(Integer.class);
                         Integer smoke = snapshot.child("smoke").getValue(Integer.class);
+                        Integer smoke_condition = snapshot.child("smoke condition").getValue(Integer.class);
+                        Integer co_condition = snapshot.child("co condition").getValue(Integer.class);
+                        Integer lpg_condition = snapshot.child("lpg condition").getValue(Integer.class);
+                        Integer temp_condition = snapshot.child("temperature condition").getValue(Integer.class);
+                        Integer humidity_condition = snapshot.child("humidity condition").getValue(Integer.class);
+                        Integer overall_condition = snapshot.child("overall condition").getValue(Integer.class);
+
 
                         tempText.setText(temperature != null ? "Temperature: " + temperature + "°C" : "-- °C");
                         humidityText.setText(humidity != null ? "Humidity: " + humidity + "%" : "-- %");
                         coText.setText(co != null ? "CO: " + co + " ppm" : "-- ppm");
                         lpgText.setText(lpg != null ? "LPG: " + lpg + " ppm" : "-- ppm");
                         smokeText.setText(smoke != null ? "NH4: " + smoke + " ppm" : "-- ppm");
+
+
+
+
+
+
                     }
                 } else {
                     Toast.makeText(FridgeConditions.this, "No data found!", Toast.LENGTH_SHORT).show();
@@ -95,4 +123,7 @@ public class FridgeConditions extends AppCompatActivity {
             }
         });
     }
+
+
+
 }
