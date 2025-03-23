@@ -295,3 +295,5 @@ public class ProductDetailsDialogFragment extends DialogFragment {
         else return ContextCompat.getColor(requireContext(), R.color.red);
     }
 }
+
+//
