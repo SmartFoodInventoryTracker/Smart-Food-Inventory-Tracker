@@ -85,6 +85,7 @@ public class ProductDetailsDialogFragment extends DialogFragment {
         brand.setText(product.getBrand());
         expiryText.setText(product.getExpiryDate());
         quantityText.setText(String.valueOf(product.getQuantity()));
+        quantityBadge.setText("Qty: " + product.getQuantity());
         productImage.setImageResource(CategoryUtils.getCategoryIcon(product.getName()));
 
         // Expiry badge
@@ -162,7 +163,6 @@ public class ProductDetailsDialogFragment extends DialogFragment {
             expiryBadge.setText(getExpiryText(newExpiry));
             expiryBadge.setBackgroundTintList(android.content.res.ColorStateList.valueOf(getExpiryColor(newExpiry)));
 
-            quantityBadge.setText("Qty: " + newQty);
             quantityBadge.setBackgroundTintList(android.content.res.ColorStateList.valueOf(getQuantityColor(newQty)));
 
 

@@ -41,7 +41,7 @@ public class Product implements Serializable {
     }
 
     public int getQuantity() {
-        return this.quantity;
+        return quantity;
     }
 
     public String getBrand() {
