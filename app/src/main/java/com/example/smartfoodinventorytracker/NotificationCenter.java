@@ -27,6 +27,7 @@ import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -42,6 +43,7 @@ public class NotificationCenter extends AppCompatActivity {
     private List<DatabaseHelper.NotificationItem> notificationList = new ArrayList<>();
     private NotificationHelper notificationHelper;
     private String currentFilter = null; // null means "All"
+    String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,7 +59,7 @@ public class NotificationCenter extends AppCompatActivity {
 
         setUpToolbar();
 
-        notificationHelper = new NotificationHelper(this, false);
+        notificationHelper = new NotificationHelper(this, false, userId);
 
         recyclerView = findViewById(R.id.notificationRecyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -122,7 +124,7 @@ public class NotificationCenter extends AppCompatActivity {
 
     private void loadFilteredNotifications(String filterType) {
         currentFilter = filterType;
-        DatabaseHelper.fetchNotifications(notifications -> {
+        DatabaseHelper.fetchNotifications(userId, notifications -> {
             notificationList.clear();
 
             for (DatabaseHelper.NotificationItem notification : notifications) {
@@ -142,7 +144,7 @@ public class NotificationCenter extends AppCompatActivity {
                 .setTitle("Clear All Notifications")
                 .setMessage("Are you sure you want to delete all notifications?")
                 .setPositiveButton("Yes", (dialog, which) -> {
-                    DatabaseHelper.clearNotifications(() -> {
+                    DatabaseHelper.clearNotifications(userId, () -> {
                         Toast.makeText(this, "All notifications cleared!", Toast.LENGTH_SHORT).show();
                         loadNotifications();
                     });
@@ -153,7 +155,7 @@ public class NotificationCenter extends AppCompatActivity {
 
     private void loadNotifications() {
         currentFilter = null;
-        DatabaseHelper.fetchNotifications(notifications -> {
+        DatabaseHelper.fetchNotifications(userId, notifications -> {
             notificationList.clear();
             Collections.sort(notifications, (a, b) -> Long.compare(b.getTimestamp(), a.getTimestamp()));
             notificationList.addAll(notifications);
@@ -216,6 +218,7 @@ public class NotificationCenter extends AppCompatActivity {
                     intent = new Intent(v.getContext(), FridgeConditions.class);
                 } else if (notification.getTitle().contains("Food Expiry") || notification.getTitle().contains("Inventory")) {
                     intent = new Intent(v.getContext(), InventoryActivity.class);
+                    intent.putExtra("data", notification.getMessage().split(" ")[0]); // Example: get product name
                 } else {
                     intent = new Intent(v.getContext(), NotificationCenter.class); // Default fallback
                 }

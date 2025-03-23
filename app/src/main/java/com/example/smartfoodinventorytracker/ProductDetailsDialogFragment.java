@@ -29,6 +29,12 @@ public class ProductDetailsDialogFragment extends DialogFragment {
 
     private Product product;
     private ProductDialogListener listener;
+    private String userId;
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
 
     public interface ProductDialogListener {
         void onProductUpdated(Product updatedProduct);
@@ -167,7 +173,10 @@ public class ProductDetailsDialogFragment extends DialogFragment {
 
 
 
-            FirebaseDatabase.getInstance().getReference("inventory_product")
+            FirebaseDatabase.getInstance()
+                    .getReference("users")
+                    .child(userId)
+                    .child("inventory_product")
                     .child(product.getBarcode())
                     .setValue(product)
                     .addOnSuccessListener(aVoid -> {
@@ -206,7 +215,10 @@ public class ProductDetailsDialogFragment extends DialogFragment {
                         .setMessage("This product has a quantity of " + product.getQuantity() + ". Do you want to delete one or all?")
                         .setPositiveButton("Delete One", (dialog, which) -> {
                             product.setQuantity(product.getQuantity() - 1);
-                            FirebaseDatabase.getInstance().getReference("inventory_product")
+                            FirebaseDatabase.getInstance()
+                                    .getReference("users")
+                                    .child(userId)
+                                    .child("inventory_product")
                                     .child(product.getBarcode())
                                     .setValue(product)
                                     .addOnSuccessListener(aVoid -> {
@@ -217,7 +229,10 @@ public class ProductDetailsDialogFragment extends DialogFragment {
                                             Toast.makeText(getContext(), "Failed to update", Toast.LENGTH_SHORT).show());
                         })
                         .setNegativeButton("Delete All", (dialog, which) -> {
-                            FirebaseDatabase.getInstance().getReference("inventory_product")
+                            FirebaseDatabase.getInstance()
+                                    .getReference("users")
+                                    .child(userId)
+                                    .child("inventory_product")
                                     .child(product.getBarcode())
                                     .removeValue()
                                     .addOnSuccessListener(aVoid -> {
@@ -234,7 +249,10 @@ public class ProductDetailsDialogFragment extends DialogFragment {
                         .setTitle("Delete Product")
                         .setMessage("Are you sure you want to delete this product?")
                         .setPositiveButton("Yes", (dialog, which) -> {
-                            FirebaseDatabase.getInstance().getReference("inventory_product")
+                            FirebaseDatabase.getInstance()
+                                    .getReference("users")
+                                    .child(userId)
+                                    .child("inventory_product")
                                     .child(product.getBarcode())
                                     .removeValue()
                                     .addOnSuccessListener(aVoid -> {
