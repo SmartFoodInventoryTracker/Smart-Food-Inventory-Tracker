@@ -33,6 +33,12 @@ public class AddManualProductDialogFragment extends DialogFragment {
     public void setManualProductListener(ManualProductListener listener) {
         this.listener = listener;
     }
+    private String userId;
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
 
     @NonNull
     @Override
@@ -85,7 +91,7 @@ public class AddManualProductDialogFragment extends DialogFragment {
             product.setDateAdded(getCurrentDate());
 
             FirebaseDatabase.getInstance()
-                    .getReference("inventory_product")
+                    .getReference("users").child(userId).child("inventory_product")
                     .child(product.getBarcode())
                     .setValue(product)
                     .addOnSuccessListener(aVoid -> {

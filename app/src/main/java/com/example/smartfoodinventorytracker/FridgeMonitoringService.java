@@ -11,6 +11,8 @@ import android.util.Log;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 
+import com.google.firebase.auth.FirebaseAuth;
+
 public class FridgeMonitoringService extends Service {
 
     @Override
@@ -20,7 +22,8 @@ public class FridgeMonitoringService extends Service {
         startForeground(1, createServiceNotification());
 
         // ✅ Start listening to fridge changes
-        NotificationHelper notificationHelper = new NotificationHelper(getApplicationContext(), false);
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        NotificationHelper notificationHelper = new NotificationHelper(getApplicationContext(), false, userId);
         DatabaseHelper.listenToInventoryChanges(getApplicationContext(), notificationHelper);
     }
 

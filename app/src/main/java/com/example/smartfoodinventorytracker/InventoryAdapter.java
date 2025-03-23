@@ -45,11 +45,12 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.View
         NONE
 
     }
-    public InventoryAdapter(InventoryActivity inventoryActivity, List<Product> itemList) {
-        this.context = inventoryActivity;
-        this.itemList = new ArrayList<>(itemList); // Current displayed list
-        this.originalList = new ArrayList<>(itemList); // Full original list
-        this.databaseReference = FirebaseDatabase.getInstance().getReference("inventory_product"); // ✅ Connect to Firebase
+    public InventoryAdapter(Context context, List<Product> itemList, String userId) {
+        this.context = context;
+        this.itemList = new ArrayList<>(itemList);
+        this.originalList = new ArrayList<>(itemList);
+        this.databaseReference = FirebaseDatabase.getInstance()
+                .getReference("users").child(userId).child("inventory_product");
     }
 
     public void updateList(List<Product> newList) {
