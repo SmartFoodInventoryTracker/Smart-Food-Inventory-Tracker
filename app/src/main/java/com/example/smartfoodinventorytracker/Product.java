@@ -2,29 +2,31 @@ package com.example.smartfoodinventorytracker;
 
 import java.util.Arrays;
 import java.util.List;
+import java.io.Serializable;
 
-public class Product {
+public class Product implements Serializable {
     public String barcode;
     public String name;
     public String brand;
     public String expiryDate;
     public String dateAdded;
-    public int Quantity;
+    public int quantity;
     private String imageUrl;
 
     // Required empty constructor for Firebase
-    public Product() {}
+    public Product() {
+        this.quantity = 1; // Default quantity = 1
+    }
 
     public Product(String barcode, String name, String brand) { //year-month-day
         this.barcode = barcode;
         this.name = name;
         this.brand = brand;
         this.expiryDate = "Not set"; // Default Value
+        this.quantity = 1;
        // expiryDate = new DateInfo(expirationdates);
 
     }
-
-
 
     public String getBarcode() {
         return barcode;
@@ -33,15 +35,15 @@ public class Product {
     public String getName() {
         return name;
     }
-    public void SetQuantity(int quantity)
-    {
-        this.Quantity =quantity;
+
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
     }
 
-    public int ItemQuantity()
-    {
-        return this.Quantity;
+    public int getQuantity() {
+        return this.quantity;
     }
+
     public String getBrand() {
         return brand;
     }
@@ -58,13 +60,29 @@ public class Product {
         this.expiryDate = expiryDate;
     }
 
-    public Product copy()
-    {
+    public Product copy() {
         Product product = new Product(this.barcode, this.name, this.brand);
         product.setDateAdded(this.dateAdded);
         product.setExpiryDate(this.expiryDate);
+        product.setQuantity(this.quantity);
+        product.setImageUrl(this.imageUrl);
         return product;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Product product = (Product) o;
+        return barcode != null && barcode.equals(product.barcode);
+    }
+
+    @Override
+    public int hashCode() {
+        return barcode != null ? barcode.hashCode() : 0;
+    }
+
 
 
     public String getDateAdded() {
