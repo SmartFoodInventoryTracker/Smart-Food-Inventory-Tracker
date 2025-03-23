@@ -6,7 +6,6 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
-import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -17,9 +16,7 @@ public class AddProductDialogFragment extends DialogFragment {
 
     public interface AddProductDialogListener {
         void onAddManually();
-
         void onScanBarcode();
-
         void onProductAdded();
     }
 
@@ -42,20 +39,27 @@ public class AddProductDialogFragment extends DialogFragment {
         LayoutInflater inflater = requireActivity().getLayoutInflater();
         View view = inflater.inflate(R.layout.dialog_add_product, null);
 
-        LinearLayout btnManual = view.findViewById(R.id.addManualBtn);
-        LinearLayout btnScan = view.findViewById(R.id.scanBarcodeBtn);
+        Button btnManual = view.findViewById(R.id.btn_add_manual);
+        Button btnScan = view.findViewById(R.id.btn_scan_barcode);
 
         btnManual.setOnClickListener(v -> {
             listener.onAddManually();
+
             dismiss();
         });
 
         btnScan.setOnClickListener(v -> {
             listener.onScanBarcode();
+
             dismiss();
         });
 
-        builder.setView(view);
+
+
+
+
+
+        builder.setView(view).setTitle("Add Product");
         return builder.create();
     }
 }

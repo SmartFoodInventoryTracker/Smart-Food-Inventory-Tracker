@@ -39,6 +39,8 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -59,6 +61,8 @@ import java.util.UUID;
 public class InventoryActivity extends AppCompatActivity
         implements AddProductDialogFragment.AddProductDialogListener,
         AddManualProductDialogFragment.ManualProductListener {
+    private FirebaseAuth mAuth;
+    private String userId;
     private RecyclerView inventoryRecyclerView;
     private DatabaseReference databaseReference;
     private InventoryAdapter inventoryAdapter;
@@ -75,7 +79,17 @@ public class InventoryActivity extends AppCompatActivity
         setContentView(R.layout.activity_inventory);
 
         // Initialize Firebase Database Reference
-        databaseReference = FirebaseDatabase.getInstance().getReference("inventory_product");
+        mAuth = FirebaseAuth.getInstance();
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+
+        if (currentUser != null) {
+            userId = currentUser.getUid();
+            databaseReference = FirebaseDatabase.getInstance()
+                    .getReference("users").child(userId).child("inventory_product");
+        } else {
+            Toast.makeText(this, "User not authenticated", Toast.LENGTH_SHORT).show();
+            finish(); // or redirect to LoginActivity
+        }
 
         // Initialize Volley for API calls
         requestQueue = Volley.newRequestQueue(this);
@@ -86,7 +100,7 @@ public class InventoryActivity extends AppCompatActivity
         // Initialize RecyclerView
         inventoryRecyclerView = findViewById(R.id.inventoryRecyclerView);
         inventoryRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        inventoryAdapter = new InventoryAdapter(this, productList);
+        inventoryAdapter = new InventoryAdapter(productList, userId);
         inventoryRecyclerView.setAdapter(inventoryAdapter);
 
 
@@ -229,7 +243,6 @@ public class InventoryActivity extends AppCompatActivity
 
 
     }
-
 
     private void AddProduct(String name, String brand, List<String> expirationdate)
     {
@@ -456,11 +469,11 @@ public class InventoryActivity extends AppCompatActivity
 
                 for (DataSnapshot productSnapshot : snapshot.getChildren()) {
                     Product product = productSnapshot.getValue(Product.class);
-                    if (product != null && !inventoryAdapter.recentlyDeletedBarcodes.contains(product.getBarcode())) {
+                    if (product != null) {
+                        Log.d("Firebase", "Loaded product: " + product.getName() + ", Expiry: " + product.getExpiryDate()); // ✅ Log product info
                         tempProductList.add(product);
                     }
                 }
-
 
                 if (tempProductList.isEmpty()) {
                     Log.e("Firebase", "No products were retrieved!"); // 🚨 Debugging message
