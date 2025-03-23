@@ -14,7 +14,9 @@ public class Product implements Serializable {
     private String imageUrl;
 
     // Required empty constructor for Firebase
-    public Product() {}
+    public Product() {
+        this.quantity = 1; // Default quantity = 1
+    }
 
     public Product(String barcode, String name, String brand) { //year-month-day
         this.barcode = barcode;
@@ -58,13 +60,29 @@ public class Product implements Serializable {
         this.expiryDate = expiryDate;
     }
 
-    public Product copy()
-    {
+    public Product copy() {
         Product product = new Product(this.barcode, this.name, this.brand);
         product.setDateAdded(this.dateAdded);
         product.setExpiryDate(this.expiryDate);
+        product.setQuantity(this.quantity);
+        product.setImageUrl(this.imageUrl);
         return product;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Product product = (Product) o;
+        return barcode != null && barcode.equals(product.barcode);
+    }
+
+    @Override
+    public int hashCode() {
+        return barcode != null ? barcode.hashCode() : 0;
+    }
+
 
 
     public String getDateAdded() {

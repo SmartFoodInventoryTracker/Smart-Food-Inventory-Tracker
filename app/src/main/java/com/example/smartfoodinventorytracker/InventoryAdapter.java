@@ -3,6 +3,7 @@ package com.example.smartfoodinventorytracker;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.content.Context;
+import android.content.res.ColorStateList;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,26 +13,26 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.bumptech.glide.Glide;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
 
-import java.text.Normalizer;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
 
 public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.ViewHolder> {
+    private Context context;
     private List<Product> itemList;
     private List<Product> originalList;
     private DatabaseReference databaseReference;
     public Sorting sorting = Sorting.NONE;
+    final java.util.Set<String> recentlyDeletedBarcodes = new java.util.HashSet<>();
     public enum Sorting
     {
         EXP_DATE_ASC,
@@ -41,24 +42,20 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.View
         NONE
 
     }
-    public InventoryAdapter(List<Product> itemList) {
+    public InventoryAdapter(InventoryActivity inventoryActivity, List<Product> itemList) {
+        this.context = inventoryActivity;
         this.itemList = new ArrayList<>(itemList); // Current displayed list
         this.originalList = new ArrayList<>(itemList); // Full original list
         this.databaseReference = FirebaseDatabase.getInstance().getReference("inventory_product"); // ✅ Connect to Firebase
     }
 
     public void updateList(List<Product> newList) {
-        Log.d("Adapter", "Updating list with " + newList.size() + " items"); // ✅ Debugging log
-
         itemList.clear();
         itemList.addAll(newList);
-
-        originalList.clear();  // ✅ Ensure original list is updated
+        originalList.clear();
         originalList.addAll(newList);
-
         notifyDataSetChanged();
     }
-
 
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
@@ -101,13 +98,23 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.View
                 ? "Date Added: Not set"
                 : "Date Added: " + product.getDateAdded());
 
-        int qty = product.getQuantity();
-        if (qty > 1) {
-            holder.quantityBadge.setVisibility(View.VISIBLE);
-            holder.quantityBadge.setText("Qty: " + qty);
+        Context context = holder.itemView.getContext();
+
+        int quantity = product.getQuantity();
+        holder.quantityBadge.setText("Qty: " + quantity);
+        holder.quantityBadge.setVisibility(View.VISIBLE);
+
+        int badgeColor;
+                if (quantity >= 5) {
+            badgeColor = ContextCompat.getColor(context, R.color.green);
+        } else if (quantity >= 2) {
+            badgeColor = ContextCompat.getColor(context, R.color.orange);
         } else {
-            holder.quantityBadge.setVisibility(View.GONE);
+            badgeColor = ContextCompat.getColor(context, R.color.red);
         }
+
+        holder.quantityBadge.setBackgroundTintList(ColorStateList.valueOf(badgeColor));
+
 
         holder.itemView.setOnClickListener(v -> {
             FragmentManager fm = ((FragmentActivity) v.getContext()).getSupportFragmentManager();
@@ -129,14 +136,9 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.View
 
                 @Override
                 public void onProductDeleted(String barcode) {
-                    int currentPos = holder.getAdapterPosition();
-                    if (currentPos != RecyclerView.NO_POSITION) {
-                        itemList.remove(currentPos);
-                        originalList.remove(product);
-                        notifyItemRemoved(currentPos);
-                        Toast.makeText(v.getContext(), "Product deleted", Toast.LENGTH_SHORT).show();
-                    }
+                    removeProductByBarcode(barcode);
                 }
+
             });
 
             dialog.show(fm, "ProductDetailsDialog");
@@ -160,11 +162,12 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.View
                                     .setValue(product)
                                     .addOnSuccessListener(aVoid -> {
                                         Toast.makeText(v.getContext(), "One item removed", Toast.LENGTH_SHORT).show();
-                                        notifyItemChanged(holder.getAdapterPosition());
                                     })
                                     .addOnFailureListener(e ->
                                             Toast.makeText(v.getContext(), "Failed to update", Toast.LENGTH_SHORT).show());
                         })
+
+
                         .setNegativeButton("Delete All", (dialog, which) -> {
                             databaseReference.child(product.getBarcode())
                                     .removeValue()
@@ -208,6 +211,12 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.View
 
 
     }
+
+    private void removeProductByBarcode(String barcode) {
+        Log.d("InventoryAdapter", "Product deleted: " + barcode);
+        Toast.makeText(context, "Product deleted", Toast.LENGTH_SHORT).show();
+    }
+
 
     private void showDatePicker(ViewHolder holder, Product product) {
         Context context = holder.itemView.getContext();

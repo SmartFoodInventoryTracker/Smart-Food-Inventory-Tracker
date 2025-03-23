@@ -86,7 +86,7 @@ public class InventoryActivity extends AppCompatActivity
         // Initialize RecyclerView
         inventoryRecyclerView = findViewById(R.id.inventoryRecyclerView);
         inventoryRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        inventoryAdapter = new InventoryAdapter(productList);
+        inventoryAdapter = new InventoryAdapter(this, productList);
         inventoryRecyclerView.setAdapter(inventoryAdapter);
 
 
@@ -455,11 +455,11 @@ public class InventoryActivity extends AppCompatActivity
 
                 for (DataSnapshot productSnapshot : snapshot.getChildren()) {
                     Product product = productSnapshot.getValue(Product.class);
-                    if (product != null) {
-                        Log.d("Firebase", "Loaded product: " + product.getName() + ", Expiry: " + product.getExpiryDate()); // ✅ Log product info
+                    if (product != null && !inventoryAdapter.recentlyDeletedBarcodes.contains(product.getBarcode())) {
                         tempProductList.add(product);
                     }
                 }
+
 
                 if (tempProductList.isEmpty()) {
                     Log.e("Firebase", "No products were retrieved!"); // 🚨 Debugging message
