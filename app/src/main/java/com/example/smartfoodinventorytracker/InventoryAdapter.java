@@ -31,6 +31,8 @@ import java.util.List;
 
 public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.ViewHolder> {
     private Context context;
+    private String userId;
+
     private List<Product> itemList;
     private List<Product> originalList;
     private DatabaseReference databaseReference;
@@ -47,6 +49,7 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.View
     }
     public InventoryAdapter(Context context, List<Product> itemList, String userId) {
         this.context = context;
+        this.userId = userId;
         this.itemList = new ArrayList<>(itemList);
         this.originalList = new ArrayList<>(itemList);
         this.databaseReference = FirebaseDatabase.getInstance()
@@ -143,6 +146,7 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.View
             if (viewContext instanceof FragmentActivity) {
                 FragmentManager fm = ((FragmentActivity) viewContext).getSupportFragmentManager();
                 ProductDetailsDialogFragment dialog = ProductDetailsDialogFragment.newInstance(product);
+                dialog.setUserId(userId);
 
                 dialog.setProductDialogListener(new ProductDetailsDialogFragment.ProductDialogListener() {
                     @Override
