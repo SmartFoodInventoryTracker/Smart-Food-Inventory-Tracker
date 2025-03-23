@@ -43,14 +43,7 @@
             android:textColor="@android:color/darker_gray"
             android:visibility="gone" />
 
-        <TextView
-            android:id="@+id/productExpiryDate"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="Expiry Date: Not set"
-            android:textColor="@android:color/darker_gray"
-            android:textSize="14sp" />
+
 
         <TextView
             android:id="@+id/prodcutDateAdded"
@@ -60,14 +53,56 @@
             android:text="Date Added: Not set"
             android:textColor="@android:color/darker_gray"
             android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/expiryBadge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:paddingTop="2dp"
+            android:paddingBottom="2dp"
+            android:text="Expires in 3 days"
+            android:textSize="12sp"
+            android:textColor="@android:color/white"
+            android:backgroundTint="@android:color/darker_gray"
+            android:background="@drawable/bg_expiry_badge"
+            android:visibility="gone"
+            />
+
+
     </LinearLayout>
 
-    <!-- Product Image on the right -->
-    <ImageView
-        android:id="@+id/productImage"
-        android:layout_width="94dp"
-        android:layout_height="84dp"
-        android:layout_gravity="center_vertical"
-        android:contentDescription="Product image"
-        android:src="@drawable/placeholder_image" />
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center_horizontal">
+
+        <TextView
+            android:id="@+id/quantityBadge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            android:background="@drawable/bg_quantity_badge"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:paddingTop="2dp"
+            android:paddingBottom="2dp"
+            android:text="Qty: 1"
+            android:textColor="@android:color/white"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:visibility="gone" />
+
+        <ImageView
+            android:id="@+id/productImage"
+            android:layout_width="94dp"
+            android:layout_height="84dp"
+            android:layout_gravity="center"
+            android:contentDescription="Product image"
+            android:src="@drawable/placeholder_image" />
+    </LinearLayout>
+
 </LinearLayout>
