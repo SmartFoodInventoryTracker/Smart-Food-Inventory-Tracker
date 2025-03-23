@@ -32,6 +32,29 @@ public class FridgeConditions extends AppCompatActivity {
     private SpeedView speedTemp, speedHum, speedLPG, speedCO,speedSmoke;
     private DatabaseReference databaseRef;
 
+    private final int pointerIndex = 3; // 0-based index, so 3 is the 4th block
+    private final int totalBlocks = 15;
+
+    private final int[] gradientColors = {
+            0xFF00AA00,  // deep green
+            0xFF00D400,  // green-darker
+            0xFF00FF00,  // green
+            0xFF50FF00,  // bright lime
+            0xFF7CFF00,  // lime green
+            0xFFA8FF00,  // soft lime
+            0xFFD4FF00,  // lime tint
+            0xFFEFFF00,  // yellow-lime
+            0xFFFFFF00,  // yellow
+            0xFFFFE000,  // yellow tint
+            0xFFFFC000,  // golden yellow
+            0xFFFFA000,  // orange-yellow
+            0xFFFF8000,  // orange
+            0xFFFF4000,  // red-orange
+            0xFFFF0000   // red
+    };
+
+    private List<TextView> arrowViews = new ArrayList<>();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,9 +85,42 @@ public class FridgeConditions extends AppCompatActivity {
         speedTemp=findViewById(R.id.speedViewTemp);
         speedHum=findViewById(R.id.speedViewHum);
         speedLPG=findViewById(R.id.speedViewLPG);
+        setUpOverallBar();
 
     }
 
+    private void setUpOverallBar()
+    {
+        LinearLayout colorBar = findViewById(R.id.colorBar);
+        LinearLayout arrowRow = findViewById(R.id.arrowRow);
+
+        for (int i = 0; i < totalBlocks; i++) {
+            // Color block
+            View block = new View(this);
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(60, 60);
+            params.setMargins(4, 0, 4, 0);
+            block.setLayoutParams(params);
+            block.setBackgroundColor(gradientColors[i]);
+            colorBar.addView(block);
+
+            // Arrow placeholder
+            TextView arrow = new TextView(this);
+            arrow.setLayoutParams(params);
+            arrow.setText(i == pointerIndex ? "▲" : "");
+            arrow.setGravity(Gravity.CENTER);
+            arrow.setTextColor(Color.BLACK);
+            arrow.setTextSize(20);
+            arrowViews.add(arrow);
+            arrowRow.addView(arrow);
+        }
+
+        setArrowPosition(14);
+    }
+    private void setArrowPosition(int index) {
+        for (int i = 0; i < arrowViews.size(); i++) {
+            arrowViews.get(i).setText(i == index ? "▲" : "");
+        }
+    }
 
     private void setUpToolbar(){
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -119,11 +175,6 @@ public class FridgeConditions extends AppCompatActivity {
                         setGauge(smoke_condition,"s");
                         // Overall Gauge
                         setGauge(overall_condition, "ov");
-
-
-
-
-
 
                     }
                 } else {
@@ -217,6 +268,12 @@ public class FridgeConditions extends AppCompatActivity {
                 {
                     speedSmoke.speedTo(90);
                 }
+                break;
+
+
+            case "ov":
+                int grade = val*14/10;
+                setArrowPosition(grade);
                 break;
 
         }
