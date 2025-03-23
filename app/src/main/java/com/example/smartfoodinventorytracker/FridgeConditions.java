@@ -107,6 +107,20 @@ public class FridgeConditions extends AppCompatActivity {
                         smokeText.setText(smoke != null ? "NH4: " + smoke + " ppm" : "-- ppm");
 
 
+                        //Temp Gauge
+                        setGauge(temp_condition,"t");
+                        //Humidity Gauge
+                        setGauge(humidity_condition,"h");
+                        //CO gauge
+                        setGauge(co_condition,"c");
+                        //LPG gauge
+                        setGauge(lpg_condition,"l");
+                        //Smoke gauge
+                        setGauge(smoke_condition,"s");
+                        // Overall Gauge
+                        setGauge(overall_condition, "ov");
+
+
 
 
 
@@ -125,5 +139,88 @@ public class FridgeConditions extends AppCompatActivity {
     }
 
 
+    void setGauge(Integer val, String hint)
+    {
+        switch (hint)
+        {
+            case "t":
+                if(val>=0 && val<3)
+                {
+                    speedTemp.speedTo(30);
+                }
+                else if(val>=3 && val<9)
+                {
+                    speedTemp.speedTo(70);
+                }
+                else if(val>=9)
+                {
+                    speedTemp.speedTo(90);
+                }
+                break;
+
+
+            case "h":
+                if(val>=0 && val<3)
+                {
+                    speedHum.speedTo(30);
+                }
+                else if(val>=3 && val<9)
+                {
+                    speedHum.speedTo(70);
+                }
+                else if(val>=9)
+                {
+                    speedHum.speedTo(90);
+                }
+                break;
+
+            case "c":
+                if(val>=0 && val<3)
+                {
+                    speedCO.speedTo(30);
+                }
+                else if(val>=3 && val<9)
+                {
+                    speedCO.speedTo(70);
+                }
+                else if(val>=9)
+                {
+                    speedCO.speedTo(90);
+                }
+                break;
+
+            case "l":
+                if(val>=0 && val<3)
+                {
+                    speedLPG.speedTo(30);
+                }
+                else if(val>=3 && val<9)
+                {
+                    speedLPG.speedTo(70);
+                }
+                else if(val>=9)
+                {
+                    speedLPG.speedTo(90);
+                }
+                break;
+
+            case "s":
+                if(val>=0 && val<3)
+                {
+                    speedSmoke.speedTo(30);
+                }
+                else if(val>=3 && val<9)
+                {
+                    speedSmoke.speedTo(70);
+                }
+                else if(val>=9)
+                {
+                    speedSmoke.speedTo(90);
+                }
+                break;
+
+        }
+
+    }
 
 }
