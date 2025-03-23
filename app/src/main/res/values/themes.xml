@@ -8,9 +8,6 @@
         <!-- ✅ App Background -->
         <item name="android:windowBackground">@drawable/bg_shiny_blue</item>
 
-        <!-- ✅ Status Bar Color -->
-        <item name="android:statusBarColor">@color/blue</item>
-
         <!-- ✅ Toolbar Style -->
         <item name="toolbarStyle">@style/CustomToolbar</item>
 

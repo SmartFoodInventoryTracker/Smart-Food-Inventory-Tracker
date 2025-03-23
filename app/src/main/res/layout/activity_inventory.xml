@@ -36,7 +36,6 @@
                 android:layout_width="47dp"
                 android:layout_height="25dp"
                 android:layout_gravity="center_vertical"
-                app:tint="@android:color/white"
                 android:layout_marginStart="0dp"
                 android:layout_weight="0.03"
                 android:src="@drawable/ic_inventory" />
