@@ -3,6 +3,7 @@ package com.example.smartfoodinventorytracker;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.view.View;
@@ -11,6 +12,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -43,6 +45,8 @@ public class DashboardActivity extends AppCompatActivity {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dashboard);
+
+        requestNotificationPermissionIfNeeded(); // ✅ Ask permission early
 
         NotificationHelper notificationHelper = new NotificationHelper(this, true);
         notificationHelper.startFridgeMonitoringService();
@@ -94,6 +98,28 @@ public class DashboardActivity extends AppCompatActivity {
             else
                 drawerLayout.openDrawer(GravityCompat.START);
         });
+    }
+
+    private void requestNotificationPermissionIfNeeded() {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS)
+                    != PackageManager.PERMISSION_GRANTED) {
+
+                requestPermissions(new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 200);
+            }
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == 200) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(this, "Notifications enabled", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "Notifications denied", Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 
     private void setUpNavBar() {
