@@ -146,6 +146,7 @@ public class DashboardActivity extends AppCompatActivity {
                 startActivity(new Intent(this, ProfileActivity.class));
             } else if (id == R.id.nav_settings) {
                 Toast.makeText(this, "Settings Clicked", Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(this, SettingsActivity.class));
             } else if (id == R.id.nav_logout) {
                 logout();
             } else {
