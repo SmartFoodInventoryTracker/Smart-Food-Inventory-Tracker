@@ -26,6 +26,7 @@ import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import androidx.cardview.widget.CardView;
+import androidx.work.WorkManager;
 
 
 public class DashboardActivity extends AppCompatActivity {
@@ -230,6 +231,9 @@ public class DashboardActivity extends AppCompatActivity {
     private void logout() {
         FirebaseAuth.getInstance().signOut();
         getSharedPreferences("user_prefs", MODE_PRIVATE).edit().clear().apply();
+
+        // ✅ Cancel background worker
+        WorkManager.getInstance(this).cancelUniqueWork("ExpiryNotificationWorker");
 
         Intent intent = new Intent(this, OnboardingActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);

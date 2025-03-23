@@ -11,7 +11,9 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.view.Gravity;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -23,7 +25,7 @@ import android.util.Log;
 public class SettingsActivity extends AppCompatActivity {
 
     private SwitchCompat switchFridge, switchExpiry;
-    private EditText inputExpiredHours, inputWeek1Days, inputWeek2Days;
+    private TextView inputExpiredHours, inputWeek1Days, inputWeek2Days;
     private SharedPreferences prefs;
     private static final String PREFS_NAME = "user_settings";
 
@@ -56,6 +58,31 @@ public class SettingsActivity extends AppCompatActivity {
         inputWeek1Days.setText(String.valueOf(prefs.getInt("week1_every_days", 2)));
         inputWeek2Days.setText(String.valueOf(prefs.getInt("week2_every_days", 3)));
 
+        int expiredH = prefs.getInt("expired_every_hours", 4);
+        int week1D = prefs.getInt("week1_every_days", 2);
+        int week2D = prefs.getInt("week2_every_days", 3);
+
+        inputExpiredHours.setOnClickListener(v ->
+                showNumberPicker("🔔 Frequency in Hours", 1, 24, expiredH, val -> {
+                    inputExpiredHours.setText(String.valueOf(val));
+                    prefs.edit().putInt("expired_every_hours", val).apply();
+                })
+        );
+
+        inputWeek1Days.setOnClickListener(v ->
+                showNumberPicker("🔔 Frequency in Days", 1, 7, week1D, val -> {
+                    inputWeek1Days.setText(String.valueOf(val));
+                    prefs.edit().putInt("week1_every_days", val).apply();
+                })
+        );
+
+        inputWeek2Days.setOnClickListener(v ->
+                showNumberPicker("🔔 Frequency in Days", 1, 7, week2D, val -> {
+                    inputWeek2Days.setText(String.valueOf(val));
+                    prefs.edit().putInt("week2_every_days", val).apply();
+                })
+        );
+
         // Save on toggle
         switchFridge.setOnCheckedChangeListener((btn, isChecked) ->
                 prefs.edit().putBoolean("fridge_alerts", isChecked).apply());
@@ -76,18 +103,33 @@ public class SettingsActivity extends AppCompatActivity {
         toolbar.setNavigationOnClickListener(v -> finish());
     }
 
-    @Override
-    protected void onPause() {
-        super.onPause();
-
-        SharedPreferences.Editor editor = prefs.edit();
-
-        editor.putInt("expired_every_hours", parseNumber(inputExpiredHours.getText().toString(), 4));
-        editor.putInt("week1_every_days", parseNumber(inputWeek1Days.getText().toString(), 2));
-        editor.putInt("week2_every_days", parseNumber(inputWeek2Days.getText().toString(), 3));
-
-        editor.apply();
+    interface NumberPickedCallback {
+        void onNumberPicked(int value);
     }
+
+    private void showNumberPicker(String title, int min, int max, int current, NumberPickedCallback callback) {
+        // Wrap the NumberPicker in a LinearLayout to control layout
+        LinearLayout container = new LinearLayout(this);
+        container.setPadding(48, 24, 48, 0); // Add spacing around
+        container.setOrientation(LinearLayout.VERTICAL);
+        container.setGravity(Gravity.CENTER_HORIZONTAL);
+
+        final android.widget.NumberPicker picker = new android.widget.NumberPicker(this);
+        picker.setMinValue(min);
+        picker.setMaxValue(max);
+        picker.setValue(current);
+
+        container.addView(picker);
+
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle(title)
+                .setView(container)
+                .setPositiveButton("OK", (dialog, which) -> callback.onNumberPicked(picker.getValue()))
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+
 
     private int parseNumber(String text, int defaultVal) {
         try {
