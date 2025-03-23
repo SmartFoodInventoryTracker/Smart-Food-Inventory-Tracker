@@ -65,6 +65,8 @@ public class ProductDetailsDialogFragment extends DialogFragment {
         TextView quantityBadge = view.findViewById(R.id.quantityBadge);
         EditText expiryText = view.findViewById(R.id.expiryText);
         EditText quantityText = view.findViewById(R.id.quantityText);
+        ImageView quantityMinus = view.findViewById(R.id.quantityMinus);
+        ImageView quantityPlus = view.findViewById(R.id.quantityPlus);
 
         LinearLayout readOnlyContainer = view.findViewById(R.id.readOnlyContainer);
         LinearLayout editableContainer = view.findViewById(R.id.editableContainer);
@@ -73,37 +75,75 @@ public class ProductDetailsDialogFragment extends DialogFragment {
 
         Button editBtn = view.findViewById(R.id.editButton);
         Button deleteBtn = view.findViewById(R.id.deleteButton);
-        Button closeBtn = view.findViewById(R.id.closeButton);
         Button saveBtn = view.findViewById(R.id.saveButton);
         Button cancelEditBtn = view.findViewById(R.id.cancelEditButton);
 
-        // ✅ Set initial values
+        ImageView expiryCalendarIcon = view.findViewById(R.id.expiryCalendarIcon);
+
+        // Load data
         name.setText(product.getName());
         brand.setText(product.getBrand());
-        productImage.setImageResource(CategoryUtils.getCategoryIcon(product.getName()));
-
-        expiryBadge.setText(getExpiryText(product.getExpiryDate()));
-        expiryBadge.setBackgroundTintList(android.content.res.ColorStateList.valueOf(getExpiryColor(product.getExpiryDate())));
-        expiryBadge.setVisibility(View.VISIBLE);
-
-        quantityBadge.setText("Qty: " + product.getQuantity());
-        quantityBadge.setBackgroundTintList(android.content.res.ColorStateList.valueOf(getQuantityColor(product.getQuantity())));
-        quantityBadge.setVisibility(View.VISIBLE);
-
         expiryText.setText(product.getExpiryDate());
         quantityText.setText(String.valueOf(product.getQuantity()));
+        productImage.setImageResource(CategoryUtils.getCategoryIcon(product.getName()));
 
-        // ✏️ Edit mode toggle
+        // Expiry badge
+        String expiryLabel = getExpiryText(product.getExpiryDate());
+        expiryBadge.setText(expiryLabel);
+
+        int expiryColor = getExpiryColor(product.getExpiryDate());
+        expiryBadge.setBackgroundTintList(android.content.res.ColorStateList.valueOf(expiryColor));
+        expiryBadge.setVisibility(View.VISIBLE);
+
+        // Quantity badge
+        int qtyColor = getQuantityColor(product.getQuantity());
+        quantityBadge.setBackgroundTintList(android.content.res.ColorStateList.valueOf(qtyColor));
+        quantityBadge.setVisibility(View.VISIBLE);
+
+        // Calendar picker logic (shared)
+        View.OnClickListener dateClickListener = v -> {
+            if (!expiryText.isEnabled()) return;
+
+            final Calendar calendar = Calendar.getInstance();
+            DatePickerDialog datePickerDialog = new DatePickerDialog(requireContext(),
+                    (view1, year, month, dayOfMonth) -> {
+                        String selectedDate = dayOfMonth + "/" + (month + 1) + "/" + year;
+                        expiryText.setText(selectedDate);
+                    },
+                    calendar.get(Calendar.YEAR),
+                    calendar.get(Calendar.MONTH),
+                    calendar.get(Calendar.DAY_OF_MONTH)
+            );
+            datePickerDialog.show();
+        };
+        expiryText.setOnClickListener(dateClickListener);
+        expiryCalendarIcon.setOnClickListener(dateClickListener);
+
+        // Enable edit mode
         editBtn.setOnClickListener(v -> {
-            readOnlyContainer.setVisibility(View.GONE);
+            boolean isManual = product.getBarcode() == null || product.getBarcode().startsWith("manual_");
+            name.setEnabled(isManual);
+            brand.setEnabled(isManual);
+            expiryText.setEnabled(true);
+            quantityText.setEnabled(true);
+
             editableContainer.setVisibility(View.VISIBLE);
+            readOnlyContainer.setVisibility(View.GONE);
             saveCancelRow.setVisibility(View.VISIBLE);
             buttonRow.setVisibility(View.GONE);
         });
 
+        // Cancel edit mode
         cancelEditBtn.setOnClickListener(v -> {
+            name.setText(product.getName());
+            brand.setText(product.getBrand());
             expiryText.setText(product.getExpiryDate());
             quantityText.setText(String.valueOf(product.getQuantity()));
+
+            name.setEnabled(false);
+            brand.setEnabled(false);
+            expiryText.setEnabled(false);
+            quantityText.setEnabled(false);
 
             editableContainer.setVisibility(View.GONE);
             readOnlyContainer.setVisibility(View.VISIBLE);
@@ -118,6 +158,15 @@ public class ProductDetailsDialogFragment extends DialogFragment {
             product.setExpiryDate(newExpiry);
             product.setQuantity(newQty);
 
+            // 🔁 Update UI badges before closing
+            expiryBadge.setText(getExpiryText(newExpiry));
+            expiryBadge.setBackgroundTintList(android.content.res.ColorStateList.valueOf(getExpiryColor(newExpiry)));
+
+            quantityBadge.setText("Qty: " + newQty);
+            quantityBadge.setBackgroundTintList(android.content.res.ColorStateList.valueOf(getQuantityColor(newQty)));
+
+
+
             FirebaseDatabase.getInstance().getReference("inventory_product")
                     .child(product.getBarcode())
                     .setValue(product)
@@ -130,17 +179,24 @@ public class ProductDetailsDialogFragment extends DialogFragment {
                             Toast.makeText(getContext(), "Failed to update", Toast.LENGTH_SHORT).show());
         });
 
-        expiryText.setOnClickListener(v -> {
-            final Calendar calendar = Calendar.getInstance();
-            DatePickerDialog datePickerDialog = new DatePickerDialog(requireContext(),
-                    (view1, year, month, dayOfMonth) -> {
-                        String selectedDate = dayOfMonth + "/" + (month + 1) + "/" + year;
-                        expiryText.setText(selectedDate);
-                    },
-                    calendar.get(Calendar.YEAR),
-                    calendar.get(Calendar.MONTH),
-                    calendar.get(Calendar.DAY_OF_MONTH));
-            datePickerDialog.show();
+        quantityMinus.setOnClickListener(v -> {
+            try {
+                int qty = Integer.parseInt(quantityText.getText().toString().trim());
+                if (qty > 1) {
+                    quantityText.setText(String.valueOf(qty - 1));
+                }
+            } catch (NumberFormatException e) {
+                quantityText.setText("1"); // fallback
+            }
+        });
+
+        quantityPlus.setOnClickListener(v -> {
+            try {
+                int qty = Integer.parseInt(quantityText.getText().toString().trim());
+                quantityText.setText(String.valueOf(qty + 1));
+            } catch (NumberFormatException e) {
+                quantityText.setText("1"); // fallback
+            }
         });
 
         deleteBtn.setOnClickListener(v -> {
@@ -192,9 +248,6 @@ public class ProductDetailsDialogFragment extends DialogFragment {
                         .show();
             }
         });
-
-
-        closeBtn.setOnClickListener(v -> dismiss());
 
         return new AlertDialog.Builder(requireContext())
                 .setView(view)

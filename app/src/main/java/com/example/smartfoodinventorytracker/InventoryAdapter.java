@@ -148,12 +148,12 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.View
                     public void onProductUpdated(Product updatedProduct) {
                         int currentPos = holder.getAdapterPosition();
                         if (currentPos != RecyclerView.NO_POSITION) {
-                            itemList.set(currentPos, updatedProduct);
+                            itemList.set(currentPos, updatedProduct);  // ✅ update UI list
                             int indexInOriginal = originalList.indexOf(product);
                             if (indexInOriginal != -1) {
-                                originalList.set(indexInOriginal, updatedProduct);
+                                originalList.set(indexInOriginal, updatedProduct);  // ✅ update original data
                             }
-                            notifyItemChanged(currentPos);
+                            notifyItemChanged(currentPos); // 🔁 trigger UI refresh
                         }
                     }
 
