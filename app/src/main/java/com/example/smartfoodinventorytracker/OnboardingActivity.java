@@ -16,6 +16,8 @@ import androidx.core.view.WindowInsetsCompat;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.widget.ImageView;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 import androidx.core.graphics.drawable.RoundedBitmapDrawable;
 import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory;
@@ -45,6 +47,15 @@ public class OnboardingActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            // ✅ User is already signed in — skip onboarding
+            startActivity(new Intent(this, DashboardActivity.class));
+            finish();
+            return;
+        }
+
         setContentView(R.layout.activity_onboarding);
         EdgeToEdge.enable(this);
 

@@ -1,138 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="24dp"
-    android:gravity="center_horizontal"
-    android:background="@drawable/dialog_background">
+    android:padding="16dp">
 
-    <!-- Title -->
-    <TextView
-        android:text="Add Product Manually"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="20dp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
-
-    <!-- Product Name -->
     <EditText
-        android:id="@+id/nameInput"
-        android:hint="Product Name"
-        android:background="@drawable/edittext_background"
-        android:padding="10dp"
+        android:id="@+id/et_product_name"
         android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:layout_marginBottom="12dp" />
+        android:layout_height="wrap_content"
+        android:hint="Product Name"/>
 
-    <!-- Brand Name -->
     <EditText
-        android:id="@+id/brandInput"
-        android:hint="Brand"
-        android:background="@drawable/edittext_background"
-        android:padding="10dp"
-        android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:layout_marginBottom="16dp" />
-
-    <!-- Expiry Date -->
-    <TextView
-        android:text="Expiry Date:"
-        android:textStyle="bold"
-        android:textSize="14sp"
-        android:layout_marginBottom="4dp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
-
-    <LinearLayout
+        android:id="@+id/et_product_brand"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:layout_marginBottom="16dp">
-
-        <EditText
-            android:id="@+id/expiryInput"
-            android:hint="Select date"
-            android:inputType="none"
-            android:focusable="false"
-            android:clickable="true"
-            android:background="@drawable/edittext_background"
-            android:padding="10dp"
-            android:layout_weight="1"
-            android:layout_width="0dp"
-            android:layout_height="48dp" />
-
-        <ImageView
-            android:id="@+id/calendarIcon"
-            android:src="@drawable/ic_calendar"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_marginStart="8dp"
-            android:contentDescription="Pick date" />
-    </LinearLayout>
-
-    <!-- Quantity -->
-    <TextView
-        android:text="Quantity:"
-        android:textStyle="bold"
-        android:textSize="14sp"
-        android:layout_marginBottom="4dp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:layout_marginBottom="20dp">
-
-        <ImageView
-            android:id="@+id/quantityMinus"
-            android:src="@drawable/ic_minus"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:contentDescription="Decrease quantity" />
-
-        <EditText
-            android:id="@+id/quantityInput"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="48dp"
-            android:gravity="center"
-            android:inputType="number"
-            android:text="1"
-            android:background="@drawable/edittext_background"
-            android:padding="10dp"
-            android:layout_marginHorizontal="8dp" />
-
-        <ImageView
-            android:id="@+id/quantityPlus"
-            android:src="@drawable/ic_plus"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:contentDescription="Increase quantity" />
-    </LinearLayout>
-
-    <!-- Done & Cancel Buttons -->
-    <Button
-        android:id="@+id/btnDone"
-        android:text="Done"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="12dp"
-        android:backgroundTint="@color/blue"
-        android:textColor="@android:color/white" />
+        android:hint="Brand"/>
 
     <Button
-        android:id="@+id/btnCancel"
-        android:text="Cancel"
+        android:id="@+id/btn_pick_expiry_date"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:backgroundTint="@color/blue"
-        android:textColor="@android:color/white" />
+        android:text="Select Expiry Date"
+        android:backgroundTint="@android:color/darker_gray"
+        android:textColor="@android:color/white"
+        android:padding="10dp"/>
 
+
+    <Button
+        android:id="@+id/btn_done"
+        android:layout_width="291dp"
+        android:layout_height="wrap_content"
+        android:text="Done" />
+
+    <Button
+        android:id="@+id/btn_cancel"
+        android:layout_width="292dp"
+        android:layout_height="wrap_content"
+        android:text="Cancel" />
 </LinearLayout>
