@@ -192,7 +192,17 @@ public class DashboardActivity extends AppCompatActivity {
         bg.setCornerRadius(100); // large radius for round edges
         greetingText.setBackground(bg);
 
-        // Load from Firestore
+        // ✅ Try loading from SharedPreferences first
+        SharedPreferences prefs = getSharedPreferences("user_prefs", MODE_PRIVATE);
+        String cachedName = prefs.getString("cached_name", null);
+
+        if (cachedName != null && !cachedName.isEmpty()) {
+            greetingText.setText("👋 " + greeting + ", " + cachedName);
+        } else {
+            greetingText.setText("👋 " + greeting + ", loading...");
+        }
+
+        // ✅ Then load fresh data from Firestore
         String userId = mAuth.getCurrentUser().getUid();
         db.collection("users").document(userId).get()
                 .addOnSuccessListener(document -> {
@@ -204,12 +214,12 @@ public class DashboardActivity extends AppCompatActivity {
 
                     if (name != null && !name.trim().isEmpty()) {
                         greetingText.setText("👋 " + greeting + ", " + name);
-                    } else {
-                        greetingText.setText("👋 " + greeting);
+
+                        // ✅ Save to SharedPreferences for next time
+                        prefs.edit().putString("cached_name", name).apply();
                     }
                 })
                 .addOnFailureListener(e -> {
-                    greetingText.setText("👋 " + greeting);
                     Toast.makeText(this, "Failed to load user data", Toast.LENGTH_SHORT).show();
                 });
     }
@@ -217,6 +227,9 @@ public class DashboardActivity extends AppCompatActivity {
 
     // ✅ Handle Logout Logic
     private void logout() {
+        FirebaseAuth.getInstance().signOut();
+        getSharedPreferences("user_prefs", MODE_PRIVATE).edit().clear().apply();
+
         Intent intent = new Intent(this, OnboardingActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
