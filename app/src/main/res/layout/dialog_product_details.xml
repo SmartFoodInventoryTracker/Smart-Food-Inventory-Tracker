@@ -1,98 +1,226 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:padding="24dp"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:padding="20dp"
-    android:background="@drawable/dialog_background"
-    android:gravity="center_horizontal">
+    android:gravity="center_horizontal"
+    android:background="@drawable/dialog_background">
 
+    <!-- Product Image -->
     <ImageView
         android:id="@+id/productImageDialog"
         android:layout_width="80dp"
         android:layout_height="80dp"
-        android:layout_marginBottom="12dp"
-        android:contentDescription="Category Icon"
-        android:scaleType="centerInside" />
+        android:layout_marginBottom="16dp"
+        android:contentDescription="Product Image" />
 
-    <EditText
+    <!-- Product Name -->
+    <TextView
         android:id="@+id/nameText"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:hint="Product Name"
-        android:enabled="false" />
+        android:text="Product Name"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:layout_marginBottom="4dp" />
 
-    <EditText
+    <!-- Brand -->
+    <TextView
         android:id="@+id/brandText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Brand"
+        android:textSize="16sp"
+        android:textColor="@android:color/darker_gray"
+        android:layout_marginBottom="8dp" />
+
+    <LinearLayout
+        android:id="@+id/readOnlyContainer"
+        android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Brand"
-        android:enabled="false" />
+        android:gravity="center_horizontal"
+        android:layout_marginBottom="16dp">
 
-    <EditText
-        android:id="@+id/expiryText"
+        <TextView
+            android:id="@+id/expiryBadge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_rounded_badge"
+            android:text="Expires in 5 days"
+            android:textColor="@android:color/white"
+            android:padding="6dp"
+            android:textSize="13sp"
+            android:layout_marginBottom="6dp" />
+
+        <TextView
+            android:id="@+id/quantityBadge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_rounded_badge"
+            android:text="Qty: 1"
+            android:textColor="@android:color/white"
+            android:padding="6dp"
+            android:textSize="13sp"
+            android:layout_marginBottom="12dp" />
+    </LinearLayout>
+
+    <!-- Editable Mode (default hidden) -->
+    <LinearLayout
+        android:id="@+id/editableContainer"
+        android:orientation="vertical"
+        android:visibility="gone"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Expiry Date"
-        android:enabled="false" />
+        android:gravity="start"
+        android:layout_marginBottom="16dp">
 
-    <EditText
-        android:id="@+id/quantityText"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Quantity"
-        android:inputType="number"
-        android:enabled="false" />
+        <!-- Expiry Label -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Expiry:"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="4dp"
+            android:textColor="@android:color/black" />
 
+        <!-- Expiry EditText -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="12dp">
+
+            <EditText
+                android:id="@+id/expiryText"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="48dp"
+                android:hint="Select date"
+                android:inputType="none"
+                android:background="@drawable/edittext_background"
+                android:padding="10dp"
+                android:focusable="false"
+                android:clickable="true" />
+
+            <ImageView
+                android:id="@+id/expiryCalendarIcon"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:src="@drawable/ic_calendar"
+                android:layout_marginStart="8dp"
+                android:contentDescription="Open calendar" />
+        </LinearLayout>
+
+
+        <!-- Quantity Label -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Quantity:"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="4dp"
+            android:textColor="@android:color/black" />
+
+        <!-- Quantity Row with - / EditText / + -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="12dp">
+
+            <!-- Minus button -->
+            <ImageView
+                android:id="@+id/quantityMinus"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:src="@drawable/ic_minus"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Decrease Quantity"
+                android:padding="6dp"
+                android:layout_marginEnd="8dp" />
+
+            <!-- Quantity input -->
+            <EditText
+                android:id="@+id/quantityText"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="48dp"
+                android:hint="Enter quantity"
+                android:inputType="number"
+                android:background="@drawable/edittext_background"
+                android:padding="10dp"
+                android:gravity="center" />
+
+            <!-- Plus button -->
+            <ImageView
+                android:id="@+id/quantityPlus"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:src="@drawable/ic_plus"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Increase Quantity"
+                android:padding="6dp"
+                android:layout_marginStart="8dp" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+
+    <!-- Save/Cancel Row (Initially hidden) -->
     <LinearLayout
         android:id="@+id/saveCancelRow"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="end"
+        android:gravity="center"
         android:orientation="horizontal"
-        android:visibility="gone"
-        android:layout_marginTop="8dp">
+        android:visibility="gone">
 
         <Button
             android:id="@+id/saveButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Save" />
+            android:text="Save"
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content" />
 
         <Button
             android:id="@+id/cancelEditButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Cancel" />
+            android:text="Cancel"
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content" />
     </LinearLayout>
 
+    <!-- Buttons Row -->
     <LinearLayout
+        android:id="@+id/buttonRow"
+        android:orientation="horizontal"
+        android:gravity="center"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:gravity="center"
-        android:orientation="horizontal"
-        android:weightSum="3">
+        android:layout_marginTop="12dp">
 
         <Button
             android:id="@+id/editButton"
-            android:layout_width="0dp"
+            android:text="Edit"
             android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:text="Edit" />
+            android:layout_width="0dp"
+            android:layout_height="wrap_content" />
 
         <Button
             android:id="@+id/deleteButton"
             android:layout_width="0dp"
-            android:layout_weight="1"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:text="Delete" />
 
-        <Button
-            android:id="@+id/closeButton"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:text="Close" />
     </LinearLayout>
+
 </LinearLayout>

@@ -230,6 +230,7 @@ public class InventoryActivity extends AppCompatActivity
 
     }
 
+
     private void AddProduct(String name, String brand, List<String> expirationdate)
     {
         if (TextUtils.isEmpty(name) || TextUtils.isEmpty(brand) || expirationdate.isEmpty()) {
