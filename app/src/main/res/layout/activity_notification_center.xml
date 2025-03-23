@@ -5,6 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
     android:layout_width="match_parent"
+    android:theme="@style/Theme.SmartFoodInventoryTracker"
     android:layout_height="match_parent"
     tools:context=".NotificationCenter">
 
@@ -14,7 +15,6 @@
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         android:background="?attr/colorPrimary"
-        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
         app:layout_constraintTop_toTopOf="parent"
         android:paddingStart="0dp">
 

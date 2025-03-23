@@ -5,7 +5,7 @@
     android:id="@+id/drawerLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white"
+    android:theme="@style/Theme.SmartFoodInventoryTracker"
     tools:context=".DashboardActivity">
 
     <!-- Main Content -->
@@ -30,7 +30,7 @@
             android:textStyle="bold"
             android:gravity="center"
             android:background="@android:drawable/editbox_background_normal"
-            android:backgroundTint="#009EE0"
+            android:backgroundTint="@color/blue"
             android:backgroundTintMode="src_in"
             app:layout_constraintTop_toBottomOf="@id/toolbar"
             app:layout_constraintStart_toStartOf="parent"
@@ -40,7 +40,6 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="@color/blue"
             android:elevation="4dp"
             app:title="Dashboard"
             app:titleTextColor="@android:color/white"

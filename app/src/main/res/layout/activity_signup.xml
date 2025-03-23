@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
     android:layout_width="match_parent"
+    android:theme="@style/Theme.SmartFoodInventoryTracker"
     android:layout_height="match_parent"
     tools:context=".SignupActivity"
     android:padding="20dp">

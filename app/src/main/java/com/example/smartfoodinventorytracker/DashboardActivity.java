@@ -44,7 +44,7 @@ public class DashboardActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dashboard);
 
-        getWindow().setStatusBarColor(ContextCompat.getColor(this, R.color.blue)); // ✅ Blue status bar
+        getWindow().setStatusBarColor(ContextCompat.getColor(this, R.color.blue));
 
         NotificationHelper notificationHelper = new NotificationHelper(this, true);
         notificationHelper.startFridgeMonitoringService();
