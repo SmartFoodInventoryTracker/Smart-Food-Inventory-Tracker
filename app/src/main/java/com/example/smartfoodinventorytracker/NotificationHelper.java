@@ -95,6 +95,10 @@ public class NotificationHelper {
         }
     }
 
+    public Context getContext() {
+        return context;
+    }
+
     public void startFridgeMonitoringService() {
         Intent serviceIntent = new Intent(context, FridgeMonitoringService.class);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

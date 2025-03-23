@@ -1,6 +1,7 @@
 package com.example.smartfoodinventorytracker;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.util.Log;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -13,6 +14,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class DatabaseHelper {
     private static final DatabaseReference inventoryRef = FirebaseDatabase.getInstance().getReference("inventory");
@@ -173,6 +175,18 @@ public class DatabaseHelper {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 LocalDate today = LocalDate.now();
+                Context context = notificationHelper.getContext();
+                SharedPreferences prefs = context.getSharedPreferences("user_settings", Context.MODE_PRIVATE);
+                SharedPreferences sentTimes = context.getSharedPreferences("notif_times", Context.MODE_PRIVATE);
+
+                boolean expiryEnabled = prefs.getBoolean("expiry_alerts", true);
+                int hoursForExpired = prefs.getInt("expired_every_hours", 4);
+                int daysForWeek1 = prefs.getInt("week1_every_days", 2);
+                int daysForWeek2 = prefs.getInt("week2_every_days", 3);
+
+                long now = System.currentTimeMillis();
+
+                if (!expiryEnabled) return;
 
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     Product product = snapshot.getValue(Product.class);
@@ -184,18 +198,47 @@ public class DatabaseHelper {
                         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d/M/yyyy");
                         LocalDate expiry = LocalDate.parse(product.getExpiryDate(), formatter);
                         long daysLeft = ChronoUnit.DAYS.between(today, expiry);
+                        String key = product.getBarcode();  // Use barcode to uniquely track per item
 
-                        if (daysLeft >= 0 && daysLeft <= 7) {
-                            notificationHelper.sendExpiryNotification(product.getName(), daysLeft);
+                        if (daysLeft <= 0) {
+                            // Expired or expiring today → hourly
+                            long last = sentTimes.getLong(key + "_expired", 0);
+                            long hoursSince = TimeUnit.MILLISECONDS.toHours(now - last);
+                            if (hoursSince >= hoursForExpired) {
+                                notificationHelper.sendExpiryNotification(product.getName(), daysLeft);
+                                sentTimes.edit().putLong(key + "_expired", now).apply();
+                            }
+
+                        } else if (daysLeft <= 7) {
+                            long last = sentTimes.getLong(key + "_week1", 0);
+                            long daysSince = TimeUnit.MILLISECONDS.toDays(now - last);
+                            if (daysSince >= daysForWeek1) {
+                                notificationHelper.sendExpiryNotification(product.getName(), daysLeft);
+                                sentTimes.edit().putLong(key + "_week1", now).apply();
+                            }
+
+                        } else if (daysLeft <= 14) {
+                            long last = sentTimes.getLong(key + "_week2", 0);
+                            long daysSince = TimeUnit.MILLISECONDS.toDays(now - last);
+                            if (daysSince >= daysForWeek2) {
+                                notificationHelper.sendExpiryNotification(product.getName(), daysLeft);
+                                sentTimes.edit().putLong(key + "_week2", now).apply();
+                            }
                         }
-                    } catch (Exception ignored) {}
+
+                    } catch (Exception e) {
+                        Log.e("ExpiryCheck", "Error parsing date for " + product.getName(), e);
+                    }
                 }
             }
 
             @Override
-            public void onCancelled(DatabaseError databaseError) {}
+            public void onCancelled(DatabaseError databaseError) {
+                Log.e("DatabaseHelper", "checkExpiryNotifications failed", databaseError.toException());
+            }
         });
     }
+
 
 
 

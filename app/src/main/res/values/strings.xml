@@ -1,3 +1,14 @@
 <resources>
     <string name="app_name">Smart Food Inventory Tracker</string>
+    <string-array name="expired_today_frequency_options">
+        <item>Off</item>
+        <item>Hourly</item>
+    </string-array>
+
+    <string-array name="weekly_frequency_options">
+        <item>Off</item>
+        <item>Daily</item>
+    </string-array>
+
+
 </resources>
