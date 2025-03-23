@@ -8,9 +8,6 @@ import android.os.Build;
 import android.os.IBinder;
 import android.util.Log;
 
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 
@@ -23,16 +20,8 @@ public class FridgeMonitoringService extends Service {
         startForeground(1, createServiceNotification());
 
         // ✅ Start listening to fridge changes
-        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-
-        if (currentUser != null) {
-            String userId = currentUser.getUid();
-            NotificationHelper notificationHelper = new NotificationHelper(getApplicationContext(), false, userId);
-            DatabaseHelper.listenToInventoryChanges(getApplicationContext(), notificationHelper);
-        } else {
-            Log.w("FridgeMonitoringService", "No authenticated user. Monitoring skipped.");
-        }
-
+        NotificationHelper notificationHelper = new NotificationHelper(getApplicationContext(), false);
+        DatabaseHelper.listenToInventoryChanges(getApplicationContext(), notificationHelper);
     }
 
     @Override
