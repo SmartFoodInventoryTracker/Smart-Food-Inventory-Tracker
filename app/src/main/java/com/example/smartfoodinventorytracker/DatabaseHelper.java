@@ -15,10 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DatabaseHelper {
-
-    private static final DatabaseReference notificationsRef = FirebaseDatabase.getInstance().getReference("notifications");
     private static final DatabaseReference inventoryRef = FirebaseDatabase.getInstance().getReference("inventory");
-    private static final DatabaseReference inventoryProdRef = FirebaseDatabase.getInstance().getReference("inventory_product");
 
     private static Long lastTemperature = null;
     private static Long lastHumidity = null;
@@ -32,8 +29,11 @@ public class DatabaseHelper {
     }
 
     // 🔹 Fetch stored notifications from Firebase
-    public static void fetchNotifications(NotificationFetchListener listener) {
-        notificationsRef.orderByChild("timestamp").addListenerForSingleValueEvent(new ValueEventListener() {
+    public static void fetchNotifications(String userId, NotificationFetchListener listener) {
+        DatabaseReference notifRef = FirebaseDatabase.getInstance()
+                .getReference("users").child(userId).child("notifications");
+
+        notifRef.orderByChild("timestamp").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 List<NotificationItem> notifications = new ArrayList<>();
@@ -43,7 +43,6 @@ public class DatabaseHelper {
                     Long timestamp = snapshot.child("timestamp").getValue(Long.class);
 
                     if (message != null && timestamp != null) {
-                        // ✅ Use constants from NotificationHelper for clarity
                         String title = message.contains("expires")
                                 ? NotificationHelper.EXPIRY_ALERT_TITLE
                                 : NotificationHelper.FRIDGE_ALERT_TITLE;
@@ -59,8 +58,11 @@ public class DatabaseHelper {
         });
     }
 
-    public static void clearNotifications(Runnable onComplete) {
-        notificationsRef.removeValue().addOnCompleteListener(task -> {
+    public static void clearNotifications(String userId, Runnable onComplete) {
+        DatabaseReference notifRef = FirebaseDatabase.getInstance()
+                .getReference("users").child(userId).child("notifications");
+
+        notifRef.removeValue().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 Log.d("DatabaseHelper", "All notifications cleared.");
             } else {
@@ -117,11 +119,14 @@ public class DatabaseHelper {
     }
 
 
-    public static void listenForNotificationUpdates(Runnable callback) {
-        notificationsRef.addValueEventListener(new ValueEventListener() {
+    public static void listenForNotificationUpdates(String userId, Runnable callback) {
+        DatabaseReference notifRef = FirebaseDatabase.getInstance()
+                .getReference("users").child(userId).child("notifications");
+
+        notifRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot snapshot) {
-                callback.run(); // Call loadNotifications() whenever the database updates
+                callback.run();
             }
 
             @Override
@@ -160,7 +165,10 @@ public class DatabaseHelper {
         }
     }
 
-    public static void checkExpiryNotifications(NotificationHelper notificationHelper) {
+    public static void checkExpiryNotifications(String userId, NotificationHelper notificationHelper) {
+        DatabaseReference inventoryProdRef = FirebaseDatabase.getInstance()
+                .getReference("users").child(userId).child("inventory_product");
+
         inventoryProdRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -169,14 +177,12 @@ public class DatabaseHelper {
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     Product product = snapshot.getValue(Product.class);
                     if (product == null || product.getExpiryDate() == null || product.getExpiryDate().equals("Not set")) {
-                        continue; // Skip invalid products
+                        continue;
                     }
 
-                    // Parse expiry date
-                    String expiryDate = product.getExpiryDate();
                     try {
                         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d/M/yyyy");
-                        LocalDate expiry = LocalDate.parse(expiryDate, formatter);
+                        LocalDate expiry = LocalDate.parse(product.getExpiryDate(), formatter);
                         long daysLeft = ChronoUnit.DAYS.between(today, expiry);
 
                         if (daysLeft >= 0 && daysLeft <= 7) {
