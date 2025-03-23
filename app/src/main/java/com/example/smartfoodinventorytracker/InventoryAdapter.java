@@ -248,43 +248,42 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.View
 
             if (days < 0) return "Expired";
             else if (days == 0) return "Expires today";
-            else return "Expires in " + days + " day" + (days > 1 ? "s" : "");
+            else if (days < 3) return "Expires in " + days + " day" + (days > 1 ? "s" : "");
+            else if (days < 5) return "Expires in " + days + " days";
+            else if (days < 14) return "Expires in " + days + " days";
+            else if (days < 30) {
+                long weeks = days / 7;
+                return "Expires in " + weeks + " week" + (weeks > 1 ? "s" : "");
+            } else {
+                long months = days / 30;
+                return "Expires in " + months + " month" + (months > 1 ? "s" : "");
+            }
         } catch (Exception e) {
             return "Invalid date";
         }
     }
 
+
     private int getExpiryColor(String text, Context context) {
-        if (text.contains("Expired")) return ContextCompat.getColor(context, R.color.red);
-        else if (text.contains("today")) return ContextCompat.getColor(context, R.color.orange);
-        else if (text.contains("Expires in")) return ContextCompat.getColor(context, R.color.green);
-        else return ContextCompat.getColor(context, android.R.color.darker_gray);
+        if (text.equals("Expired")) return ContextCompat.getColor(context, R.color.red);
+        else if (text.contains("Expires today")) return ContextCompat.getColor(context, R.color.orange);
+        else if (text.contains("Expires in")) {
+            if (text.contains("day")) {
+                if (text.contains("1 day") || text.contains("2 days")) {
+                    return ContextCompat.getColor(context, R.color.orange);
+                } else if (text.contains("3 days") || text.contains("4 days")) {
+                    return ContextCompat.getColor(context, R.color.yellow);
+                } else {
+                    return ContextCompat.getColor(context, R.color.green);
+                }
+            } else {
+                return ContextCompat.getColor(context, R.color.green); // For weeks/months
+            }
+        } else {
+            return ContextCompat.getColor(context, android.R.color.darker_gray);
+        }
     }
 
-    private void showDatePicker(ViewHolder holder, Product product) {
-        Context context = holder.itemView.getContext();
-
-        // ✅ Create a Date Picker Dialog
-        Calendar calendar = Calendar.getInstance();
-        DatePickerDialog datePickerDialog = new DatePickerDialog(context, (view, year, month, dayOfMonth) -> {
-            String selectedDate = dayOfMonth + "/" + (month + 1) + "/" + year;
-
-            product.setExpiryDate(selectedDate); // ✅ Update local object
-
-            /*holder.expiryDate.setText("Expiry Date: " + selectedDate); // ✅ Update UI instantly*/
-
-            // ✅ Save new expiry date to Firebase
-            DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("inventory_product");
-            databaseReference.child(product.getBarcode()).child("expiryDate").setValue(selectedDate)
-                    .addOnSuccessListener(aVoid -> {
-                        Toast.makeText(context, "Expiry date updated!", Toast.LENGTH_SHORT).show();
-                        notifyDataSetChanged(); // ✅ Refresh RecyclerView immediately
-                    });
-
-        }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
-
-        datePickerDialog.show();
-    }
 
     public void filter(String query) {
         itemList.clear();
