@@ -192,56 +192,56 @@ public class FridgeConditions extends AppCompatActivity {
 
     void setGauge(Integer val, String hint)
     {
-        switch (hint)
-        {
+        switch (hint) {
             case "t":
-                if(val>=0 && val<3)
+                if(val==0)
                 {
+                    speedTemp.speedTo(0);
+                }
+                else if (val > 0 && val < 3) {
                     speedTemp.speedTo(30);
-                }
-                else if(val>=3 && val<9)
-                {
+                } else if (val >= 3 && val < 9) {
                     speedTemp.speedTo(70);
-                }
-                else if(val>=9)
-                {
+                } else if (val >= 9) {
                     speedTemp.speedTo(90);
                 }
                 break;
 
 
             case "h":
-                if(val>=0 && val<3)
+                if(val==0)
                 {
+                    speedHum.speedTo(0);
+                }
+                else if (val > 0 && val < 3) {
                     speedHum.speedTo(30);
-                }
-                else if(val>=3 && val<9)
-                {
+                } else if (val >= 3 && val < 9) {
                     speedHum.speedTo(70);
-                }
-                else if(val>=9)
-                {
+                } else if (val >= 9) {
                     speedHum.speedTo(90);
                 }
                 break;
 
             case "c":
-                if(val>=0 && val<3)
+                if(val==0)
                 {
+                    speedCO.speedTo(0);
+                }
+                else if (val > 0 && val < 3) {
                     speedCO.speedTo(30);
-                }
-                else if(val>=3 && val<9)
-                {
+                } else if (val >= 3 && val < 9) {
                     speedCO.speedTo(70);
-                }
-                else if(val>=9)
-                {
+                } else if (val >= 9) {
                     speedCO.speedTo(90);
                 }
                 break;
 
             case "l":
-                if(val>=0 && val<3)
+                if (val == 0)
+                {
+                    speedLPG.speedTo(0);
+                }
+                else if(val>0 && val<3)
                 {
                     speedLPG.speedTo(30);
                 }
@@ -256,7 +256,11 @@ public class FridgeConditions extends AppCompatActivity {
                 break;
 
             case "s":
-                if(val>=0 && val<3)
+                if (val==0)
+                {
+                    speedSmoke.speedTo(0);
+                }
+                else if(val>0 && val<3)
                 {
                     speedSmoke.speedTo(30);
                 }
