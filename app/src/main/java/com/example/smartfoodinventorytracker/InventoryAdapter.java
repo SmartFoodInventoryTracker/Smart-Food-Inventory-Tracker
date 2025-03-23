@@ -59,16 +59,17 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.View
 
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView name, brand, barcode, expiryDate, DateAdded_h;
+        TextView name, brand, barcode, DateAdded_h;
         ImageView productImage;
         TextView quantityBadge;
+        TextView expiryBadge;
 
         public ViewHolder(View itemView) {
             super(itemView);
             name = itemView.findViewById(R.id.productName);
             brand = itemView.findViewById(R.id.productBrand);
             barcode = itemView.findViewById(R.id.productBarcode);
-            expiryDate = itemView.findViewById(R.id.productExpiryDate);
+            expiryBadge = itemView.findViewById(R.id.expiryBadge);
             DateAdded_h = itemView.findViewById(R.id.prodcutDateAdded);
             productImage = itemView.findViewById(R.id.productImage);
             quantityBadge = itemView.findViewById(R.id.quantityBadge);
