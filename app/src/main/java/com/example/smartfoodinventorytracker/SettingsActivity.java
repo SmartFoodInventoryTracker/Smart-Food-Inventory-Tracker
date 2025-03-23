@@ -5,6 +5,7 @@ import android.os.Bundle;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -61,6 +62,18 @@ public class SettingsActivity extends AppCompatActivity {
 
         switchExpiry.setOnCheckedChangeListener((btn, isChecked) ->
                 prefs.edit().putBoolean("expiry_alerts", isChecked).apply());
+
+        setUpToolbar();
+    }
+
+    private void setUpToolbar() {
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayShowTitleEnabled(false);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
+        toolbar.setNavigationOnClickListener(v -> finish());
     }
 
     @Override
