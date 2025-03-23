@@ -9,15 +9,20 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
 
 import com.bumptech.glide.Glide;
 import com.google.firebase.database.FirebaseDatabase;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.Calendar;
 
 public class ProductDetailsDialogFragment extends DialogFragment {
@@ -52,92 +57,89 @@ public class ProductDetailsDialogFragment extends DialogFragment {
 
         View view = LayoutInflater.from(getContext()).inflate(R.layout.dialog_product_details, null);
 
+        // 🧩 UI refs
         ImageView productImage = view.findViewById(R.id.productImageDialog);
-        EditText name = view.findViewById(R.id.nameText);
-        EditText brand = view.findViewById(R.id.brandText);
-        EditText expiry = view.findViewById(R.id.expiryText);
-        EditText quantity = view.findViewById(R.id.quantityText);
+        TextView name = view.findViewById(R.id.nameText);
+        TextView brand = view.findViewById(R.id.brandText);
+        TextView expiryBadge = view.findViewById(R.id.expiryBadge);
+        TextView quantityBadge = view.findViewById(R.id.quantityBadge);
+        EditText expiryText = view.findViewById(R.id.expiryText);
+        EditText quantityText = view.findViewById(R.id.quantityText);
 
+        LinearLayout readOnlyContainer = view.findViewById(R.id.readOnlyContainer);
+        LinearLayout editableContainer = view.findViewById(R.id.editableContainer);
         LinearLayout saveCancelRow = view.findViewById(R.id.saveCancelRow);
+        LinearLayout buttonRow = view.findViewById(R.id.buttonRow);
+
         Button editBtn = view.findViewById(R.id.editButton);
         Button deleteBtn = view.findViewById(R.id.deleteButton);
         Button closeBtn = view.findViewById(R.id.closeButton);
         Button saveBtn = view.findViewById(R.id.saveButton);
         Button cancelEditBtn = view.findViewById(R.id.cancelEditButton);
 
-        // Set initial data
+        // ✅ Set initial values
         name.setText(product.getName());
         brand.setText(product.getBrand());
-        expiry.setText(product.getExpiryDate());
-        quantity.setText(String.valueOf(product.getQuantity()));
-
         productImage.setImageResource(CategoryUtils.getCategoryIcon(product.getName()));
 
-        editBtn.setOnClickListener(v -> {
-            name.setEnabled(true);
-            brand.setEnabled(true);
-            expiry.setEnabled(true);
-            quantity.setEnabled(true);
+        expiryBadge.setText(getExpiryText(product.getExpiryDate()));
+        expiryBadge.setBackgroundTintList(android.content.res.ColorStateList.valueOf(getExpiryColor(product.getExpiryDate())));
+        expiryBadge.setVisibility(View.VISIBLE);
 
+        quantityBadge.setText("Qty: " + product.getQuantity());
+        quantityBadge.setBackgroundTintList(android.content.res.ColorStateList.valueOf(getQuantityColor(product.getQuantity())));
+        quantityBadge.setVisibility(View.VISIBLE);
+
+        expiryText.setText(product.getExpiryDate());
+        quantityText.setText(String.valueOf(product.getQuantity()));
+
+        // ✏️ Edit mode toggle
+        editBtn.setOnClickListener(v -> {
+            readOnlyContainer.setVisibility(View.GONE);
+            editableContainer.setVisibility(View.VISIBLE);
             saveCancelRow.setVisibility(View.VISIBLE);
-            editBtn.setVisibility(View.GONE);
-            deleteBtn.setVisibility(View.GONE);
-            closeBtn.setVisibility(View.GONE);
+            buttonRow.setVisibility(View.GONE);
         });
 
         cancelEditBtn.setOnClickListener(v -> {
-            name.setText(product.getName());
-            brand.setText(product.getBrand());
-            expiry.setText(product.getExpiryDate());
-            quantity.setText(String.valueOf(product.getQuantity()));
+            expiryText.setText(product.getExpiryDate());
+            quantityText.setText(String.valueOf(product.getQuantity()));
 
-            name.setEnabled(false);
-            brand.setEnabled(false);
-            expiry.setEnabled(false);
-            quantity.setEnabled(false);
-
+            editableContainer.setVisibility(View.GONE);
+            readOnlyContainer.setVisibility(View.VISIBLE);
             saveCancelRow.setVisibility(View.GONE);
-            editBtn.setVisibility(View.VISIBLE);
-            deleteBtn.setVisibility(View.VISIBLE);
-            closeBtn.setVisibility(View.VISIBLE);
+            buttonRow.setVisibility(View.VISIBLE);
         });
 
         saveBtn.setOnClickListener(v -> {
-            String newName = name.getText().toString().trim();
-            String newBrand = brand.getText().toString().trim();
-            String newExpiry = expiry.getText().toString().trim();
-            int newQuantity = Integer.parseInt(quantity.getText().toString().trim());
+            String newExpiry = expiryText.getText().toString().trim();
+            int newQty = Integer.parseInt(quantityText.getText().toString().trim());
 
-            product.name = newName;
-            product.brand = newBrand;
             product.setExpiryDate(newExpiry);
-            product.setQuantity(newQuantity);
+            product.setQuantity(newQty);
 
             FirebaseDatabase.getInstance().getReference("inventory_product")
                     .child(product.getBarcode())
                     .setValue(product)
                     .addOnSuccessListener(aVoid -> {
                         Toast.makeText(getContext(), "Product updated", Toast.LENGTH_SHORT).show();
-                        if (listener != null) listener.onProductUpdated(product); // ✅ notify
+                        if (listener != null) listener.onProductUpdated(product);
                         dismiss();
                     })
                     .addOnFailureListener(e ->
                             Toast.makeText(getContext(), "Failed to update", Toast.LENGTH_SHORT).show());
         });
 
-        expiry.setOnClickListener(v -> {
-            if (!expiry.isEnabled()) return;
-
+        expiryText.setOnClickListener(v -> {
             final Calendar calendar = Calendar.getInstance();
             DatePickerDialog datePickerDialog = new DatePickerDialog(requireContext(),
                     (view1, year, month, dayOfMonth) -> {
                         String selectedDate = dayOfMonth + "/" + (month + 1) + "/" + year;
-                        expiry.setText(selectedDate);
+                        expiryText.setText(selectedDate);
                     },
                     calendar.get(Calendar.YEAR),
                     calendar.get(Calendar.MONTH),
-                    calendar.get(Calendar.DAY_OF_MONTH)
-            );
+                    calendar.get(Calendar.DAY_OF_MONTH));
             datePickerDialog.show();
         });
 
@@ -197,5 +199,46 @@ public class ProductDetailsDialogFragment extends DialogFragment {
         return new AlertDialog.Builder(requireContext())
                 .setView(view)
                 .create();
+    }
+
+    // 🔍 Expiry label
+    private String getExpiryText(String expiryDate) {
+        if (expiryDate == null || expiryDate.equals("Not set")) return "No expiry set";
+
+        try {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d/M/yyyy");
+            LocalDate exp = LocalDate.parse(expiryDate, formatter);
+            LocalDate today = LocalDate.now();
+            long days = ChronoUnit.DAYS.between(today, exp);
+
+            if (days < 0) return "Expired";
+            else if (days == 0) return "Expires today";
+            else if (days <= 14) return "Expires in " + days + " day" + (days > 1 ? "s" : "");
+            else if (days < 30) return "Expires in " + (days / 7) + " week" + (days >= 14 ? "s" : "");
+            else return "Expires in 1 month+";
+        } catch (Exception e) {
+            return "Invalid date";
+        }
+    }
+
+    private int getExpiryColor(String expiryDate) {
+        try {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d/M/yyyy");
+            LocalDate exp = LocalDate.parse(expiryDate, formatter);
+            long days = ChronoUnit.DAYS.between(LocalDate.now(), exp);
+
+            if (days < 0) return ContextCompat.getColor(requireContext(), R.color.red);
+            else if (days < 3) return ContextCompat.getColor(requireContext(), R.color.orange);
+            else if (days < 5) return ContextCompat.getColor(requireContext(), R.color.yellow);
+            else return ContextCompat.getColor(requireContext(), R.color.green);
+        } catch (Exception e) {
+            return ContextCompat.getColor(requireContext(), android.R.color.darker_gray);
+        }
+    }
+
+    private int getQuantityColor(int quantity) {
+        if (quantity >= 5) return ContextCompat.getColor(requireContext(), R.color.green);
+        else if (quantity >= 2) return ContextCompat.getColor(requireContext(), R.color.orange);
+        else return ContextCompat.getColor(requireContext(), R.color.red);
     }
 }

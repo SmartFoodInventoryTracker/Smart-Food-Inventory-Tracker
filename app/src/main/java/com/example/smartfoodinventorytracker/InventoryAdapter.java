@@ -265,19 +265,31 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.View
 
 
     private int getExpiryColor(String text, Context context) {
-        if (text.equals("Expired")) return ContextCompat.getColor(context, R.color.red);
-        else if (text.contains("Expires today")) return ContextCompat.getColor(context, R.color.orange);
-        else if (text.contains("Expires in")) {
-            if (text.contains("day")) {
-                if (text.contains("1 day") || text.contains("2 days")) {
-                    return ContextCompat.getColor(context, R.color.orange);
-                } else if (text.contains("3 days") || text.contains("4 days")) {
-                    return ContextCompat.getColor(context, R.color.yellow);
+        if (text.equals("Expired")) {
+            return ContextCompat.getColor(context, R.color.red);
+        } else if (text.contains("Expires today")) {
+            return ContextCompat.getColor(context, R.color.orange);
+        } else if (text.contains("Expires in")) {
+            try {
+                String[] parts = text.split(" ");
+                int number = Integer.parseInt(parts[2]);
+
+                if (text.contains("day")) {
+                    if (number <= 2) {
+                        return ContextCompat.getColor(context, R.color.orange);
+                    } else if (number <= 4) {
+                        return ContextCompat.getColor(context, R.color.yellow);
+                    } else {
+                        return ContextCompat.getColor(context, R.color.green);
+                    }
                 } else {
+                    // weeks/months -> green
                     return ContextCompat.getColor(context, R.color.green);
                 }
-            } else {
-                return ContextCompat.getColor(context, R.color.green); // For weeks/months
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                return ContextCompat.getColor(context, android.R.color.darker_gray);
             }
         } else {
             return ContextCompat.getColor(context, android.R.color.darker_gray);
