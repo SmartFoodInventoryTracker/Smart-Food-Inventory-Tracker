@@ -197,6 +197,11 @@ public class InventoryActivity extends AppCompatActivity
             popup.show();
         });
 
+        // ✅ Auto-search from notification
+        String productNameToSearch = getIntent().getStringExtra("data");
+        if (productNameToSearch != null && !productNameToSearch.isEmpty()) {
+            searchView.setQuery(productNameToSearch, true); // Triggers search + updates UI
+        }
 
         // Fetch inventory data from Firebase
         fetchInventoryData();
@@ -488,6 +493,13 @@ public class InventoryActivity extends AppCompatActivity
                 }
 
                 UpdatingSorting();
+
+                // ✅ Apply search after data is loaded
+                String productNameToSearch = getIntent().getStringExtra("data");
+                if (productNameToSearch != null && !productNameToSearch.isEmpty()) {
+                    SearchView searchView = findViewById(R.id.searchView);
+                    searchView.setQuery(productNameToSearch, true); // Triggers both display + filter
+                }
             }
 
             @Override

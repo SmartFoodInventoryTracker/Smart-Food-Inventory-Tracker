@@ -218,6 +218,7 @@ public class NotificationCenter extends AppCompatActivity {
                     intent = new Intent(v.getContext(), FridgeConditions.class);
                 } else if (notification.getTitle().contains("Food Expiry") || notification.getTitle().contains("Inventory")) {
                     intent = new Intent(v.getContext(), InventoryActivity.class);
+                    intent.putExtra("data", notification.getMessage().split(" ")[0]); // Example: get product name
                 } else {
                     intent = new Intent(v.getContext(), NotificationCenter.class); // Default fallback
                 }
