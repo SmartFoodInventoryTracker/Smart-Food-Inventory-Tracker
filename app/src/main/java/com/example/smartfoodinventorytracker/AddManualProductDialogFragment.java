@@ -2,12 +2,12 @@ package com.example.smartfoodinventorytracker;
 
 import android.app.DatePickerDialog;
 import android.app.Dialog;
+import android.content.Context;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -15,14 +15,16 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
 
-import com.google.firebase.database.FirebaseDatabase;
-
+import java.time.LocalDate;
 import java.util.Calendar;
+import java.util.UUID;
 
 public class AddManualProductDialogFragment extends DialogFragment {
 
-    private EditText nameInput, brandInput, expiryInput, quantityInput;
-    private ImageView calendarIcon, quantityMinus, quantityPlus;
+    private EditText etName, etBrand, etExpiryDate;
+    private Button btnDone, btnCancel;
+    private String selectedExpiryDate;
+    private Button btnExpiryDate;
 
     public interface ManualProductListener {
         void onProductAdded(Product product);
@@ -30,112 +32,83 @@ public class AddManualProductDialogFragment extends DialogFragment {
 
     private ManualProductListener listener;
 
-    public void setManualProductListener(ManualProductListener listener) {
-        this.listener = listener;
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        if (context instanceof ManualProductListener) {
+            listener = (ManualProductListener) context;
+        } else {
+            throw new ClassCastException(context.toString() + " must implement ManualProductListener");
+        }
     }
+
 
     @NonNull
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
-        View view = LayoutInflater.from(getContext()).inflate(R.layout.dialog_manual_product, null);
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireActivity());
+        LayoutInflater inflater = requireActivity().getLayoutInflater();
+        View view = inflater.inflate(R.layout.dialog_manual_product, null);
 
-        nameInput = view.findViewById(R.id.nameInput);
-        brandInput = view.findViewById(R.id.brandInput);
-        expiryInput = view.findViewById(R.id.expiryInput);
-        quantityInput = view.findViewById(R.id.quantityInput);
-        calendarIcon = view.findViewById(R.id.calendarIcon);
-        quantityMinus = view.findViewById(R.id.quantityMinus);
-        quantityPlus = view.findViewById(R.id.quantityPlus);
-        Button btnDone = view.findViewById(R.id.btnDone);
-        Button btnCancel = view.findViewById(R.id.btnCancel);
+        etName = view.findViewById(R.id.et_product_name);
+        etBrand = view.findViewById(R.id.et_product_brand);
+        btnExpiryDate = view.findViewById(R.id.btn_pick_expiry_date);
+        btnDone = view.findViewById(R.id.btn_done);
+        btnCancel = view.findViewById(R.id.btn_cancel);
 
-        expiryInput.setOnClickListener(v -> showDatePicker());
-        calendarIcon.setOnClickListener(v -> showDatePicker());
-
-        quantityMinus.setOnClickListener(v -> {
-            int currentQty = getSafeQuantity();
-            if (currentQty > 1) {
-                quantityInput.setText(String.valueOf(currentQty - 1));
-            }
-        });
-
-        quantityPlus.setOnClickListener(v -> {
-            int currentQty = getSafeQuantity();
-            quantityInput.setText(String.valueOf(currentQty + 1));
-        });
+        btnExpiryDate.setOnClickListener(v -> showDatePickerDialog());
 
         btnDone.setOnClickListener(v -> {
-            String name = nameInput.getText().toString().trim();
-            String brand = brandInput.getText().toString().trim();
-            String expiry = expiryInput.getText().toString().trim();
-            int quantity = getSafeQuantity();
+            String name = etName.getText().toString();
+            String brand = etBrand.getText().toString();
 
-            if (name.isEmpty()) {
-                Toast.makeText(getContext(), "Please enter product name", Toast.LENGTH_SHORT).show();
+            if (name.isEmpty() || brand.isEmpty() || selectedExpiryDate == null) {
+                Toast.makeText(getContext(), "All fields must be filled!", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            if (brand.isEmpty()) brand = "N/A";
-            if (expiry.isEmpty()) expiry = "Not set";
-
-            String barcode = "manual_" + System.currentTimeMillis();
+            String barcode = UUID.nameUUIDFromBytes((name + brand + selectedExpiryDate).getBytes()).toString();
             Product product = new Product(barcode, name, brand);
-            product.setQuantity(quantity);
-            product.setExpiryDate(expiry);
-            product.setDateAdded(getCurrentDate());
+            product.setExpiryDate(selectedExpiryDate);
 
-            FirebaseDatabase.getInstance()
-                    .getReference("inventory_product")
-                    .child(product.getBarcode())
-                    .setValue(product)
-                    .addOnSuccessListener(aVoid -> {
-                        Toast.makeText(getContext(), "Product added!", Toast.LENGTH_SHORT).show();
-                        if (listener != null) listener.onProductAdded(product);
-                        dismiss();
-                    })
-                    .addOnFailureListener(e -> {
-                        Toast.makeText(getContext(), "Failed to add product", Toast.LENGTH_SHORT).show();
-                    });
+            listener.onProductAdded(product);
+            dismiss();
         });
 
         btnCancel.setOnClickListener(v -> dismiss());
 
-        return new AlertDialog.Builder(requireContext())
-                .setView(view)
-                .create();
+        builder.setView(view).setTitle("Add Product Manually");
+        return builder.create();
     }
 
-    private void showDatePicker() {
-        final Calendar calendar = Calendar.getInstance();
-
-        DatePickerDialog datePicker = new DatePickerDialog(requireContext(),
+    private void showDatePickerDialog() {
+        Calendar calendar = Calendar.getInstance(); // Get current date
+        DatePickerDialog datePickerDialog = new DatePickerDialog(
+                requireContext(),
                 (view, year, month, dayOfMonth) -> {
-                    String selectedDate = dayOfMonth + "/" + (month + 1) + "/" + year;
-                    expiryInput.setText(selectedDate);
+                    // Convert selected date to LocalDate
+                    LocalDate selectedDate = LocalDate.of(year, month + 1, dayOfMonth);
+
+                    // Get today's date
+                    LocalDate today = LocalDate.now();
+
+                    // ✅ Check if expiry date is before today
+                    if (selectedDate.isBefore(today)) {
+                        Toast.makeText(getContext(), "Expiry date cannot be before today's date!", Toast.LENGTH_SHORT).show();
+                    } else {
+                        selectedExpiryDate = dayOfMonth + "/" + (month + 1) + "/" + year;
+                        btnExpiryDate.setText("Expiry Date: " + selectedExpiryDate);
+                    }
                 },
                 calendar.get(Calendar.YEAR),
                 calendar.get(Calendar.MONTH),
-                calendar.get(Calendar.DAY_OF_MONTH));
+                calendar.get(Calendar.DAY_OF_MONTH)
+        );
 
-        // ⛔ Prevent selecting past dates
-        datePicker.getDatePicker().setMinDate(calendar.getTimeInMillis());
+        // ✅ Prevent selecting past dates
+        datePickerDialog.getDatePicker().setMinDate(System.currentTimeMillis() - 1000);
 
-        datePicker.show();
+        datePickerDialog.show();
     }
-
-
-    private int getSafeQuantity() {
-        try {
-            return Integer.parseInt(quantityInput.getText().toString().trim());
-        } catch (Exception e) {
-            return 1;
-        }
-    }
-
-    private String getCurrentDate() {
-        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("d/M/yyyy", java.util.Locale.getDefault());
-        return sdf.format(new java.util.Date());
-    }
-
 
 }

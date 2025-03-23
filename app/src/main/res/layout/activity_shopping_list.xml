@@ -26,13 +26,12 @@
 
             <ImageView
                 android:id="@+id/shoppingListLogo"
-                android:layout_width="30dp"
-                android:layout_height="30dp"
+                android:layout_width="25dp"
+                android:layout_height="25dp"
                 android:layout_gravity="center_vertical"
                 android:layout_marginStart="0dp"
                 android:layout_weight="1"
                 android:src="@drawable/ic_shopping_cart"
-                app:tint="@android:color/white"
                 android:translationY="5dp" />
 
             <TextView
