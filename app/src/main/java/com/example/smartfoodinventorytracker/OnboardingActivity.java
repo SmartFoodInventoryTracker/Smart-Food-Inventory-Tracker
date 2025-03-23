@@ -7,7 +7,19 @@ import android.os.Looper;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.widget.ImageView;
+
+import androidx.core.graphics.drawable.RoundedBitmapDrawable;
+import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory;
+
 
 public class OnboardingActivity extends AppCompatActivity {
 
@@ -34,12 +46,31 @@ public class OnboardingActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_onboarding);
+        EdgeToEdge.enable(this);
+
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            return insets;
+        });
 
         // ✅ Link UI elements
         rotatingTitle = findViewById(R.id.rotatingTitle);
         rotatingDescription = findViewById(R.id.rotatingDescription);
         Button loginButton = findViewById(R.id.loginButton);
         Button signUpButton = findViewById(R.id.signUpButton);
+
+        ImageView logo = findViewById(R.id.appLogo); // or whatever the ID is for each page
+
+        Bitmap originalBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.smart_food_inventory_logo);
+        RoundedBitmapDrawable roundedDrawable = RoundedBitmapDrawableFactory.create(getResources(), originalBitmap);
+
+        // Adjust this to control roundness (the higher, the rounder)
+        roundedDrawable.setCornerRadius(400f);
+        roundedDrawable.setAntiAlias(true);
+
+        logo.setImageDrawable(roundedDrawable);
+
 
         // ✅ Rotate Texts Every 3 Seconds
         textRotator = new Runnable() {

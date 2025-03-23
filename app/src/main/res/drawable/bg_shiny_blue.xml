@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Base soft light blue -->
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#E3F2FD" /> <!-- Calm light blue -->
+        </shape>
+    </item>
+
+    <!-- Subtle gradient highlight -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:type="linear"
+                android:angle="135"
+                android:startColor="#F5FCFF"
+            android:centerColor="#D0F0FA"
+            android:endColor="#B3E5FC"
+            android:useLevel="false" />
+            <alpha android:value="0.3" />
+        </shape>
+    </item>
+
+</layer-list>

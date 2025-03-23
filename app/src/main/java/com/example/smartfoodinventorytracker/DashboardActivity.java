@@ -3,19 +3,28 @@ package com.example.smartfoodinventorytracker;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.EdgeToEdge;
+import androidx.core.content.ContextCompat;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GravityCompat;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
+import androidx.cardview.widget.CardView;
+
 
 public class DashboardActivity extends AppCompatActivity {
 
@@ -23,32 +32,36 @@ public class DashboardActivity extends AppCompatActivity {
     private MaterialToolbar toolbar;
     private NavigationView navView;
     private TextView greetingText;
-    private LinearLayout inventoryButton, shoppingListButton, fridgeConditionButton;
+    private CardView inventoryButton, shoppingListButton, fridgeConditionButton;
     private SharedPreferences shared;
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        EdgeToEdge.enable(this); // ✅ Modern edge-to-edge mode
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dashboard);
 
-        // ✅ Initialize Firebase
+        NotificationHelper notificationHelper = new NotificationHelper(this, true);
+        notificationHelper.startFridgeMonitoringService();
+
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
-        // ✅ Initialize Views
         setUpUi();
-
-        // ✅ Setup Toolbar
         setUpToolBar();
-
-        // ✅ Setup Navigation Drawer with Full Menu
         setUpNavBar();
-
-        // ✅ Load User Name for Dynamic Greeting
         loadUserName();
+
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.toolbar), (view, insets) -> {
+            int statusBarHeight = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top;
+            view.setTranslationY(statusBarHeight);
+            return insets;
+        });
     }
+
 
     @Override
     protected void onResume() {
@@ -134,22 +147,46 @@ public class DashboardActivity extends AppCompatActivity {
 
     // ✅ Load User Name from Firestore
     private void loadUserName() {
+        // Determine greeting based on time of day
+        String greeting;
+        int hour = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY);
+
+        if (hour >= 5 && hour < 12) {
+            greeting = "Good morning";
+        } else if (hour >= 12 && hour < 18) {
+            greeting = "Good afternoon";
+        } else {
+            greeting = "Good evening";
+        }
+
+        // Set rounded background programmatically
+        GradientDrawable bg = new GradientDrawable();
+        bg.setColor(ContextCompat.getColor(this, android.R.color.black));  // black background
+        bg.setCornerRadius(100); // large radius for round edges
+        greetingText.setBackground(bg);
+
+        // Load from Firestore
         String userId = mAuth.getCurrentUser().getUid();
         db.collection("users").document(userId).get()
                 .addOnSuccessListener(document -> {
+                    String name = null;
+
                     if (document.exists()) {
-                        String name = document.getString("name");
-                        if (name == null || name.isEmpty()) {
-                            greetingText.setText("Hi, User");
-                        } else {
-                            greetingText.setText("Hi, " + name);
-                        }
+                        name = document.getString("name");
+                    }
+
+                    if (name != null && !name.trim().isEmpty()) {
+                        greetingText.setText("👋 " + greeting + ", " + name);
                     } else {
-                        greetingText.setText("Hi, User");
+                        greetingText.setText("👋 " + greeting);
                     }
                 })
-                .addOnFailureListener(e -> Toast.makeText(this, "Failed to load user data", Toast.LENGTH_SHORT).show());
+                .addOnFailureListener(e -> {
+                    greetingText.setText("👋 " + greeting);
+                    Toast.makeText(this, "Failed to load user data", Toast.LENGTH_SHORT).show();
+                });
     }
+
 
     // ✅ Handle Logout Logic
     private void logout() {

@@ -6,6 +6,7 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:theme="@style/Theme.SmartFoodInventoryTracker"
     android:fitsSystemWindows="true">
     <!-- tools:context=".InventoryActivity"> -->
 
@@ -16,7 +17,6 @@
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         android:background="?attr/colorPrimary"
-        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -37,7 +37,7 @@
                 android:layout_height="25dp"
                 android:layout_gravity="center_vertical"
                 android:layout_marginStart="0dp"
-                android:layout_weight="1"
+                android:layout_weight="0.03"
                 android:src="@drawable/ic_inventory" />
 
             <TextView

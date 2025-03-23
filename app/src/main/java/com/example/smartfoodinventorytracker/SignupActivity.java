@@ -17,6 +17,13 @@ import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.HashMap;
 import java.util.Map;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.widget.ImageView;
+
+import androidx.core.graphics.drawable.RoundedBitmapDrawable;
+import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory;
+
 
 public class SignupActivity extends AppCompatActivity {
 
@@ -49,6 +56,18 @@ public class SignupActivity extends AppCompatActivity {
         confirmPasswordEditText = findViewById(R.id.confirmPasswordEditText);
         signupButton = findViewById(R.id.signupButton);
         loginRedirectTextView = findViewById(R.id.loginRedirectTextView);
+
+        ImageView logo = findViewById(R.id.signupLogo); // or whatever the ID is for each page
+
+        Bitmap originalBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.smart_food_inventory_logo);
+        RoundedBitmapDrawable roundedDrawable = RoundedBitmapDrawableFactory.create(getResources(), originalBitmap);
+
+        // Adjust this to control roundness (the higher, the rounder)
+        roundedDrawable.setCornerRadius(400f);
+        roundedDrawable.setAntiAlias(true);
+
+        logo.setImageDrawable(roundedDrawable);
+
 
         // ✅ Signup Button Logic
         signupButton.setOnClickListener(v -> {

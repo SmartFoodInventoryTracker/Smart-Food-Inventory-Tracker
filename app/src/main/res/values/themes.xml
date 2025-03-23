@@ -6,20 +6,22 @@
         <item name="colorOnPrimary">@android:color/white</item>
 
         <!-- ✅ App Background -->
-        <item name="android:windowBackground">@color/white</item>
+        <item name="android:windowBackground">@drawable/bg_shiny_blue</item>
 
         <!-- ✅ Status Bar Color -->
-        <item name="android:statusBarColor">@color/green</item>
+        <item name="android:statusBarColor">@color/blue</item>
 
         <!-- ✅ Toolbar Style -->
         <item name="toolbarStyle">@style/CustomToolbar</item>
+
     </style>
 
     <style name="Theme.SmartFoodInventoryTracker" parent="Base.Theme.SmartFoodInventoryTracker" />
 
+
     <!-- ✅ Custom Toolbar Styling -->
     <style name="CustomToolbar" parent="Widget.Material3.Toolbar">
-        <item name="android:background">@color/green</item>
+        <item name="android:background">@color/blue</item>
         <item name="titleTextColor">@android:color/white</item>
         <item name="subtitleTextColor">@android:color/white</item>
     </style>
