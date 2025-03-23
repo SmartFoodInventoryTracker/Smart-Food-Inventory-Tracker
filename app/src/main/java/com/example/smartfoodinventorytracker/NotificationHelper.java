@@ -19,8 +19,6 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -35,7 +33,6 @@ import android.content.SharedPreferences;
 import java.util.concurrent.TimeUnit;
 
 public class NotificationHelper {
-    private final String userId;
 
     // ✅ Define public static variables for notification titles
     public static final String FRIDGE_ALERT_TITLE = "Fridge Alert 🚨";
@@ -50,16 +47,13 @@ public class NotificationHelper {
     private static final String LAST_RESET_TIME_KEY = "LastResetTime";
     private static final long FRIDGE_NOTIFICATION_INTERVAL = 30 * 60 * 1000; // ✅ 30 minutes in milliseconds
 
-    public NotificationHelper(Context context, boolean startExpiryCheck, String userId) {
+    public NotificationHelper(Context context, boolean startExpiryCheck) {
         this.context = context;
-        this.userId = userId;
-        this.databaseRef = FirebaseDatabase.getInstance()
-                .getReference("users").child(userId).child("notifications");
-
+        this.databaseRef = FirebaseDatabase.getInstance().getReference("notifications");
         createNotificationChannel();
 
         if (startExpiryCheck) {
-            scheduleExpiryNotificationCheck();
+            scheduleExpiryNotificationCheck(); // ✅ Only starts expiry checks when needed
         }
     }
 
@@ -83,14 +77,8 @@ public class NotificationHelper {
         @NonNull
         @Override
         public Result doWork() {
-            FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-
-            if (currentUser != null) {
-                String userId = currentUser.getUid();
-                NotificationHelper notificationHelper = new NotificationHelper(getApplicationContext(), false, userId);
-                DatabaseHelper.checkExpiryNotifications(userId, notificationHelper);
-            }
-
+            NotificationHelper notificationHelper = new NotificationHelper(getApplicationContext(), true); // ✅ Start expiry check
+            DatabaseHelper.checkExpiryNotifications(notificationHelper); // ✅ Run expiry check
             return Result.success();
         }
     }

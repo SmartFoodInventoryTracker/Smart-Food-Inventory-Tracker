@@ -3,7 +3,6 @@ package com.example.smartfoodinventorytracker;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.view.View;
@@ -12,7 +11,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
-import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -46,10 +44,7 @@ public class DashboardActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dashboard);
 
-        requestNotificationPermissionIfNeeded(); // ✅ Ask permission early
-
-        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        NotificationHelper notificationHelper = new NotificationHelper(this, true, userId);
+        NotificationHelper notificationHelper = new NotificationHelper(this, true);
         notificationHelper.startFridgeMonitoringService();
 
         mAuth = FirebaseAuth.getInstance();
@@ -99,28 +94,6 @@ public class DashboardActivity extends AppCompatActivity {
             else
                 drawerLayout.openDrawer(GravityCompat.START);
         });
-    }
-
-    private void requestNotificationPermissionIfNeeded() {
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-            if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS)
-                    != PackageManager.PERMISSION_GRANTED) {
-
-                requestPermissions(new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 200);
-            }
-        }
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == 200) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(this, "Notifications enabled", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(this, "Notifications denied", Toast.LENGTH_SHORT).show();
-            }
-        }
     }
 
     private void setUpNavBar() {
@@ -192,17 +165,7 @@ public class DashboardActivity extends AppCompatActivity {
         bg.setCornerRadius(100); // large radius for round edges
         greetingText.setBackground(bg);
 
-        // ✅ Try loading from SharedPreferences first
-        SharedPreferences prefs = getSharedPreferences("user_prefs", MODE_PRIVATE);
-        String cachedName = prefs.getString("cached_name", null);
-
-        if (cachedName != null && !cachedName.isEmpty()) {
-            greetingText.setText("👋 " + greeting + ", " + cachedName);
-        } else {
-            greetingText.setText("👋 " + greeting + ", loading...");
-        }
-
-        // ✅ Then load fresh data from Firestore
+        // Load from Firestore
         String userId = mAuth.getCurrentUser().getUid();
         db.collection("users").document(userId).get()
                 .addOnSuccessListener(document -> {
@@ -214,12 +177,12 @@ public class DashboardActivity extends AppCompatActivity {
 
                     if (name != null && !name.trim().isEmpty()) {
                         greetingText.setText("👋 " + greeting + ", " + name);
-
-                        // ✅ Save to SharedPreferences for next time
-                        prefs.edit().putString("cached_name", name).apply();
+                    } else {
+                        greetingText.setText("👋 " + greeting);
                     }
                 })
                 .addOnFailureListener(e -> {
+                    greetingText.setText("👋 " + greeting);
                     Toast.makeText(this, "Failed to load user data", Toast.LENGTH_SHORT).show();
                 });
     }
@@ -227,9 +190,6 @@ public class DashboardActivity extends AppCompatActivity {
 
     // ✅ Handle Logout Logic
     private void logout() {
-        FirebaseAuth.getInstance().signOut();
-        getSharedPreferences("user_prefs", MODE_PRIVATE).edit().clear().apply();
-
         Intent intent = new Intent(this, OnboardingActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
