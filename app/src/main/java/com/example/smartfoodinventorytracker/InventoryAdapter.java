@@ -22,6 +22,9 @@ import com.google.firebase.database.FirebaseDatabase;
 import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -89,10 +92,10 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.View
         holder.name.setText(product.getName());
         holder.brand.setText("Brand: " + product.getBrand());
 
-        // ✅ Show Expiry Date
+        /*// ✅ Show Expiry Date
         holder.expiryDate.setText(product.getExpiryDate() == null || product.getExpiryDate().isEmpty()
                 ? "Expiry Date: Not set"
-                : "Expiry Date: " + product.getExpiryDate());
+                : "Expiry Date: " + product.getExpiryDate());*/
 
         // ✅ Show Correct "Date Added"
         holder.DateAdded_h.setText(product.getDateAdded() == null || product.getDateAdded().isEmpty()
@@ -116,39 +119,55 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.View
 
         holder.quantityBadge.setBackgroundTintList(ColorStateList.valueOf(badgeColor));
 
+        // 🟡 Expiry Badge Logic
+        String expiryText = getExpiryText(product.getExpiryDate());
+        holder.expiryBadge.setText(expiryText);
+        holder.expiryBadge.setVisibility(View.VISIBLE);
 
-        holder.itemView.setOnClickListener(v -> {
-            FragmentManager fm = ((FragmentActivity) v.getContext()).getSupportFragmentManager();
-            ProductDetailsDialogFragment dialog = ProductDetailsDialogFragment.newInstance(product);
+        int expiryColor = getExpiryColor(expiryText, context);
+        holder.expiryBadge.setBackgroundTintList(ColorStateList.valueOf(expiryColor));
 
-            dialog.setProductDialogListener(new ProductDetailsDialogFragment.ProductDialogListener() {
-                @Override
-                public void onProductUpdated(Product updatedProduct) {
-                    int currentPos = holder.getAdapterPosition();
-                    if (currentPos != RecyclerView.NO_POSITION) {
-                        itemList.set(currentPos, updatedProduct);
-                        int indexInOriginal = originalList.indexOf(product);
-                        if (indexInOriginal != -1) {
-                            originalList.set(indexInOriginal, updatedProduct);
-                        }
-                        notifyItemChanged(currentPos);
-                    }
-                }
-
-                @Override
-                public void onProductDeleted(String barcode) {
-                    removeProductByBarcode(barcode);
-                }
-
-            });
-
-            dialog.show(fm, "ProductDetailsDialog");
-        });
-
-
-
+        // 🖼️ Category Icon
         int iconResId = CategoryUtils.getCategoryIcon(product.getName());
         holder.productImage.setImageResource(iconResId);
+
+
+        holder.itemView.setOnClickListener(v -> {
+            Context viewContext = v.getContext();
+
+            while (viewContext instanceof android.content.ContextWrapper && !(viewContext instanceof FragmentActivity)) {
+                viewContext = ((android.content.ContextWrapper) viewContext).getBaseContext();
+            }
+
+            if (viewContext instanceof FragmentActivity) {
+                FragmentManager fm = ((FragmentActivity) viewContext).getSupportFragmentManager();
+                ProductDetailsDialogFragment dialog = ProductDetailsDialogFragment.newInstance(product);
+
+                dialog.setProductDialogListener(new ProductDetailsDialogFragment.ProductDialogListener() {
+                    @Override
+                    public void onProductUpdated(Product updatedProduct) {
+                        int currentPos = holder.getAdapterPosition();
+                        if (currentPos != RecyclerView.NO_POSITION) {
+                            itemList.set(currentPos, updatedProduct);
+                            int indexInOriginal = originalList.indexOf(product);
+                            if (indexInOriginal != -1) {
+                                originalList.set(indexInOriginal, updatedProduct);
+                            }
+                            notifyItemChanged(currentPos);
+                        }
+                    }
+
+                    @Override
+                    public void onProductDeleted(String barcode) {
+                        removeProductByBarcode(barcode);
+                    }
+                });
+
+                dialog.show(fm, "ProductDetailsDialog");
+            } else {
+                Log.e("InventoryAdapter", "Context is not a FragmentActivity");
+            }
+        });
 
 
         holder.itemView.setOnLongClickListener(v -> {
@@ -207,9 +226,9 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.View
                         .show();
             }
             return true;
+
+
         });
-
-
 
     }
 
@@ -218,6 +237,29 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.View
         Toast.makeText(context, "Product deleted", Toast.LENGTH_SHORT).show();
     }
 
+    private String getExpiryText(String expiryDate) {
+        if (expiryDate == null || expiryDate.equals("Not set")) return "No expiry set";
+
+        try {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d/M/yyyy");
+            LocalDate exp = LocalDate.parse(expiryDate, formatter);
+            LocalDate today = LocalDate.now();
+            long days = ChronoUnit.DAYS.between(today, exp);
+
+            if (days < 0) return "Expired";
+            else if (days == 0) return "Expires today";
+            else return "Expires in " + days + " day" + (days > 1 ? "s" : "");
+        } catch (Exception e) {
+            return "Invalid date";
+        }
+    }
+
+    private int getExpiryColor(String text, Context context) {
+        if (text.contains("Expired")) return ContextCompat.getColor(context, R.color.red);
+        else if (text.contains("today")) return ContextCompat.getColor(context, R.color.orange);
+        else if (text.contains("Expires in")) return ContextCompat.getColor(context, R.color.green);
+        else return ContextCompat.getColor(context, android.R.color.darker_gray);
+    }
 
     private void showDatePicker(ViewHolder holder, Product product) {
         Context context = holder.itemView.getContext();
@@ -229,7 +271,7 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.View
 
             product.setExpiryDate(selectedDate); // ✅ Update local object
 
-            holder.expiryDate.setText("Expiry Date: " + selectedDate); // ✅ Update UI instantly
+            /*holder.expiryDate.setText("Expiry Date: " + selectedDate); // ✅ Update UI instantly*/
 
             // ✅ Save new expiry date to Firebase
             DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("inventory_product");
