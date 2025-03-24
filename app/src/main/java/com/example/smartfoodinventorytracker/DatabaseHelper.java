@@ -17,52 +17,69 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class DatabaseHelper {
-    private static final DatabaseReference inventoryRef = FirebaseDatabase.getInstance().getReference("inventory");
 
+    // --------------------------------------------------
+    // 1) This references the GLOBAL "inventory" node
+    // --------------------------------------------------
+    private static final DatabaseReference inventoryRef =
+            FirebaseDatabase.getInstance().getReference("inventory");
+
+    // Optional caching variables (not strictly necessary):
     private static Long lastTemperature = null;
     private static Long lastHumidity = null;
     private static Long lastCO = null;
     private static Long lastLPG = null;
     private static Long lastSmoke = null;
 
-
+    // ------------------------------------------------------------------------
+    // Notification Fetch
+    // ------------------------------------------------------------------------
     public interface NotificationFetchListener {
         void onNotificationsFetched(List<NotificationItem> notifications);
     }
 
-    // 🔹 Fetch stored notifications from Firebase
+    // Fetch stored notifications from "users/{userId}/notifications"
     public static void fetchNotifications(String userId, NotificationFetchListener listener) {
         DatabaseReference notifRef = FirebaseDatabase.getInstance()
-                .getReference("users").child(userId).child("notifications");
+                .getReference("users")
+                .child(userId)
+                .child("notifications");
 
-        notifRef.orderByChild("timestamp").addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                List<NotificationItem> notifications = new ArrayList<>();
+        notifRef.orderByChild("timestamp").addListenerForSingleValueEvent(
+                new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        List<NotificationItem> notifications = new ArrayList<>();
 
-                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                    String message = snapshot.child("message").getValue(String.class);
-                    Long timestamp = snapshot.child("timestamp").getValue(Long.class);
+                        for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                            String message = snapshot.child("message").getValue(String.class);
+                            Long timestamp = snapshot.child("timestamp").getValue(Long.class);
 
-                    if (message != null && timestamp != null) {
-                        String title = message.contains("expires")
-                                ? NotificationHelper.EXPIRY_ALERT_TITLE
-                                : NotificationHelper.FRIDGE_ALERT_TITLE;
-                        notifications.add(new NotificationItem(title, message, timestamp));
+                            if (message != null && timestamp != null) {
+                                // Decide if it’s an expiry or fridge alert
+                                String title = message.contains("expires")
+                                        ? NotificationHelper.EXPIRY_ALERT_TITLE
+                                        : NotificationHelper.FRIDGE_ALERT_TITLE;
+                                notifications.add(new NotificationItem(title, message, timestamp));
+                            }
+                        }
+
+                        listener.onNotificationsFetched(notifications);
                     }
-                }
 
-                listener.onNotificationsFetched(notifications);
-            }
-
-            @Override
-            public void onCancelled(DatabaseError error) {}
-        });
+                    @Override
+                    public void onCancelled(DatabaseError error) {
+                        // handle error
+                    }
+                });
     }
 
+    // Clear all notifications for the given user
     public static void clearNotifications(String userId, Runnable onComplete) {
         DatabaseReference notifRef = FirebaseDatabase.getInstance()
-                .getReference("users").child(userId).child("notifications");
+                .getReference("users")
+                .child(userId)
+                .child("notifications");
 
         notifRef.removeValue().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
@@ -74,42 +91,49 @@ public class DatabaseHelper {
         });
     }
 
-    // 🔹 Listen to temperature & humidity changes
+    // ------------------------------------------------------------------------
+    // 2) Listen to the GLOBAL "inventory" node for sensor data
+    // ------------------------------------------------------------------------
     public static void listenToInventoryChanges(Context context, NotificationHelper notificationHelper) {
         inventoryRef.orderByKey().limitToLast(1).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot snapshot) {
                 for (DataSnapshot inventorySnapshot : snapshot.getChildren()) {
-                    // ✅ Fetch sensor values
+
+                    // ========== TEMPERATURE ==========
                     Long temperature = inventorySnapshot.child("temperature").getValue(Long.class);
-                    Long humidity = inventorySnapshot.child("humidity").getValue(Long.class);
-                    Long co = inventorySnapshot.child("co").getValue(Long.class);
-                    Long lpg = inventorySnapshot.child("lpg").getValue(Long.class);
-                    Long smoke = inventorySnapshot.child("smoke").getValue(Long.class);
-
-                    // ✅ Fetch condition values
-                    Long temperatureCondition = inventorySnapshot.child("temperature condition").getValue(Long.class);
-                    Long humidityCondition = inventorySnapshot.child("humidity condition").getValue(Long.class);
-                    Long coCondition = inventorySnapshot.child("co condition").getValue(Long.class);
-                    Long lpgCondition = inventorySnapshot.child("lpg condition").getValue(Long.class);
-                    Long smokeCondition = inventorySnapshot.child("smoke condition").getValue(Long.class);
-
-                    // ✅ Send notifications only if condition is greater than 7
-                    if (temperatureCondition != null && temperatureCondition > 7) {
+                    if (lastTemperature == null || !lastTemperature.equals(temperature)) {
                         notificationHelper.sendConditionNotification("Temperature", temperature);
                     }
-                    if (humidityCondition != null && humidityCondition > 7) {
+                    lastTemperature = temperature;
+
+                    // ========== HUMIDITY ==========
+                    Long humidity = inventorySnapshot.child("humidity").getValue(Long.class);
+                    if (lastHumidity == null || !lastHumidity.equals(humidity)) {
                         notificationHelper.sendConditionNotification("Humidity", humidity);
                     }
-                    if (coCondition != null && coCondition > 7) {
+                    lastHumidity = humidity;
+
+                    // ========== CO ==========
+                    Long co = inventorySnapshot.child("co").getValue(Long.class);
+                    if (lastCO == null || !lastCO.equals(co)) {
                         notificationHelper.sendConditionNotification("CO Level", co);
                     }
-                    if (lpgCondition != null && lpgCondition > 7) {
+                    lastCO = co;
+
+                    // ========== LPG ==========
+                    Long lpg = inventorySnapshot.child("lpg").getValue(Long.class);
+                    if (lastLPG == null || !lastLPG.equals(lpg)) {
                         notificationHelper.sendConditionNotification("LPG Level", lpg);
                     }
-                    if (smokeCondition != null && smokeCondition > 7) {
+                    lastLPG = lpg;
+
+                    // ========== SMOKE ==========
+                    Long smoke = inventorySnapshot.child("smoke").getValue(Long.class);
+                    if (lastSmoke == null || !lastSmoke.equals(smoke)) {
                         notificationHelper.sendConditionNotification("Smoke Level", smoke);
                     }
+                    lastSmoke = smoke;
                 }
             }
 
@@ -120,10 +144,12 @@ public class DatabaseHelper {
         });
     }
 
-
+    // Provide a way to listen for notification changes
     public static void listenForNotificationUpdates(String userId, Runnable callback) {
         DatabaseReference notifRef = FirebaseDatabase.getInstance()
-                .getReference("users").child(userId).child("notifications");
+                .getReference("users")
+                .child(userId)
+                .child("notifications");
 
         notifRef.addValueEventListener(new ValueEventListener() {
             @Override
@@ -138,13 +164,15 @@ public class DatabaseHelper {
         });
     }
 
-
+    // ------------------------------------------------------------------------
+    // NotificationItem Class
+    // ------------------------------------------------------------------------
     public static class NotificationItem {
         private String title;
         private String message;
         private long timestamp;
 
-        // ✅ Required empty constructor for Firebase
+        // Required empty constructor for Firebase
         public NotificationItem() {
         }
 
@@ -167,9 +195,14 @@ public class DatabaseHelper {
         }
     }
 
+    // ------------------------------------------------------------------------
+    // 3) checkExpiryNotifications for items in "users/{userId}/inventory_product"
+    // ------------------------------------------------------------------------
     public static void checkExpiryNotifications(String userId, NotificationHelper notificationHelper) {
         DatabaseReference inventoryProdRef = FirebaseDatabase.getInstance()
-                .getReference("users").child(userId).child("inventory_product");
+                .getReference("users")
+                .child(userId)
+                .child("inventory_product");
 
         inventoryProdRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -180,7 +213,7 @@ public class DatabaseHelper {
                 SharedPreferences sentTimes = context.getSharedPreferences("notif_times", Context.MODE_PRIVATE);
 
                 boolean expiryEnabled = prefs.getBoolean("expiry_alerts", true);
-                int minutesForExpired = prefs.getInt("expired_every_minutes", 1); // Use new setting or hardcode for testing
+                int minutesForExpired = prefs.getInt("expired_every_minutes", 1);
                 int daysForWeek1 = prefs.getInt("week1_every_days", 2);
                 int daysForWeek2 = prefs.getInt("week2_every_days", 3);
 
@@ -190,7 +223,9 @@ public class DatabaseHelper {
 
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     Product product = snapshot.getValue(Product.class);
-                    if (product == null || product.getExpiryDate() == null || product.getExpiryDate().equals("Not set")) {
+                    if (product == null
+                            || product.getExpiryDate() == null
+                            || product.getExpiryDate().equals("Not set")) {
                         continue;
                     }
 
@@ -198,17 +233,15 @@ public class DatabaseHelper {
                         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d/M/yyyy");
                         LocalDate expiry = LocalDate.parse(product.getExpiryDate(), formatter);
                         long daysLeft = ChronoUnit.DAYS.between(today, expiry);
-                        String key = product.getBarcode();  // Use barcode to uniquely track per item
+                        String key = product.getBarcode();  // Unique key for each product
 
                         if (daysLeft <= 0) {
                             long last = sentTimes.getLong(key + "_expired", 0);
-                            minutesForExpired = prefs.getInt("expired_every_minutes", 1); // unified key
                             long secondsSince = TimeUnit.MILLISECONDS.toSeconds(now - last);
                             if (secondsSince >= minutesForExpired * 60) {
                                 notificationHelper.sendExpiryNotification(product.getName(), daysLeft);
                                 sentTimes.edit().putLong(key + "_expired", now).apply();
                             }
-
                         } else if (daysLeft <= 7) {
                             long last = sentTimes.getLong(key + "_week1", 0);
                             long daysSince = TimeUnit.MILLISECONDS.toDays(now - last);
@@ -216,7 +249,6 @@ public class DatabaseHelper {
                                 notificationHelper.sendExpiryNotification(product.getName(), daysLeft);
                                 sentTimes.edit().putLong(key + "_week1", now).apply();
                             }
-
                         } else if (daysLeft <= 14) {
                             long last = sentTimes.getLong(key + "_week2", 0);
                             long daysSince = TimeUnit.MILLISECONDS.toDays(now - last);
@@ -225,7 +257,6 @@ public class DatabaseHelper {
                                 sentTimes.edit().putLong(key + "_week2", now).apply();
                             }
                         }
-
                     } catch (Exception e) {
                         Log.e("ExpiryCheck", "Error parsing date for " + product.getName(), e);
                     }
@@ -238,8 +269,4 @@ public class DatabaseHelper {
             }
         });
     }
-
-
-
-
 }
