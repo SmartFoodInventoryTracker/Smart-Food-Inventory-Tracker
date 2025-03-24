@@ -33,6 +33,7 @@ import androidx.work.WorkRequest;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 import android.content.SharedPreferences;
+import android.util.Log;
 
 import java.util.concurrent.TimeUnit;
 
@@ -147,17 +148,22 @@ public class NotificationHelper {
     }
 
     public void sendNotification(String title, String message, Class<?> targetActivity, String data) {
+        Log.d("NotificationHelper", "🛑 Checking duplicate notification: " + message);
+
         isNotificationAlreadySent(title, message, new NotificationCallback() {
             @Override
             public void onCheckCompleted(boolean allowNotification) {
                 if (!allowNotification) {
-                    return; // ✅ Skip sending duplicate notifications
+                    Log.d("NotificationHelper", "🔄 Skipping duplicate notification: " + message);
+                    return;
                 }
 
-                storeNotificationInFirebase(title, message); // ✅ Store in Firebase before sending
+                Log.d("NotificationHelper", "🚀 Sending notification: " + message);
+                storeNotificationInFirebase(title, message);
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
                         ActivityCompat.checkSelfPermission(context, android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                    Log.e("NotificationHelper", "❌ Missing POST_NOTIFICATIONS permission!");
                     return;
                 }
 
@@ -175,20 +181,51 @@ public class NotificationHelper {
                         .setContentIntent(pendingIntent);
 
                 NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
-                notificationManager.notify((int) System.currentTimeMillis(), builder.build());
+                int notificationId = (int) (System.currentTimeMillis() % Integer.MAX_VALUE);
+                notificationManager.notify(notificationId, builder.build());
+                Log.d("NotificationHelper", "✅ Notification Sent - ID: " + notificationId);
             }
         });
     }
+
 
     public interface NotificationCallback {
         void onCheckCompleted(boolean allowNotification);
     }
 
+    public void triggerPendingFridgeNotifications() {
+        Log.d("NotificationHelper", "🔍 Checking for pending fridge notifications...");
+
+        databaseRef.orderByChild("timestamp").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                for (DataSnapshot notifSnapshot : snapshot.getChildren()) {
+                    String title = notifSnapshot.child("title").getValue(String.class);
+                    String message = notifSnapshot.child("message").getValue(String.class);
+                    Long timestamp = notifSnapshot.child("timestamp").getValue(Long.class);
+
+                    if (title == null || message == null || timestamp == null) {
+                        continue; // Ignore invalid notifications
+                    }
+
+                    // ✅ Send the notification manually
+                    sendNotification(title, message, FridgeConditions.class, userId);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.e("NotificationHelper", "❌ Failed to fetch pending fridge notifications", error.toException());
+            }
+        });
+    }
+
+
 
     private void isNotificationAlreadySent(String title, String message, NotificationCallback callback) {
         long oneMinuteAgo = (System.currentTimeMillis() / 1000) - 60;
 
-        databaseRef.orderByChild("timestamp").startAt(oneMinuteAgo) // ✅ Fetch only recent notifications
+        databaseRef.orderByChild("timestamp").startAt(oneMinuteAgo)
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -200,10 +237,10 @@ public class NotificationHelper {
                             Long storedTimestamp = child.child("timestamp").getValue(Long.class);
 
                             if (storedTitle != null && storedMessage != null && storedTimestamp != null) {
-                                // ✅ Check for exact duplicate message within the last hour
                                 if (storedTitle.equals(title) && storedMessage.equals(message)) {
+                                    Log.d("NotificationHelper", "🔄 Duplicate found in Firebase. Skipping...");
                                     allowNotification = false;
-                                    break; // ✅ Stop checking once we find a match
+                                    break;
                                 }
                             }
                         }
@@ -217,6 +254,7 @@ public class NotificationHelper {
                     }
                 });
     }
+
 
 
     // ✅ Save notification timestamp for fridge alerts
@@ -252,33 +290,65 @@ public class NotificationHelper {
         }
     }
 
-    public void sendConditionNotification(String type, Long value) {
-        String unit;
 
+    public void sendConditionNotification(String userId, String type, Long value, Integer condition) {
+        String unit;
         switch (type) {
-            case "Temperature":
-                unit = "°C";
-                break;
-            case "Humidity":
-                unit = "%";
-                break;
+            case "Temperature": unit = "°C"; break;
+            case "Humidity": unit = "%"; break;
             case "CO Level":
             case "LPG Level":
-            case "Smoke Level":
-                unit = " ppm";
-                break;
-            default:
-                unit = "";
+            case "Smoke Level": unit = " ppm"; break;
+            default: unit = "";
         }
 
-        // ✅ Use FRIDGE_ALERT_TITLE instead of hardcoded string
-        sendNotification(
-                FRIDGE_ALERT_TITLE,
-                type + " changed! Current: " + value + unit,
-                FridgeConditions.class,
-                ""
-        );
+        if (condition < 5) {
+            Log.d("FridgeMonitor", "✅ Condition is safe, skipping notification.");
+            return; // ✅ Skip safe notifications
+        }
+
+        String severity = (condition >= 9) ? "🔴 CRITICAL" : "🟠 WARNING";
+        String message = severity + " - " + type + " changed! Current: " + value + unit;
+
+        Log.d("FridgeMonitor", "🔔 Sending Notification - " + message);
+
+        // ✅ Store notification under "users/{userId}/notifications"
+        DatabaseReference userNotificationsRef = FirebaseDatabase.getInstance()
+                .getReference("users").child(userId).child("notifications");
+
+        String notificationId = userNotificationsRef.push().getKey();
+        if (notificationId != null) {
+            Map<String, Object> notificationData = new HashMap<>();
+            notificationData.put("timestamp", System.currentTimeMillis() / 1000);
+            notificationData.put("message", message);
+            notificationData.put("title", NotificationHelper.FRIDGE_ALERT_TITLE);
+            userNotificationsRef.child(notificationId).setValue(notificationData);
+        }
+
+        // ✅ Trigger the notification IMMEDIATELY
+        sendNotification(NotificationHelper.FRIDGE_ALERT_TITLE, message, FridgeConditions.class, userId);
     }
+
+
+
+    public void sendNotificationLocalAndFirebase(String userId, String title, String message, Class<?> targetActivity) {
+        // ✅ Store the notification in Firebase (same way as inventory product notifications)
+        DatabaseReference userNotificationsRef = FirebaseDatabase.getInstance()
+                .getReference("users").child(userId).child("notifications");
+
+        String notificationId = userNotificationsRef.push().getKey();
+        if (notificationId != null) {
+            Map<String, Object> notificationData = new HashMap<>();
+            notificationData.put("timestamp", System.currentTimeMillis() / 1000);
+            notificationData.put("message", message);
+            notificationData.put("title", title);
+            userNotificationsRef.child(notificationId).setValue(notificationData);
+        }
+
+        // ✅ Send system notification immediately like inventory product notifications
+        sendNotification(title, message, targetActivity, userId);
+    }
+
 
     public void sendExpiryNotification(String productName, long daysLeft) {
         String message;

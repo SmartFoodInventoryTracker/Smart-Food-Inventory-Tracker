@@ -21,11 +21,13 @@ public class FridgeMonitoringService extends Service {
         createNotificationChannel();
         startForeground(1, createServiceNotification());
 
-        // ✅ Start listening to fridge changes
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         NotificationHelper notificationHelper = new NotificationHelper(getApplicationContext(), false, userId);
-        DatabaseHelper.listenToInventoryChanges(getApplicationContext(), notificationHelper);
+
+        // ✅ Ensure fridge notifications are triggered
+        notificationHelper.triggerPendingFridgeNotifications();
     }
+
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {

@@ -3,6 +3,8 @@ package com.example.smartfoodinventorytracker;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
+
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -104,40 +106,43 @@ public class DatabaseHelper {
             public void onDataChange(DataSnapshot snapshot) {
                 for (DataSnapshot inventorySnapshot : snapshot.getChildren()) {
 
+                    // ✅ Get the connected user
+                    String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+
                     // ========== TEMPERATURE ==========
                     Long temperature = inventorySnapshot.child("temperature").getValue(Long.class);
-                    if (lastTemperature == null || !lastTemperature.equals(temperature)) {
-                        notificationHelper.sendConditionNotification("Temperature", temperature);
+                    Integer temperatureCondition = inventorySnapshot.child("temperature_condition").getValue(Integer.class);
+                    if (temperatureCondition != null && temperature != null) {
+                        notificationHelper.sendConditionNotification(userId, "Temperature", temperature, temperatureCondition);
                     }
-                    lastTemperature = temperature;
 
                     // ========== HUMIDITY ==========
                     Long humidity = inventorySnapshot.child("humidity").getValue(Long.class);
-                    if (lastHumidity == null || !lastHumidity.equals(humidity)) {
-                        notificationHelper.sendConditionNotification("Humidity", humidity);
+                    Integer humidityCondition = inventorySnapshot.child("humidity_condition").getValue(Integer.class);
+                    if (humidityCondition != null && humidity != null) {
+                        notificationHelper.sendConditionNotification(userId, "Humidity", humidity, humidityCondition);
                     }
-                    lastHumidity = humidity;
 
-                    // ========== CO ==========
+                    // ========== CO LEVEL ==========
                     Long co = inventorySnapshot.child("co").getValue(Long.class);
-                    if (lastCO == null || !lastCO.equals(co)) {
-                        notificationHelper.sendConditionNotification("CO Level", co);
+                    Integer coCondition = inventorySnapshot.child("co_condition").getValue(Integer.class);
+                    if (coCondition != null && co != null) {
+                        notificationHelper.sendConditionNotification(userId, "CO Level", co, coCondition);
                     }
-                    lastCO = co;
 
-                    // ========== LPG ==========
+                    // ========== LPG LEVEL ==========
                     Long lpg = inventorySnapshot.child("lpg").getValue(Long.class);
-                    if (lastLPG == null || !lastLPG.equals(lpg)) {
-                        notificationHelper.sendConditionNotification("LPG Level", lpg);
+                    Integer lpgCondition = inventorySnapshot.child("lpg_condition").getValue(Integer.class);
+                    if (lpgCondition != null && lpg != null) {
+                        notificationHelper.sendConditionNotification(userId, "LPG Level", lpg, lpgCondition);
                     }
-                    lastLPG = lpg;
 
-                    // ========== SMOKE ==========
+                    // ========== SMOKE LEVEL ==========
                     Long smoke = inventorySnapshot.child("smoke").getValue(Long.class);
-                    if (lastSmoke == null || !lastSmoke.equals(smoke)) {
-                        notificationHelper.sendConditionNotification("Smoke Level", smoke);
+                    Integer smokeCondition = inventorySnapshot.child("smoke_condition").getValue(Integer.class);
+                    if (smokeCondition != null && smoke != null) {
+                        notificationHelper.sendConditionNotification(userId, "Smoke Level", smoke, smokeCondition);
                     }
-                    lastSmoke = smoke;
                 }
             }
 
@@ -147,6 +152,8 @@ public class DatabaseHelper {
             }
         });
     }
+
+
 
     // Provide a way to listen for notification changes
     public static void listenForNotificationUpdates(String userId, Runnable callback) {
