@@ -180,7 +180,7 @@ public class DatabaseHelper {
                 SharedPreferences sentTimes = context.getSharedPreferences("notif_times", Context.MODE_PRIVATE);
 
                 boolean expiryEnabled = prefs.getBoolean("expiry_alerts", true);
-                int hoursForExpired = prefs.getInt("expired_every_hours", 4);
+                int minutesForExpired = prefs.getInt("expired_every_minutes", 1); // Use new setting or hardcode for testing
                 int daysForWeek1 = prefs.getInt("week1_every_days", 2);
                 int daysForWeek2 = prefs.getInt("week2_every_days", 3);
 
@@ -201,10 +201,10 @@ public class DatabaseHelper {
                         String key = product.getBarcode();  // Use barcode to uniquely track per item
 
                         if (daysLeft <= 0) {
-                            // Expired or expiring today → hourly
                             long last = sentTimes.getLong(key + "_expired", 0);
-                            long hoursSince = TimeUnit.MILLISECONDS.toHours(now - last);
-                            if (hoursSince >= hoursForExpired) {
+                            minutesForExpired = prefs.getInt("expired_every_minutes", 1); // unified key
+                            long secondsSince = TimeUnit.MILLISECONDS.toSeconds(now - last);
+                            if (secondsSince >= minutesForExpired * 60) {
                                 notificationHelper.sendExpiryNotification(product.getName(), daysLeft);
                                 sentTimes.edit().putLong(key + "_expired", now).apply();
                             }

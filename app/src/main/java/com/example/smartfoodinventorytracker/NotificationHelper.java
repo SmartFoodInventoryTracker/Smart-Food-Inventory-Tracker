@@ -24,6 +24,8 @@ import com.google.firebase.auth.FirebaseUser;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkManager;
 import androidx.work.PeriodicWorkRequest;
 import androidx.work.ExistingPeriodicWorkPolicy;
@@ -64,17 +66,36 @@ public class NotificationHelper {
     }
 
     public void scheduleExpiryNotificationCheck() {
-        WorkRequest workRequest = new PeriodicWorkRequest.Builder(
-                ExpiryWorker.class, // ✅ Create this worker inside NotificationHelper (Step 3)
-                15, TimeUnit.MINUTES) // ✅ Android enforces a minimum of 15 minutes for periodic tasks
+        scheduleOneTimeCheck();
+    }
+
+    private void scheduleOneTimeCheck() {
+        // Get user setting for expiry notifications delay (in minutes)
+        SharedPreferences settingsPrefs = context.getSharedPreferences("user_settings", Context.MODE_PRIVATE);
+        int delayMinutes = settingsPrefs.getInt("expired_every_minutes", 1); // unified key
+
+        // Use a separate preferences file for tracking the first run
+        SharedPreferences notificationPrefs = context.getSharedPreferences("NotificationPrefs", Context.MODE_PRIVATE);
+        boolean firstRunDone = notificationPrefs.getBoolean("first_run_done", false);
+
+        long delay;
+        if (!firstRunDone) {
+            // For the very first run, schedule immediately (0 delay)
+            delay = 0;
+            notificationPrefs.edit().putBoolean("first_run_done", true).apply();
+        } else {
+            // Otherwise, use the user-defined delay
+            delay = delayMinutes;
+        }
+
+        WorkRequest workRequest = new OneTimeWorkRequest.Builder(ExpiryWorker.class)
+                .setInitialDelay(delay, TimeUnit.MINUTES)
                 .build();
 
-        WorkManager.getInstance(context).enqueueUniquePeriodicWork(
-                "ExpiryNotificationWorker",
-                ExistingPeriodicWorkPolicy.UPDATE,
-                (PeriodicWorkRequest) workRequest
-        );
+        WorkManager.getInstance(context).enqueue(workRequest);
     }
+
+
     public static class ExpiryWorker extends Worker {
         public ExpiryWorker(@NonNull Context context, @NonNull WorkerParameters workerParams) {
             super(context, workerParams);
@@ -89,10 +110,12 @@ public class NotificationHelper {
                 String userId = currentUser.getUid();
                 NotificationHelper notificationHelper = new NotificationHelper(getApplicationContext(), false, userId);
                 DatabaseHelper.checkExpiryNotifications(userId, notificationHelper);
+                notificationHelper.scheduleExpiryNotificationCheck(); // 🔁 Re-schedule
             }
 
             return Result.success();
         }
+
     }
 
     public Context getContext() {
@@ -163,9 +186,9 @@ public class NotificationHelper {
 
 
     private void isNotificationAlreadySent(String title, String message, NotificationCallback callback) {
-        long oneHourAgo = (System.currentTimeMillis() / 1000) - 3600; // ✅ Get timestamp from 1 hour ago
+        long oneMinuteAgo = (System.currentTimeMillis() / 1000) - 60;
 
-        databaseRef.orderByChild("timestamp").startAt(oneHourAgo) // ✅ Fetch only recent notifications
+        databaseRef.orderByChild("timestamp").startAt(oneMinuteAgo) // ✅ Fetch only recent notifications
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
