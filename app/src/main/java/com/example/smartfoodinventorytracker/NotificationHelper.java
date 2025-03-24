@@ -283,7 +283,9 @@ public class NotificationHelper {
     public void sendExpiryNotification(String productName, long daysLeft) {
         String message;
 
-        if (daysLeft == 0) {
+        if (daysLeft < 0) {
+            message = productName + " expired! Throw it away.";
+        } else if (daysLeft == 0) {
             message = productName + " expires today! Use it before it's too late.";
         } else if (daysLeft == 1) {
             message = productName + " expires tomorrow! Don't forget to use it.";

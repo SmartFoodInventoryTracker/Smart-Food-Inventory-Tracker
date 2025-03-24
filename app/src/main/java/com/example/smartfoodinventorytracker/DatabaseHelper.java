@@ -56,10 +56,14 @@ public class DatabaseHelper {
                             Long timestamp = snapshot.child("timestamp").getValue(Long.class);
 
                             if (message != null && timestamp != null) {
-                                // Decide if it’s an expiry or fridge alert
-                                String title = message.contains("expires")
-                                        ? NotificationHelper.EXPIRY_ALERT_TITLE
-                                        : NotificationHelper.FRIDGE_ALERT_TITLE;
+                                String lowerMsg = message.toLowerCase(); // For case-insensitive matching
+                                String title;
+                                if (lowerMsg.contains("expires") || lowerMsg.contains("expired")) {
+                                    title = NotificationHelper.EXPIRY_ALERT_TITLE; // "Inventory Alert 🍏"
+                                } else {
+                                    title = NotificationHelper.FRIDGE_ALERT_TITLE; // "Fridge Alert 🚨"
+                                }
+
                                 notifications.add(new NotificationItem(title, message, timestamp));
                             }
                         }
