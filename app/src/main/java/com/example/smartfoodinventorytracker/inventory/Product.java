@@ -1,7 +1,5 @@
-package com.example.smartfoodinventorytracker;
+package com.example.smartfoodinventorytracker.inventory;
 
-import java.util.Arrays;
-import java.util.List;
 import java.io.Serializable;
 
 public class Product implements Serializable {

@@ -1,4 +1,4 @@
-package com.example.smartfoodinventorytracker;
+package com.example.smartfoodinventorytracker.inventory;
 
 import android.app.DatePickerDialog;
 import android.app.Dialog;
@@ -17,7 +17,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
 
-import com.bumptech.glide.Glide;
+import com.example.smartfoodinventorytracker.R;
 import com.google.firebase.database.FirebaseDatabase;
 
 import java.time.LocalDate;

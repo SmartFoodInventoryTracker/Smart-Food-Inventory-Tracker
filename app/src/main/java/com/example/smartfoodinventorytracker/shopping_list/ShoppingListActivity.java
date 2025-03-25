@@ -1,4 +1,4 @@
-package com.example.smartfoodinventorytracker;
+package com.example.smartfoodinventorytracker.shopping_list;
 
 import android.os.Bundle;
 
@@ -9,9 +9,11 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.example.smartfoodinventorytracker.R;
+
 import java.util.Objects;
 
-public class ShoppingList extends AppCompatActivity {
+public class ShoppingListActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

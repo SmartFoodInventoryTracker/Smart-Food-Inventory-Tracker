@@ -1,4 +1,4 @@
-package com.example.smartfoodinventorytracker;
+package com.example.smartfoodinventorytracker.authentication;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -15,7 +15,9 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.widget.ImageView;
+
+import com.example.smartfoodinventorytracker.dashboard.DashboardActivity;
+import com.example.smartfoodinventorytracker.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 

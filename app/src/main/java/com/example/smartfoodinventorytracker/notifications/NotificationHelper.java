@@ -1,4 +1,4 @@
-package com.example.smartfoodinventorytracker;
+package com.example.smartfoodinventorytracker.notifications;
 
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -14,6 +14,9 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
+import com.example.smartfoodinventorytracker.fridge_conditions.FridgeConditionsActivity;
+import com.example.smartfoodinventorytracker.inventory.InventoryActivity;
+import com.example.smartfoodinventorytracker.R;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -27,8 +30,6 @@ import java.util.Map;
 
 import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkManager;
-import androidx.work.PeriodicWorkRequest;
-import androidx.work.ExistingPeriodicWorkPolicy;
 import androidx.work.WorkRequest;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
@@ -209,7 +210,7 @@ public class NotificationHelper {
                     }
 
                     // ✅ Send the notification manually
-                    sendNotification(title, message, FridgeConditions.class, userId);
+                    sendNotification(title, message, FridgeConditionsActivity.class, userId);
                 }
             }
 
@@ -326,7 +327,7 @@ public class NotificationHelper {
         }
 
         // ✅ Trigger the notification IMMEDIATELY
-        sendNotification(NotificationHelper.FRIDGE_ALERT_TITLE, message, FridgeConditions.class, userId);
+        sendNotification(NotificationHelper.FRIDGE_ALERT_TITLE, message, FridgeConditionsActivity.class, userId);
     }
 
 

@@ -1,10 +1,9 @@
-package com.example.smartfoodinventorytracker;
+package com.example.smartfoodinventorytracker.fridge_conditions;
 
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.View;
-import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -15,7 +14,8 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-import com.github.anastr.speedviewlib.AwesomeSpeedometer;
+import com.example.smartfoodinventorytracker.R;
+import com.example.smartfoodinventorytracker.notifications.NotificationHelper;
 import com.github.anastr.speedviewlib.SpeedView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -29,7 +29,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class FridgeConditions extends AppCompatActivity {
+public class FridgeConditionsActivity extends AppCompatActivity {
 
     private TextView tempText, humidityText, coText, lpgText, smokeText;
     private SpeedView speedTemp, speedHum, speedLPG, speedCO,speedSmoke;
@@ -180,13 +180,13 @@ public class FridgeConditions extends AppCompatActivity {
                         setGauge(overall_condition, "ov");
                     }
                 } else {
-                    Toast.makeText(FridgeConditions.this, "No data found!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(FridgeConditionsActivity.this, "No data found!", Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
-                Toast.makeText(FridgeConditions.this, "Failed to load data!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(FridgeConditionsActivity.this, "Failed to load data!", Toast.LENGTH_SHORT).show();
             }
         });
     }
