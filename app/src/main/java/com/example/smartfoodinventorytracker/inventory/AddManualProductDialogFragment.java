@@ -1,4 +1,4 @@
-package com.example.smartfoodinventorytracker;
+package com.example.smartfoodinventorytracker.inventory;
 
 import android.app.DatePickerDialog;
 import android.app.Dialog;
@@ -15,6 +15,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
 
+import com.example.smartfoodinventorytracker.R;
 import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.Calendar;

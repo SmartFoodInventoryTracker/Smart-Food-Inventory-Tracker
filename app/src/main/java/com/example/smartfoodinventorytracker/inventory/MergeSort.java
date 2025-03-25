@@ -1,4 +1,4 @@
-package com.example.smartfoodinventorytracker;
+package com.example.smartfoodinventorytracker.inventory;
 
 public class MergeSort {
     // First subarray is arr[l..m]
@@ -34,7 +34,7 @@ public class MergeSort {
         int k = l;
         while (i < n1 && j < n2) {
 
-            if ( (type== OrderType.ASCENDING&&DateInfo.isOlder(L[i].expiryDate,R[j].expiryDate))||
+            if ( (type== OrderType.ASCENDING&& DateInfo.isOlder(L[i].expiryDate,R[j].expiryDate))||
                     (type== OrderType.DESCENDING&&DateInfo.isNewer(L[i].expiryDate,R[j].expiryDate))
             ) {
 

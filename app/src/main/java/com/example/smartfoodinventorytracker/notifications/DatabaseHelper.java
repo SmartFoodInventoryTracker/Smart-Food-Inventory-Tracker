@@ -1,9 +1,10 @@
-package com.example.smartfoodinventorytracker;
+package com.example.smartfoodinventorytracker.notifications;
 
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
 
+import com.example.smartfoodinventorytracker.inventory.Product;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;

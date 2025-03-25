@@ -1,4 +1,4 @@
-package com.example.smartfoodinventorytracker;
+package com.example.smartfoodinventorytracker.settings;
 
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -9,17 +9,14 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
-import android.content.SharedPreferences;
-import android.os.Bundle;
+
 import android.view.Gravity;
-import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
-import android.view.View;
-import android.util.Log;
+
+import com.example.smartfoodinventorytracker.R;
 
 
 public class SettingsActivity extends AppCompatActivity {

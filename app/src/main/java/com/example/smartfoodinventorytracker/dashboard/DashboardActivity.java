@@ -1,4 +1,4 @@
-package com.example.smartfoodinventorytracker;
+package com.example.smartfoodinventorytracker.dashboard;
 
 import android.content.Context;
 import android.content.Intent;
@@ -6,8 +6,6 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
-import android.view.View;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -21,6 +19,14 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
+import com.example.smartfoodinventorytracker.fridge_conditions.FridgeConditionsActivity;
+import com.example.smartfoodinventorytracker.inventory.InventoryActivity;
+import com.example.smartfoodinventorytracker.R;
+import com.example.smartfoodinventorytracker.settings.SettingsActivity;
+import com.example.smartfoodinventorytracker.shopping_list.ShoppingListActivity;
+import com.example.smartfoodinventorytracker.authentication.OnboardingActivity;
+import com.example.smartfoodinventorytracker.notifications.NotificationCenterActivity;
+import com.example.smartfoodinventorytracker.notifications.NotificationHelper;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
@@ -136,13 +142,13 @@ public class DashboardActivity extends AppCompatActivity {
                 startActivity(new Intent(this, InventoryActivity.class));
             } else if (id == R.id.nav_shopping_lists) {
                 Toast.makeText(this, "Shopping Lists", Toast.LENGTH_SHORT).show();
-                startActivity(new Intent(this, ShoppingList.class));
+                startActivity(new Intent(this, ShoppingListActivity.class));
             } else if (id == R.id.nav_fridge_condition) {
                 Toast.makeText(this, "Fridge Condition", Toast.LENGTH_SHORT).show();
-                startActivity(new Intent(this, FridgeConditions.class));
+                startActivity(new Intent(this, FridgeConditionsActivity.class));
             } else if (id == R.id.nav_notifications) {
                 Toast.makeText(this, "Notifications Center", Toast.LENGTH_SHORT).show();
-                startActivity(new Intent(this, NotificationCenter.class));
+                startActivity(new Intent(this, NotificationCenterActivity.class));
             } else if (id == R.id.nav_profile) {
                 startActivity(new Intent(this, ProfileActivity.class));
             } else if (id == R.id.nav_settings) {
@@ -259,13 +265,13 @@ public class DashboardActivity extends AppCompatActivity {
 
     private void goToShoppingList() {
         Toast.makeText(this, "Shopping", Toast.LENGTH_SHORT).show();
-        Intent intent = new Intent(this, ShoppingList.class);
+        Intent intent = new Intent(this, ShoppingListActivity.class);
         startActivity(intent);
     }
 
     private void goToFridgeConditions() {
         Toast.makeText(this, "Fridge Condition Clicked", Toast.LENGTH_SHORT).show();
-        Intent intent = new Intent(this, FridgeConditions.class);
+        Intent intent = new Intent(this, FridgeConditionsActivity.class);
         startActivity(intent);
     }
 }
