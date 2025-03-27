@@ -10,6 +10,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Enter list name"
-        android:inputType="textCapWords"
+        android:inputType="text"
         android:maxLines="1" />
 </LinearLayout>

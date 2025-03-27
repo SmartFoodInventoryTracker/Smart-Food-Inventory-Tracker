@@ -155,33 +155,55 @@ public class ShoppingListActivity extends AppCompatActivity {
         shoppingRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                List<Map.Entry<String, Integer>> listEntries = new ArrayList<>();
+                List<ShoppingList> allLists = new ArrayList<>();
 
+                // Build flat list of ShoppingList objects from Firebase
                 for (DataSnapshot listSnapshot : snapshot.getChildren()) {
-                    // Get the list name from the "name" field
+                    String key = listSnapshot.getKey();  // Firebase push key
                     String listName = listSnapshot.child("name").getValue(String.class);
-                    if(listName == null) {
+                    if (listName == null) {
                         listName = "Unnamed List";
                     }
-                    // Count items under "items"
                     int itemCount = (int) listSnapshot.child("items").getChildrenCount();
-                    listEntries.add(new AbstractMap.SimpleEntry<>(listName, itemCount));
+                    allLists.add(new ShoppingList(key, listName, itemCount));
                 }
 
-                // Sort lists: e.g., if you want "last_used" on top, modify accordingly:
-                listEntries.sort((a, b) -> {
-                    if (a.getKey().equals("last_used")) return -1;
-                    if (b.getKey().equals("last_used")) return 1;
-                    return a.getKey().compareToIgnoreCase(b.getKey());
-                });
+                /// Build a mixed list of objects: headers (String) + ShoppingList
+                List<Object> mixedList = new ArrayList<>();
 
-                // Set up RecyclerView
+                int lastUsedCount = 0;
+
+                // Gather "last_used" items
+                List<ShoppingList> lastUsedLists = new ArrayList<>();
+                for (ShoppingList list : allLists) {
+                    if ("last_used".equalsIgnoreCase(list.name)) {
+                        lastUsedLists.add(list);
+                    }
+                }
+
+                // If we found last-used items, add the header + items
+                if (!lastUsedLists.isEmpty()) {
+                    mixedList.add("Last used");
+                    for (int i = 0; i < lastUsedLists.size() && i < 3; i++) {
+                        mixedList.add(lastUsedLists.get(i));
+                    }
+                }
+
+                // Now add the Custom Lists header
+                mixedList.add("Custom shopping lists");
+                for (ShoppingList list : allLists) {
+                    if (!"last_used".equalsIgnoreCase(list.name)) {
+                        mixedList.add(list);
+                    }
+                }
+
+
                 RecyclerView recyclerView = findViewById(R.id.shoppingListsRecyclerView);
                 recyclerView.setLayoutManager(new LinearLayoutManager(ShoppingListActivity.this));
-                ShoppingListAdapter adapter = new ShoppingListAdapter(ShoppingListActivity.this, listEntries);
+                ShoppingListAdapter adapter = new ShoppingListAdapter(ShoppingListActivity.this, mixedList);
                 recyclerView.setAdapter(adapter);
 
-                updateEmptyMessageVisibility(listEntries);
+                updateEmptyMessageVisibility(mixedList);
             }
 
             @Override
@@ -190,5 +212,6 @@ public class ShoppingListActivity extends AppCompatActivity {
             }
         });
     }
+
 
 }
