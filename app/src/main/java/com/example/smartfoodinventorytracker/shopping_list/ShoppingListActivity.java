@@ -157,9 +157,9 @@ public class ShoppingListActivity extends AppCompatActivity {
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 List<ShoppingList> allLists = new ArrayList<>();
 
-                // Build flat list of ShoppingList objects from Firebase
+                // Build flat list from Firebase
                 for (DataSnapshot listSnapshot : snapshot.getChildren()) {
-                    String key = listSnapshot.getKey();  // Firebase push key
+                    String key = listSnapshot.getKey();
                     String listName = listSnapshot.child("name").getValue(String.class);
                     if (listName == null) {
                         listName = "Unnamed List";
@@ -168,28 +168,25 @@ public class ShoppingListActivity extends AppCompatActivity {
                     allLists.add(new ShoppingList(key, listName, itemCount));
                 }
 
-                /// Build a mixed list of objects: headers (String) + ShoppingList
+                // Build mixed list with headers
                 List<Object> mixedList = new ArrayList<>();
 
-                int lastUsedCount = 0;
-
-                // Gather "last_used" items
+                // Section for "Last used" – only if there are any
                 List<ShoppingList> lastUsedLists = new ArrayList<>();
                 for (ShoppingList list : allLists) {
                     if ("last_used".equalsIgnoreCase(list.name)) {
                         lastUsedLists.add(list);
                     }
                 }
-
-                // If we found last-used items, add the header + items
                 if (!lastUsedLists.isEmpty()) {
-                    mixedList.add("Last used");
+                    mixedList.add("Last used (3 last used)");
+                    // Add up to 3 last_used lists
                     for (int i = 0; i < lastUsedLists.size() && i < 3; i++) {
                         mixedList.add(lastUsedLists.get(i));
                     }
                 }
 
-                // Now add the Custom Lists header
+                // Section for "Custom shopping lists"
                 mixedList.add("Custom shopping lists");
                 for (ShoppingList list : allLists) {
                     if (!"last_used".equalsIgnoreCase(list.name)) {
@@ -197,7 +194,7 @@ public class ShoppingListActivity extends AppCompatActivity {
                     }
                 }
 
-
+                // Set up RecyclerView with mixed data
                 RecyclerView recyclerView = findViewById(R.id.shoppingListsRecyclerView);
                 recyclerView.setLayoutManager(new LinearLayoutManager(ShoppingListActivity.this));
                 ShoppingListAdapter adapter = new ShoppingListAdapter(ShoppingListActivity.this, mixedList);

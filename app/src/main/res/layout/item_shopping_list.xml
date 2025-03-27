@@ -1,61 +1,69 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:card_view="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginHorizontal="16dp"
-    android:layout_marginVertical="8dp"
-    card_view:cardCornerRadius="16dp"
-    card_view:cardElevation="6dp"
+    xmlns:app="http://schemas.android.com/tools"
+    android:layout_margin="8dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="8dp"
+    app:cardUseCompatPadding="true"
+    app:cardPreventCornerOverlap="true"
+    android:foreground="?attr/selectableItemBackground"
     android:clickable="true"
     android:focusable="true"
-    android:foreground="?attr/selectableItemBackground">
+    app:ignore="NamespaceTypo">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="16dp"
-        android:background="@android:color/white">
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:padding="16dp">
 
-        <!-- Row for delete icon on top-right -->
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+        <!-- Optional list icon on the left -->
+        <ImageView
+            android:id="@+id/listIcon"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@drawable/ic_shopping_cart"
+            android:contentDescription="List icon"
+            android:layout_marginEnd="12dp"
+            card_view:tint="@android:color/darker_gray" />
+
+        <!-- Text container for name + item count -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
 
             <TextView
                 android:id="@+id/listName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Grocery Run"
+                android:text="Weekly"
                 android:textSize="18sp"
                 android:textStyle="bold"
-                android:textColor="@android:color/black"
-                android:layout_alignParentStart="true" />
+                android:textColor="@android:color/black" />
 
-            <ImageView
-                android:id="@+id/deleteIcon"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:layout_alignParentEnd="true"
-                android:contentDescription="Delete list"
-                android:src="@drawable/ic_delete"
-                android:tint="@android:color/darker_gray"/>
-        </RelativeLayout>
+            <TextView
+                android:id="@+id/itemCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0 items"
+                android:textSize="14sp"
+                android:textColor="@android:color/darker_gray"
+                android:layout_marginTop="4dp" />
+        </LinearLayout>
 
-        <!-- Spacing between the top row and the item count -->
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="8dp" />
-
-        <TextView
-            android:id="@+id/itemCount"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="0 items"
-            android:textSize="14sp"
-            android:textColor="@android:color/darker_gray"
-            android:layout_marginTop="4dp" />
+        <!-- Delete icon on the right -->
+        <ImageView
+            android:id="@+id/deleteIcon"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@drawable/ic_delete"
+            android:contentDescription="Delete list"
+            card_view:tint="@android:color/darker_gray" />
     </LinearLayout>
 </androidx.cardview.widget.CardView>

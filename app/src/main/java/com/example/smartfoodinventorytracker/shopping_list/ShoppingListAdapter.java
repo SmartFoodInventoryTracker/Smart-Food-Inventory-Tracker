@@ -2,32 +2,27 @@ package com.example.smartfoodinventorytracker.shopping_list;
 
 import android.content.Context;
 import android.content.Intent;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.RecyclerView;
-
 import com.example.smartfoodinventorytracker.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-
 import java.util.List;
 
 public class ShoppingListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     private static final int TYPE_HEADER = 0;
     private static final int TYPE_ITEM = 1;
-
     private Context context;
-    private List<Object> mixedDataList; // Contains both String (header) and ShoppingList objects
+    private List<Object> mixedDataList;
 
     public ShoppingListAdapter(Context context, List<Object> mixedDataList) {
         this.context = context;
@@ -37,7 +32,6 @@ public class ShoppingListAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     // Header ViewHolder
     public static class HeaderViewHolder extends RecyclerView.ViewHolder {
         TextView headerTitle;
-
         public HeaderViewHolder(View itemView) {
             super(itemView);
             headerTitle = itemView.findViewById(R.id.headerTitle);
@@ -48,7 +42,6 @@ public class ShoppingListAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     public static class ItemViewHolder extends RecyclerView.ViewHolder {
         TextView listName, itemCount;
         ImageView deleteIcon;
-
         public ItemViewHolder(View itemView) {
             super(itemView);
             listName = itemView.findViewById(R.id.listName);
@@ -59,11 +52,7 @@ public class ShoppingListAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
     @Override
     public int getItemViewType(int position) {
-        if (mixedDataList.get(position) instanceof String) {
-            return TYPE_HEADER;
-        } else {
-            return TYPE_ITEM;
-        }
+        return (mixedDataList.get(position) instanceof String) ? TYPE_HEADER : TYPE_ITEM;
     }
 
     @NonNull
@@ -92,8 +81,7 @@ public class ShoppingListAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
             // Delete icon click listener
             itemHolder.deleteIcon.setOnClickListener(v -> {
-                // Prevent deletion of "last_used" section items if desired.
-                if (shoppingList.name.equals("last_used")) {
+                if (shoppingList.name.equalsIgnoreCase("last_used")) {
                     Toast.makeText(context, "You can't delete the last used list.", Toast.LENGTH_SHORT).show();
                     return;
                 }
@@ -107,7 +95,6 @@ public class ShoppingListAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                                     .child(userId)
                                     .child("shopping-list")
                                     .child(shoppingList.key);
-
                             ref.removeValue().addOnSuccessListener(aVoid -> {
                                 Toast.makeText(context, "List deleted", Toast.LENGTH_SHORT).show();
                                 mixedDataList.remove(position);
@@ -119,7 +106,7 @@ public class ShoppingListAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                         .show();
             });
 
-            // On item click: open detail activity
+            // On item click: open ShoppingListDetailActivity
             itemHolder.itemView.setOnClickListener(v -> {
                 Intent intent = new Intent(context, ShoppingListDetailActivity.class);
                 intent.putExtra("listKey", shoppingList.key);
