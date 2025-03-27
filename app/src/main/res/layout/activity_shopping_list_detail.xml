@@ -19,35 +19,47 @@
             android:background="?attr/colorPrimary"
             app:titleTextColor="@android:color/white"
             app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
+        <TextView
+            android:id="@+id/listDisplayName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="List Name"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/black"
+            android:padding="16dp"
+            android:gravity="center_horizontal" />
+
+
     </com.google.android.material.appbar.AppBarLayout>
 
-    <!-- Main content area -->
+    <!-- Main Content -->
     <LinearLayout
-        android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:orientation="vertical"
         android:padding="8dp"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-        <!-- Search Bar -->
+        <!-- Search Bar (optional) -->
         <androidx.appcompat.widget.SearchView
             android:id="@+id/searchView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:queryHint="Search for an item" />
 
-        <!-- Empty state -->
+        <!-- Empty state message -->
         <TextView
             android:id="@+id/emptyShoppingMessage"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="This list is empty"
+            android:text="No items yet"
             android:textAlignment="center"
             android:visibility="gone"
             android:padding="16dp"
             android:textAppearance="?android:attr/textAppearanceMedium" />
 
-        <!-- RecyclerView -->
+        <!-- RecyclerView for items -->
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/shoppingRecyclerView"
             android:layout_width="match_parent"
@@ -57,7 +69,7 @@
             android:paddingBottom="72dp" />
     </LinearLayout>
 
-    <!-- FAB -->
+    <!-- FAB to add items -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab_add_item"
         android:layout_width="wrap_content"
@@ -67,6 +79,7 @@
         android:src="@drawable/ic_add"
         android:contentDescription="Add item" />
 
+    <!-- Confirm List button -->
     <Button
         android:id="@+id/btnConfirmList"
         android:layout_width="match_parent"
@@ -77,5 +90,4 @@
         android:backgroundTint="@color/blue"
         android:textColor="@android:color/white"
         android:elevation="6dp"/>
-
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

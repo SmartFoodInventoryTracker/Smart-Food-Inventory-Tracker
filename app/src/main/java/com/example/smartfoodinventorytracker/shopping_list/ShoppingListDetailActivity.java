@@ -33,48 +33,62 @@ public class ShoppingListDetailActivity extends AppCompatActivity {
     private TextView emptyMessage;
     private SearchView searchView;
     private FloatingActionButton fab;
-
-    private List<Product> shoppingList = new ArrayList<>();
-    private InventoryAdapter adapter;  // You can subclass this later for shopping list
     private Button confirmListButton;
+
+    // List of shopping list items (Product objects)
+    private List<Product> shoppingList = new ArrayList<>();
+    // Using the InventoryAdapter for now to display items
+    private InventoryAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_shopping_list_detail);
 
-        // Get list name from intent and set title
+        // Retrieve the push key and display name from the Intent extras
+        String listKey = getIntent().getStringExtra("listKey");
         String listName = getIntent().getStringExtra("listName");
-        if (listName == null) listName = "Shopping List";
+        if (listName == null) {
+            listName = "Shopping List";
+        }
+        if (listKey == null) {
+            Toast.makeText(this, "Error: List key is missing.", Toast.LENGTH_LONG).show();
+            finish();
+            return;
+        }
 
+        // Set up the Toolbar using the display name
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        getSupportActionBar().setTitle(listName);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         toolbar.setNavigationOnClickListener(v -> finish());
 
-        // UI references
+        TextView listDisplayName = findViewById(R.id.listDisplayName);
+        listDisplayName.setText(listName); // ✅ Display list name here instead
+
+
+        // Get references for UI elements
         recyclerView = findViewById(R.id.shoppingRecyclerView);
         emptyMessage = findViewById(R.id.emptyShoppingMessage);
         searchView = findViewById(R.id.searchView);
         fab = findViewById(R.id.fab_add_item);
+        confirmListButton = findViewById(R.id.btnConfirmList);
 
-        // Setup RecyclerView
+        // Set up RecyclerView with a LinearLayoutManager and our adapter
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new InventoryAdapter(this, shoppingList, "TEMP_USER_ID"); // Replace later
+        adapter = new InventoryAdapter(this, shoppingList, FirebaseAuth.getInstance().getCurrentUser().getUid());
         recyclerView.setAdapter(adapter);
 
-        // Handle empty state
+        // Update the empty state immediately
         updateEmptyState();
 
-        // Handle search
+        // Set up SearchView to filter the list as user types
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
                 adapter.filter(query);
                 return false;
             }
-
             @Override
             public boolean onQueryTextChange(String newText) {
                 adapter.filter(newText);
@@ -82,19 +96,20 @@ public class ShoppingListDetailActivity extends AppCompatActivity {
             }
         });
 
-        confirmListButton = findViewById(R.id.btnConfirmList);
-
+        // Set the Confirm List button logic
         confirmListButton.setOnClickListener(v -> confirmList());
 
-        loadShoppingListItems(listName);
+        // Load shopping list items using the push key. IMPORTANT: We reference the "items" child.
+        loadShoppingListItems(listKey);
 
-
-        // Handle FAB click
+        // Set up the FAB click listener for adding new items (placeholder for now)
         fab.setOnClickListener(v -> {
-            // TODO: Open AddManualProductDialogFragment or BarcodeScannerActivity
+            // TODO: Open AddManualProductDialogFragment or BarcodeScannerActivity to add new items
+            Toast.makeText(ShoppingListDetailActivity.this, "Add item functionality not implemented yet", Toast.LENGTH_SHORT).show();
         });
     }
 
+    // Update UI if the list is empty or not
     private void updateEmptyState() {
         if (shoppingList.isEmpty()) {
             emptyMessage.setVisibility(View.VISIBLE);
@@ -105,13 +120,15 @@ public class ShoppingListDetailActivity extends AppCompatActivity {
         }
     }
 
-    private void loadShoppingListItems(String listName) {
+    // Load items from the "items" child of the shopping list node in Firebase
+    private void loadShoppingListItems(String listKey) {
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         DatabaseReference listRef = FirebaseDatabase.getInstance()
                 .getReference("users")
                 .child(userId)
                 .child("shopping-list")
-                .child(listName);
+                .child(listKey)
+                .child("items");
 
         listRef.addValueEventListener(new ValueEventListener() {
             @Override
@@ -123,13 +140,11 @@ public class ShoppingListDetailActivity extends AppCompatActivity {
                         productList.add(product);
                     }
                 }
-
                 shoppingList.clear();
                 shoppingList.addAll(productList);
                 adapter.notifyDataSetChanged();
                 updateEmptyState();
             }
-
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
                 Toast.makeText(ShoppingListDetailActivity.this, "Failed to load list", Toast.LENGTH_SHORT).show();
@@ -137,17 +152,17 @@ public class ShoppingListDetailActivity extends AppCompatActivity {
         });
     }
 
+    // Confirm the shopping list by pushing items to inventory and marking the list as "last_used"
     private void confirmList() {
         if (shoppingList.isEmpty()) {
             Toast.makeText(this, "Cannot confirm an empty list.", Toast.LENGTH_SHORT).show();
             return;
         }
-
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         String listName = getIntent().getStringExtra("listName");
         DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("users").child(userId);
 
-        // 1. Push items to inventory
+        // 1. Push each item from the shopping list into the inventory
         DatabaseReference inventoryRef = userRef.child("inventory_product");
         for (Product product : shoppingList) {
             String productId = inventoryRef.push().getKey();
@@ -156,9 +171,9 @@ public class ShoppingListDetailActivity extends AppCompatActivity {
             }
         }
 
-        // 2. Save this list as "last_used"
+        // 2. Set this list as "last_used" (clearing previous data first)
         DatabaseReference lastUsedRef = userRef.child("shopping-list").child("last_used");
-        lastUsedRef.setValue(null); // clear previous
+        lastUsedRef.setValue(null); // Clear previous last_used
         for (Product product : shoppingList) {
             String productId = lastUsedRef.push().getKey();
             if (productId != null) {
@@ -167,8 +182,6 @@ public class ShoppingListDetailActivity extends AppCompatActivity {
         }
 
         Toast.makeText(this, "List confirmed and items added to inventory", Toast.LENGTH_LONG).show();
-        finish(); // optionally return to ShoppingListActivity
+        finish();
     }
-
-
 }
