@@ -19,12 +19,7 @@ public class ShoppingListItemAdapter extends RecyclerView.Adapter<ShoppingListIt
     private final Context context;
     private final List<Product> productList;
     private final boolean[] expandedStates;
-
-    public ShoppingListItemAdapter(Context context, List<Product> productList) {
-        this.context = context;
-        this.productList = productList;
-        this.expandedStates = new boolean[productList.size()];
-    }
+    private final boolean isShoppingMode;
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView name, category, quantity, brand, notes;
@@ -41,6 +36,15 @@ public class ShoppingListItemAdapter extends RecyclerView.Adapter<ShoppingListIt
             expandableSection = itemView.findViewById(R.id.expandableSection);
             card = (CardView) itemView;
         }
+    }
+
+
+
+    public ShoppingListItemAdapter(Context context, List<Product> productList, boolean isShoppingMode) {
+        this.context = context;
+        this.productList = productList;
+        this.expandedStates = new boolean[productList.size()];
+        this.isShoppingMode = isShoppingMode; // ✅ This line is mandatory
     }
 
     @Override
@@ -60,10 +64,15 @@ public class ShoppingListItemAdapter extends RecyclerView.Adapter<ShoppingListIt
         boolean isExpanded = expandedStates[position];
         holder.expandableSection.setVisibility(isExpanded ? View.VISIBLE : View.GONE);
 
-        holder.card.setOnClickListener(v -> {
-            expandedStates[position] = !expandedStates[position];
-            notifyItemChanged(position);
-        });
+        if (!isShoppingMode) {
+            holder.card.setOnClickListener(v -> {
+                expandedStates[position] = !expandedStates[position];
+                notifyItemChanged(position);
+            });
+        } else {
+            holder.card.setOnClickListener(null); // disable toggle in shopping mode
+        }
+
     }
 
     @Override

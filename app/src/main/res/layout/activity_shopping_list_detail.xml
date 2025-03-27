@@ -90,13 +90,10 @@
 
     <!-- Confirm Button -->
     <Button
-        android:id="@+id/btnConfirmList"
+        android:id="@+id/confirmPurchaseBtn"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
+        android:text="Confirm Purchase"
         android:layout_margin="16dp"
-        android:text="Confirm List"
-        android:backgroundTint="@color/blue"
-        android:textColor="@android:color/white"
-        android:elevation="6dp"/>
+        android:visibility="gone" />
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
