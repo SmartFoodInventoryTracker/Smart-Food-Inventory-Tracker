@@ -3,7 +3,6 @@ package com.example.smartfoodinventorytracker.shopping_list;
 import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -19,26 +18,28 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.smartfoodinventorytracker.R;
 import com.example.smartfoodinventorytracker.inventory.Product;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.example.smartfoodinventorytracker.inventory.AddProductDialogFragment;
-import com.example.smartfoodinventorytracker.inventory.AddManualProductDialogFragment;
+import com.example.smartfoodinventorytracker.shopping_list.AddShoppingProductDialogFragment.AddShoppingProductListener;
+import com.example.smartfoodinventorytracker.shopping_list.AddShoppingManualProductDialogFragment.ManualShoppingProductListener;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class ShoppingListDetailActivity extends AppCompatActivity {
+public class ShoppingListDetailActivity extends AppCompatActivity implements
+        AddShoppingProductListener, ManualShoppingProductListener {
 
     private RecyclerView recyclerView;
     private TextView emptyMessage;
     private List<Product> productList;
     private ShoppingListItemAdapter adapter;
     private boolean isShoppingMode = false;
+    private String listKey; // the shopping list's unique key
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -47,76 +48,69 @@ public class ShoppingListDetailActivity extends AppCompatActivity {
         setContentView(R.layout.activity_shopping_list_detail);
         EdgeToEdge.enable(this);
 
+        // Apply system insets for proper padding
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
 
-
+        // Setup toolbar with back button
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayShowTitleEnabled(false);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setDisplayShowHomeEnabled(true);
+        if(getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayShowTitleEnabled(false);
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setDisplayShowHomeEnabled(true);
+        }
         toolbar.setNavigationOnClickListener(v -> finish());
 
-        String listName = getIntent().getStringExtra("listName");  // ✅ Add this
+        // Get list name and set title
+        String listName = getIntent().getStringExtra("listName");
         TextView listDisplayName = findViewById(R.id.shoppingListTitle);
         listDisplayName.setText(listName != null ? listName : "Shopping List");
 
-        FloatingActionButton addButton = findViewById(R.id.fab_add_item);
-
-        if (isShoppingMode) {
-            addButton.setVisibility(View.GONE); // Hide if in shopping mode
-        } else {
-            addButton.setVisibility(View.VISIBLE);
-            addButton.setOnClickListener(v -> {
-                AddProductDialogFragment dialog = new AddProductDialogFragment();
-                dialog.show(getSupportFragmentManager(), "AddProductDialog");
-            });
-        }
-
-        recyclerView = findViewById(R.id.shoppingRecyclerView);
-        emptyMessage = findViewById(R.id.emptyShoppingMessage);
-
+        // Get mode (edit vs. shopping) extra and determine mode
         String mode = getIntent().getStringExtra("mode");
         isShoppingMode = "shopping".equals(mode);
 
+        // Setup FloatingActionButton for adding a product in edit mode
+        FloatingActionButton addButton = findViewById(R.id.fab_add_item);
+        if (isShoppingMode) {
+            addButton.setVisibility(View.GONE);
+        } else {
+            addButton.setVisibility(View.VISIBLE);
+            addButton.setOnClickListener(v -> {
+                // Launch the shopping-specific dialog for adding a product
+                AddShoppingProductDialogFragment dialog = new AddShoppingProductDialogFragment();
+                dialog.setListener(this);
+                dialog.show(getSupportFragmentManager(), "AddShoppingProductDialog");
+            });
+        }
 
+        // Setup RecyclerView
+        recyclerView = findViewById(R.id.shoppingRecyclerView);
+        emptyMessage = findViewById(R.id.emptyShoppingMessage);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         productList = new ArrayList<>();
         adapter = new ShoppingListItemAdapter(this, productList, isShoppingMode);
         recyclerView.setAdapter(adapter);
 
-        String listKey = getIntent().getStringExtra("listKey");
+        // Get the list key from the Intent extras
+        listKey = getIntent().getStringExtra("listKey");
         if (listKey == null) {
             Toast.makeText(this, "No list key provided", Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
 
+        // Load the shopping list items from Firebase
         loadShoppingListItems(listKey);
     }
 
-    private void confirmPurchaseToInventory() {
-        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        DatabaseReference inventoryRef = FirebaseDatabase.getInstance()
-                .getReference("users")
-                .child(userId)
-                .child("inventory_product");
-
-        for (Product product : productList) {
-            inventoryRef.child(product.getBarcode()).setValue(product);
-        }
-
-        Toast.makeText(this, "Items sent to inventory!", Toast.LENGTH_SHORT).show();
-        finish(); // optional: go back to main screen
-    }
-
-
     private void loadShoppingListItems(String listKey) {
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        // Firebase path: users/{uid}/shopping-list/{listKey}/items
         DatabaseReference ref = FirebaseDatabase.getInstance()
                 .getReference("users")
                 .child(userId)
@@ -154,5 +148,53 @@ public class ShoppingListDetailActivity extends AppCompatActivity {
             recyclerView.setVisibility(View.VISIBLE);
         }
     }
-}
 
+    // ----------------- AddShoppingProductListener Methods -----------------
+
+    // Called when the user selects "Add Manually" in the AddShoppingProductDialogFragment
+    @Override
+    public void onAddManually() {
+        // Launch the shopping-specific manual dialog
+        AddShoppingManualProductDialogFragment manualDialog = new AddShoppingManualProductDialogFragment();
+        manualDialog.setUserId(FirebaseAuth.getInstance().getCurrentUser().getUid());
+        manualDialog.setManualProductListener(this);
+        manualDialog.show(getSupportFragmentManager(), "AddShoppingManualProductDialog");
+    }
+
+    // Called when the user selects "Scan Barcode" in the AddShoppingProductDialogFragment
+    @Override
+    public void onScanBarcode() {
+        // For now, simply show a message; implement barcode scanning if desired.
+        Toast.makeText(this, "Barcode scanning not implemented for shopping list.", Toast.LENGTH_SHORT).show();
+    }
+
+    // Optional callback if needed (depending on your dialog design)
+    @Override
+    public void onProductAdded() {
+        // You can leave this empty if not used.
+    }
+
+    // ----------------- ManualShoppingProductListener Method -----------------
+
+    // Called when a product is added via the manual dialog
+    @Override
+    public void onProductAdded(Product product) {
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        // Save the product to: users/{uid}/shopping-list/{listKey}/items/{barcode}
+        FirebaseDatabase.getInstance()
+                .getReference("users")
+                .child(userId)
+                .child("shopping-list")
+                .child(listKey)
+                .child("items")
+                .child(product.getBarcode())
+                .setValue(product)
+                .addOnSuccessListener(aVoid -> {
+                    Toast.makeText(this, "Product added to shopping list!", Toast.LENGTH_SHORT).show();
+                    productList.add(product);
+                    adapter.notifyItemInserted(productList.size() - 1);
+                    updateEmptyMessage();
+                })
+                .addOnFailureListener(e -> Toast.makeText(this, "Failed to add product", Toast.LENGTH_SHORT).show());
+    }
+}
