@@ -194,6 +194,14 @@ public class ShoppingListActivity extends AppCompatActivity {
                     }
                 }
 
+                // 🌟 Cache list key → name locally
+                Map<String, String> keyToNameMap = new HashMap<>();
+                for (ShoppingList list : allLists) {
+                    keyToNameMap.put(list.key, list.name);
+                }
+                ShoppingListCache.saveListMap(ShoppingListActivity.this, keyToNameMap);
+
+
                 // Set up RecyclerView with mixed data
                 RecyclerView recyclerView = findViewById(R.id.shoppingListsRecyclerView);
                 recyclerView.setLayoutManager(new LinearLayoutManager(ShoppingListActivity.this));
