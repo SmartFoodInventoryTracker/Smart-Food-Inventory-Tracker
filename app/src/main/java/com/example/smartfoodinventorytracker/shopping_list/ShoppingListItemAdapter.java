@@ -6,7 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import androidx.annotation.NonNull;
+import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.smartfoodinventorytracker.R;
@@ -16,34 +16,54 @@ import java.util.List;
 
 public class ShoppingListItemAdapter extends RecyclerView.Adapter<ShoppingListItemAdapter.ViewHolder> {
 
-    private Context context;
-    private List<Product> productList;
+    private final Context context;
+    private final List<Product> productList;
+    private final boolean[] expandedStates;
 
     public ShoppingListItemAdapter(Context context, List<Product> productList) {
         this.context = context;
         this.productList = productList;
+        this.expandedStates = new boolean[productList.size()];
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView productName;
+        TextView name, category, quantity, brand, notes;
+        View expandableSection;
+        CardView card;
 
         public ViewHolder(View itemView) {
             super(itemView);
-            productName = itemView.findViewById(R.id.productName); // You can customize
+            name = itemView.findViewById(R.id.productName);
+            category = itemView.findViewById(R.id.productCategory);
+            quantity = itemView.findViewById(R.id.productQuantity);
+            brand = itemView.findViewById(R.id.productBrand);
+            notes = itemView.findViewById(R.id.productNotes);
+            expandableSection = itemView.findViewById(R.id.expandableSection);
+            card = (CardView) itemView;
         }
     }
 
-    @NonNull
     @Override
-    public ShoppingListItemAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public ShoppingListItemAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(context).inflate(R.layout.item_shopping_list_detail, parent, false);
         return new ViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+    public void onBindViewHolder(ShoppingListItemAdapter.ViewHolder holder, int position) {
         Product product = productList.get(position);
-        holder.productName.setText(product.getName()); // Adjust as needed
+
+        holder.name.setText(product.getName());
+        holder.quantity.setText("Qty: " + product.getQuantity());
+        holder.brand.setText("Brand: " + (product.getBrand() != null ? product.getBrand() : "No Name"));
+        // Handle expand/collapse
+        boolean isExpanded = expandedStates[position];
+        holder.expandableSection.setVisibility(isExpanded ? View.VISIBLE : View.GONE);
+
+        holder.card.setOnClickListener(v -> {
+            expandedStates[position] = !expandedStates[position];
+            notifyItemChanged(position);
+        });
     }
 
     @Override
