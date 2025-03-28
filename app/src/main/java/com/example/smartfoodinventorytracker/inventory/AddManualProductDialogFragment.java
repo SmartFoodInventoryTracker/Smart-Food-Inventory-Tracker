@@ -48,9 +48,7 @@ public class AddManualProductDialogFragment extends DialogFragment {
 
         nameInput = view.findViewById(R.id.nameInput);
         brandInput = view.findViewById(R.id.brandInput);
-        expiryInput = view.findViewById(R.id.expiryInput);
         quantityInput = view.findViewById(R.id.quantityInput);
-        calendarIcon = view.findViewById(R.id.calendarIcon);
         quantityMinus = view.findViewById(R.id.quantityMinus);
         quantityPlus = view.findViewById(R.id.quantityPlus);
         Button btnDone = view.findViewById(R.id.btnDone);
