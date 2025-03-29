@@ -18,6 +18,8 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
 
 
+import com.example.smartfoodinventorytracker.inventory.CategoryUtils;
+import com.example.smartfoodinventorytracker.inventory.Product;
 import com.google.firebase.database.FirebaseDatabase;
 
 import java.time.LocalDate;
