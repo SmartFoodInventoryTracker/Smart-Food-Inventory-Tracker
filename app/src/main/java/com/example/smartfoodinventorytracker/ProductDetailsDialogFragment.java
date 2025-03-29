@@ -17,7 +17,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
 
-import com.bumptech.glide.Glide;
+
 import com.google.firebase.database.FirebaseDatabase;
 
 import java.time.LocalDate;
@@ -244,7 +244,8 @@ public class ProductDetailsDialogFragment extends DialogFragment {
                         })
                         .setNeutralButton("Cancel", null)
                         .show();
-            } else {
+            }
+            else {
                 new AlertDialog.Builder(requireContext())
                         .setTitle("Delete Product")
                         .setMessage("Are you sure you want to delete this product?")

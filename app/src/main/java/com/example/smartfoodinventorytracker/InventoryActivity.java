@@ -67,6 +67,7 @@ public class InventoryActivity extends AppCompatActivity
     private DatabaseReference databaseReference;
     private InventoryAdapter inventoryAdapter;
     private List<Product> productList = new ArrayList<>();
+
     private RequestQueue requestQueue; // For API calls
 
 
@@ -211,6 +212,28 @@ public class InventoryActivity extends AppCompatActivity
 
     }
 
+    public void update_productwhendeleted()
+    {
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+
+
+
+
+
+
+
+         inventoryRecyclerView.setAdapter(inventoryAdapter);
+
+        //fetchInventoryData();
+
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        fetchInventoryData();
+    }
+
     public void UpdatingSorting()
     {
         InventoryAdapter.Sorting sorting = inventoryAdapter.sorting;
@@ -282,7 +305,10 @@ public class InventoryActivity extends AppCompatActivity
         productList.clear();
         productList.addAll(Arrays.asList(productArray));
 
-        runOnUiThread(() -> inventoryAdapter.updateList(productList));
+        runOnUiThread(() -> {
+            inventoryAdapter.updateList(productList);
+            fetchInventoryData(); // Ensure accurate data
+        });
     }
 
 
@@ -297,7 +323,10 @@ public class InventoryActivity extends AppCompatActivity
         // ✅ Update the list in Adapter correctly
         productList.clear();
         productList.addAll(Arrays.asList(productArray));
-        inventoryAdapter.updateList(productList);
+        runOnUiThread(() -> {
+            inventoryAdapter.updateList(productList);
+            fetchInventoryData(); // Ensure accurate data
+        });
     }
 
     private void setUpToolbar() {
@@ -462,18 +491,20 @@ public class InventoryActivity extends AppCompatActivity
         databaseReference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
+                update_productwhendeleted();
+
                 productList.clear();
+
                 List<Product> tempProductList = new ArrayList<>(); // Temporary list for adapter
 
                 Log.d("Firebase", "Snapshot Children Count: " + snapshot.getChildrenCount()); // ✅ Log Firebase data count
 
                 for (DataSnapshot productSnapshot : snapshot.getChildren()) {
                     Product product = productSnapshot.getValue(Product.class);
-                    if (product != null && !inventoryAdapter.recentlyDeletedBarcodes.contains(product.getBarcode())) {
+                    if (product != null) {
                         tempProductList.add(product);
                     }
                 }
-
 
                 if (tempProductList.isEmpty()) {
                     Log.e("Firebase", "No products were retrieved!"); // 🚨 Debugging message
@@ -500,6 +531,7 @@ public class InventoryActivity extends AppCompatActivity
                     SearchView searchView = findViewById(R.id.searchView);
                     searchView.setQuery(productNameToSearch, true); // Triggers both display + filter
                 }
+
             }
 
             @Override
