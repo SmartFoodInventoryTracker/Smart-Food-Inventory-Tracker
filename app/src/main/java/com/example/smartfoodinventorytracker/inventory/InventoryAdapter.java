@@ -15,6 +15,7 @@ import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.smartfoodinventorytracker.ProductDetailsDialogFragment;
 import com.example.smartfoodinventorytracker.R;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
@@ -213,6 +214,7 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.View
                         .setTitle("Delete Product")
                         .setMessage("Are you sure you want to remove this product?")
                         .setPositiveButton("Yes", (dialog, which) -> {
+
                             databaseReference.child(product.getBarcode())
                                     .removeValue()
                                     .addOnSuccessListener(aVoid -> {
@@ -225,6 +227,7 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.View
                                     })
                                     .addOnFailureListener(e ->
                                             Toast.makeText(v.getContext(), "Failed to remove", Toast.LENGTH_SHORT).show());
+                            notifyDataSetChanged();
                         })
                         .setNegativeButton("No", null)
                         .show();
