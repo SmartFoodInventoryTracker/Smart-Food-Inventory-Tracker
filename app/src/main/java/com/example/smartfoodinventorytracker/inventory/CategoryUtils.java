@@ -1,4 +1,6 @@
-package com.example.smartfoodinventorytracker;
+package com.example.smartfoodinventorytracker.inventory;
+
+import com.example.smartfoodinventorytracker.R;
 
 import java.text.Normalizer;
 import java.util.ArrayList;

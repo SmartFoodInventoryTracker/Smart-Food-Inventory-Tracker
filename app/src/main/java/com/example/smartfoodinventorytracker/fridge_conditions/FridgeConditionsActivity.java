@@ -1,10 +1,9 @@
-package com.example.smartfoodinventorytracker;
+package com.example.smartfoodinventorytracker.fridge_conditions;
 
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.View;
-import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -15,8 +14,10 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-import com.github.anastr.speedviewlib.AwesomeSpeedometer;
+import com.example.smartfoodinventorytracker.R;
+import com.example.smartfoodinventorytracker.notifications.NotificationHelper;
 import com.github.anastr.speedviewlib.SpeedView;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -24,9 +25,11 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-public class FridgeConditions extends AppCompatActivity {
+public class FridgeConditionsActivity extends AppCompatActivity {
 
     private TextView tempText, humidityText, coText, lpgText, smokeText;
     private SpeedView speedTemp, speedHum, speedLPG, speedCO,speedSmoke;
@@ -155,39 +158,57 @@ public class FridgeConditions extends AppCompatActivity {
                         Integer humidity_condition = snapshot.child("humidity condition").getValue(Integer.class);
                         Integer overall_condition = snapshot.child("overall condition").getValue(Integer.class);
 
-
                         tempText.setText(temperature != null ? "Temperature: " + temperature + "°C" : "-- °C");
                         humidityText.setText(humidity != null ? "Humidity: " + humidity + "%" : "-- %");
                         coText.setText(co != null ? "CO: " + co + " ppm" : "-- ppm");
                         lpgText.setText(lpg != null ? "LPG: " + lpg + " ppm" : "-- ppm");
                         smokeText.setText(smoke != null ? "NH4: " + smoke + " ppm" : "-- ppm");
 
+                        // ✅ NEW: Trigger notifications when values change
+                        triggerNotification("Temperature", temperature, temp_condition);
+                        triggerNotification("Humidity", humidity, humidity_condition);
+                        triggerNotification("CO Level", co, co_condition);
+                        triggerNotification("LPG Level", lpg, lpg_condition);
+                        triggerNotification("Smoke Level", smoke, smoke_condition);
 
-                        //Temp Gauge
-                        setGauge(temp_condition,"t");
-                        //Humidity Gauge
-                        setGauge(humidity_condition,"h");
-                        //CO gauge
-                        setGauge(co_condition,"c");
-                        //LPG gauge
-                        setGauge(lpg_condition,"l");
-                        //Smoke gauge
-                        setGauge(smoke_condition,"s");
-                        // Overall Gauge
+                        // ✅ Keep existing logic for updating UI
+                        setGauge(temp_condition, "t");
+                        setGauge(humidity_condition, "h");
+                        setGauge(co_condition, "c");
+                        setGauge(lpg_condition, "l");
+                        setGauge(smoke_condition, "s");
                         setGauge(overall_condition, "ov");
-
                     }
                 } else {
-                    Toast.makeText(FridgeConditions.this, "No data found!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(FridgeConditionsActivity.this, "No data found!", Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
-                Toast.makeText(FridgeConditions.this, "Failed to load data!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(FridgeConditionsActivity.this, "Failed to load data!", Toast.LENGTH_SHORT).show();
             }
         });
     }
+
+    // ✅ NEW: Trigger notifications only if values change
+    private void triggerNotification(String type, Number newValue, Integer condition) {
+        if (newValue == null || condition == null) return;
+
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        NotificationHelper notificationHelper = new NotificationHelper(getApplicationContext(), false, userId);
+
+        // Check if this value changed compared to the last stored value
+        Number lastValue = lastStoredValues.get(type);
+        if (lastValue == null || !lastValue.equals(newValue)) {
+            notificationHelper.sendConditionNotification(userId, type, newValue.longValue(), condition);
+            lastStoredValues.put(type, newValue); // Store the new value
+        }
+    }
+
+    // ✅ Store last known sensor values locally
+    private static final Map<String, Number> lastStoredValues = new HashMap<>();
+
 
 
     void setGauge(Integer val, String hint)

@@ -1,4 +1,4 @@
-package com.example.smartfoodinventorytracker;
+package com.example.smartfoodinventorytracker.notifications;
 
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -6,11 +6,11 @@ import android.app.Service;
 import android.content.Intent;
 import android.os.Build;
 import android.os.IBinder;
-import android.util.Log;
 
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 
+import com.example.smartfoodinventorytracker.R;
 import com.google.firebase.auth.FirebaseAuth;
 
 public class FridgeMonitoringService extends Service {
@@ -21,11 +21,13 @@ public class FridgeMonitoringService extends Service {
         createNotificationChannel();
         startForeground(1, createServiceNotification());
 
-        // ✅ Start listening to fridge changes
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         NotificationHelper notificationHelper = new NotificationHelper(getApplicationContext(), false, userId);
-        DatabaseHelper.listenToInventoryChanges(getApplicationContext(), notificationHelper);
+
+        // ✅ Ensure fridge notifications are triggered
+        notificationHelper.triggerPendingFridgeNotifications();
     }
+
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {

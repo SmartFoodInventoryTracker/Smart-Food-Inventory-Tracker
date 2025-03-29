@@ -1,4 +1,4 @@
-package com.example.smartfoodinventorytracker;
+package com.example.smartfoodinventorytracker.settings;
 
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -9,17 +9,14 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
-import android.content.SharedPreferences;
-import android.os.Bundle;
+
 import android.view.Gravity;
-import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
-import android.view.View;
-import android.util.Log;
+
+import com.example.smartfoodinventorytracker.R;
 
 
 public class SettingsActivity extends AppCompatActivity {
@@ -51,21 +48,22 @@ public class SettingsActivity extends AppCompatActivity {
         inputWeek1Days = findViewById(R.id.input_week1_days);
         inputWeek2Days = findViewById(R.id.input_week2_days);
 
-        // Load saved values
+        /// Load saved values using a unified key "expired_every_minutes"
         switchFridge.setChecked(prefs.getBoolean("fridge_alerts", true));
         switchExpiry.setChecked(prefs.getBoolean("expiry_alerts", true));
-        inputExpiredHours.setText(String.valueOf(prefs.getInt("expired_every_hours", 4)));
+        inputExpiredHours.setText(String.valueOf(prefs.getInt("expired_every_minutes", 4)));
         inputWeek1Days.setText(String.valueOf(prefs.getInt("week1_every_days", 2)));
         inputWeek2Days.setText(String.valueOf(prefs.getInt("week2_every_days", 3)));
 
-        int expiredH = prefs.getInt("expired_every_hours", 4);
+        int expiredM = prefs.getInt("expired_every_minutes", 4);
         int week1D = prefs.getInt("week1_every_days", 2);
         int week2D = prefs.getInt("week2_every_days", 3);
 
+// Change the number picker to allow 1 to 60 minutes for expiry alerts
         inputExpiredHours.setOnClickListener(v ->
-                showNumberPicker("🔔 Frequency in Hours", 1, 24, expiredH, val -> {
+                showNumberPicker("🔔 Frequency in minutes", 1, 60, expiredM, val -> {
                     inputExpiredHours.setText(String.valueOf(val));
-                    prefs.edit().putInt("expired_every_hours", val).apply();
+                    prefs.edit().putInt("expired_every_minutes", val).apply();
                 })
         );
 

@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:theme="@style/Theme.SmartFoodInventoryTracker"
-    tools:context=".LoginActivity">
+    tools:context=".authentication.LoginActivity">
 
     <!-- App Logo -->
     <ImageView

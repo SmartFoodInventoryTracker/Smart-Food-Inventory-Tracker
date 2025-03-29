@@ -1,9 +1,8 @@
-package com.example.smartfoodinventorytracker;
+package com.example.smartfoodinventorytracker.notifications;
 
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.text.Html;
 import android.text.SpannableString;
 import android.text.format.DateUtils;
 import android.text.style.ForegroundColorSpan;
@@ -23,20 +22,21 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
-import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+
+import com.example.smartfoodinventorytracker.fridge_conditions.FridgeConditionsActivity;
+import com.example.smartfoodinventorytracker.inventory.InventoryActivity;
+import com.example.smartfoodinventorytracker.R;
 import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
-public class NotificationCenter extends AppCompatActivity {
+public class NotificationCenterActivity extends AppCompatActivity {
 
     private NotificationAdapter adapter;
     private RecyclerView recyclerView;
@@ -215,12 +215,12 @@ public class NotificationCenter extends AppCompatActivity {
             holder.itemView.setOnClickListener(v -> {
                 Intent intent;
                 if (notification.getTitle().contains("Fridge Alert")) {
-                    intent = new Intent(v.getContext(), FridgeConditions.class);
+                    intent = new Intent(v.getContext(), FridgeConditionsActivity.class);
                 } else if (notification.getTitle().contains("Food Expiry") || notification.getTitle().contains("Inventory")) {
                     intent = new Intent(v.getContext(), InventoryActivity.class);
                     intent.putExtra("data", notification.getMessage().split(" ")[0]); // Example: get product name
                 } else {
-                    intent = new Intent(v.getContext(), NotificationCenter.class); // Default fallback
+                    intent = new Intent(v.getContext(), NotificationCenterActivity.class); // Default fallback
                 }
                 v.getContext().startActivity(intent);
             });
