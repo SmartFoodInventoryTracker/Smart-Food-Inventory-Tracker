@@ -69,7 +69,7 @@ public class Bluetooth {
         channel.connect();
     }
 
-    private void transmitCredentials(String cred) throws IOException {
+    public void transmitCredentials(String cred) throws IOException {
 
         OutputStream out = channel.getOutputStream();
         out.write(cred.getBytes());

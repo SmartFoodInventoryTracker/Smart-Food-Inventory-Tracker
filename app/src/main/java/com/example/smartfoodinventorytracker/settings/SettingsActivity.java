@@ -1,5 +1,6 @@
 package com.example.smartfoodinventorytracker.settings;
 
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 
@@ -11,17 +12,26 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import android.view.Gravity;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.appcompat.widget.SwitchCompat;
 
+import com.example.smartfoodinventorytracker.Bluetooth;
 import com.example.smartfoodinventorytracker.R;
+
+import java.io.IOException;
 
 
 public class SettingsActivity extends AppCompatActivity {
 
     private SwitchCompat switchFridge, switchExpiry;
+    private Bluetooth btHelper;
+    private Button save;
+    private EditText ssidField, passwordField;
     private TextView inputExpiredHours, inputWeek1Days, inputWeek2Days;
     private SharedPreferences prefs;
     private static final String PREFS_NAME = "user_settings";
@@ -42,11 +52,8 @@ public class SettingsActivity extends AppCompatActivity {
 
         prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
 
-        switchFridge = findViewById(R.id.switch_fridge);
-        switchExpiry = findViewById(R.id.switch_expiry);
-        inputExpiredHours = findViewById(R.id.input_expired_hours);
-        inputWeek1Days = findViewById(R.id.input_week1_days);
-        inputWeek2Days = findViewById(R.id.input_week2_days);
+        setUpUi();
+        setUpBluetooth(this);
 
         /// Load saved values using a unified key "expired_every_minutes"
         switchFridge.setChecked(prefs.getBoolean("fridge_alerts", true));
@@ -90,6 +97,41 @@ public class SettingsActivity extends AppCompatActivity {
 
         setUpToolbar();
     }
+
+    private void setUpBluetooth(Context cont){
+        btHelper = new Bluetooth(cont);
+    }
+
+
+    private void setUpUi()
+    {
+        switchFridge = findViewById(R.id.switch_fridge);
+        switchExpiry = findViewById(R.id.switch_expiry);
+        inputExpiredHours = findViewById(R.id.input_expired_hours);
+        inputWeek1Days = findViewById(R.id.input_week1_days);
+        inputWeek2Days = findViewById(R.id.input_week2_days);
+        ssidField=findViewById(R.id.ssid);
+        passwordField=findViewById(R.id.password);
+        save = findViewById(R.id.buttonSave);
+        save.setOnClickListener(view->{
+            String ssid = ssidField.getText().toString();
+            String password = passwordField.getText().toString();
+            if((!ssid.isEmpty())&&(!password.isEmpty())) {
+                try {
+                    if (btHelper != null) {
+                        btHelper.transmitCredentials(ssid + "," + password);
+                    } else {
+
+                    }
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+
+        });
+    }
+
+
 
     private void setUpToolbar() {
         Toolbar toolbar = findViewById(R.id.toolbar);
