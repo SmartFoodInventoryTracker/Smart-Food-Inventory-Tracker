@@ -3,101 +3,103 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:card_view="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="130dp"
-    card_view:cardCornerRadius="16dp"
-    android:scaleX="0.95"
-    android:scaleY="0.95"
-    card_view:cardUseCompatPadding="true">
+    android:layout_height="wrap_content"
+    card_view:cardCornerRadius="8dp"
+    android:layout_marginHorizontal="6dp"
+    android:layout_marginVertical="4dp"
+    card_view:cardElevation="2dp"
+    card_view:cardUseCompatPadding="true"
+    android:foreground="@null">
 
+    <!-- Root container for the card's content -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="105dp"
-        android:layout_margin="5dp"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:padding="10dp">
+        android:padding="8dp">
 
-        <!-- Left Section: Product Details -->
-
-        <!-- Right Section: Quantity and Product Image -->
+        <!-- Left Section: Name + Brand -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:lineSpacingExtra="4dp"
+            android:layout_marginStart="10dp"
             android:orientation="vertical"
-            android:paddingStart="8dp">
+            android:paddingEnd="8dp">
 
-            <!-- Product Name -->
             <TextView
                 android:id="@+id/productName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Product Name"
                 android:textSize="18sp"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                android:layout_marginBottom="2dp"/>
 
-            <!-- Product Brand -->
             <TextView
                 android:id="@+id/productBrand"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Brand: No Name"
-                android:textColor="#666"
-                android:textSize="16sp" />
-
-            <!-- Date Added -->
-
-            <!-- Expiry Badge (optional) -->
-            <TextView
-                android:id="@+id/expiryBadge"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:background="@drawable/bg_expiry_badge"
-                android:backgroundTint="@android:color/darker_gray"
-                android:paddingStart="8dp"
-                android:paddingTop="2dp"
-                android:paddingEnd="8dp"
-                android:paddingBottom="2dp"
-                android:text="Expires in 3 days"
-                android:textColor="@android:color/white"
-                android:textSize="12sp"
-                android:visibility="gone" />
+                android:textColor="#777777"
+                android:textSize="15sp" />
         </LinearLayout>
 
+        <!-- Right Section: Image on top, minus/plus below -->
         <LinearLayout
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:gravity="center_horizontal"
-            android:orientation="vertical">
-
-            <!-- Quantity Badge (now visible) -->
-            <TextView
-                android:id="@+id/quantityBadge"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="4dp"
-                android:background="@drawable/bg_quantity_badge"
-                android:paddingStart="8dp"
-                android:paddingTop="2dp"
-                android:paddingEnd="8dp"
-                android:paddingBottom="2dp"
-                android:text="Qty: 1"
-                android:textColor="@android:color/white"
-                android:textSize="12sp"
-                android:textStyle="bold"
-                android:visibility="visible" />
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center_horizontal">
 
             <!-- Product Image -->
             <ImageView
                 android:id="@+id/productImage"
-                android:layout_width="80dp"
-                android:layout_height="70dp"
-                android:layout_marginTop="1dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_gravity="center"
                 android:contentDescription="Product image"
-                android:scaleX="0.9"
-                android:scaleY="0.9"
                 android:src="@drawable/placeholder_image" />
+
+            <!-- Quantity Controls (horizontal) -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <ImageButton
+                    android:id="@+id/btnMinus"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:layout_marginEnd="4dp"
+                    android:background="@null"
+                    android:contentDescription="Decrease quantity"
+                    android:src="@drawable/ic_input_minus" />
+
+                <TextView
+                    android:id="@+id/quantityBadge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4dp"
+                    android:layout_marginEnd="4dp"
+                    android:gravity="center"
+                    android:text="1"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <ImageButton
+                    android:id="@+id/btnPlus"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:layout_marginStart="4dp"
+                    android:background="@null"
+                    android:contentDescription="Increase quantity"
+                    android:src="@drawable/ic_input_plus" />
+            </LinearLayout>
         </LinearLayout>
+
     </LinearLayout>
 </androidx.cardview.widget.CardView>

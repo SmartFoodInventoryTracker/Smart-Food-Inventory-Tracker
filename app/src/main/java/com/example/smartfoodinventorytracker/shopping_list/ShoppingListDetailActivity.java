@@ -58,7 +58,7 @@ public class ShoppingListDetailActivity extends AppCompatActivity implements
         // Setup toolbar with back button.
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        if(getSupportActionBar() != null) {
+        if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayShowTitleEnabled(false);
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setDisplayShowHomeEnabled(true);
@@ -104,8 +104,7 @@ public class ShoppingListDetailActivity extends AppCompatActivity implements
         emptyMessage = findViewById(R.id.emptyShoppingMessage);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         productList = new ArrayList<>();
-        // Now pass all five parameters.
-        adapter = new ShoppingListItemAdapter(this, productList, isShoppingMode, userId, listKey);
+        adapter = new ShoppingListItemAdapter(this, productList, userId, listKey);
         recyclerView.setAdapter(adapter);
 
         // Load the shopping list items from Firebase.
@@ -166,7 +165,6 @@ public class ShoppingListDetailActivity extends AppCompatActivity implements
 
     @Override
     public void onScanBarcode() {
-        // For now, simply show a toast; implement barcode scanning as needed.
         Toast.makeText(this, "Barcode scanning not implemented for shopping list.", Toast.LENGTH_SHORT).show();
     }
 
@@ -180,7 +178,6 @@ public class ShoppingListDetailActivity extends AppCompatActivity implements
     @Override
     public void onProductAdded(Product product) {
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        // Save the product to: users/{uid}/shopping-list/{listKey}/items/{barcode}
         FirebaseDatabase.getInstance()
                 .getReference("users")
                 .child(userId)
@@ -190,11 +187,11 @@ public class ShoppingListDetailActivity extends AppCompatActivity implements
                 .child(product.getBarcode())
                 .setValue(product)
                 .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(this, "Product added to shopping list!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(ShoppingListDetailActivity.this, "Product added to shopping list!", Toast.LENGTH_SHORT).show();
                     productList.add(product);
                     adapter.notifyItemInserted(productList.size() - 1);
                     updateEmptyMessage();
                 })
-                .addOnFailureListener(e -> Toast.makeText(this, "Failed to add product", Toast.LENGTH_SHORT).show());
+                .addOnFailureListener(e -> Toast.makeText(ShoppingListDetailActivity.this, "Failed to add product", Toast.LENGTH_SHORT).show());
     }
 }
