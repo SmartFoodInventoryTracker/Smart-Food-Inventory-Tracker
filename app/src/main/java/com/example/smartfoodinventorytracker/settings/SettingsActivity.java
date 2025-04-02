@@ -1,7 +1,10 @@
 package com.example.smartfoodinventorytracker.settings;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 
 import androidx.activity.EdgeToEdge;
@@ -11,6 +14,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
@@ -51,9 +55,9 @@ public class SettingsActivity extends AppCompatActivity {
         findViewById(R.id.toolbar).setOnClickListener(v -> finish());
 
         prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-
-        setUpUi();
         setUpBluetooth(this);
+        setUpUi();
+
 
         /// Load saved values using a unified key "expired_every_minutes"
         switchFridge.setChecked(prefs.getBoolean("fridge_alerts", true));
@@ -113,12 +117,14 @@ public class SettingsActivity extends AppCompatActivity {
         ssidField=findViewById(R.id.ssid);
         passwordField=findViewById(R.id.password);
         save = findViewById(R.id.buttonSave);
+        requestBluetoothIfNeeded();
         save.setOnClickListener(view->{
             String ssid = ssidField.getText().toString();
             String password = passwordField.getText().toString();
             if((!ssid.isEmpty())&&(!password.isEmpty())) {
                 try {
                     if (btHelper != null) {
+                        Log.d("Bluetooth","Supposed to be sending the data");
                         btHelper.transmitCredentials(ssid + "," + password);
                     } else {
 
@@ -126,9 +132,13 @@ public class SettingsActivity extends AppCompatActivity {
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
+
+
             }
 
         });
+
+
     }
 
 
@@ -176,6 +186,16 @@ public class SettingsActivity extends AppCompatActivity {
             return Integer.parseInt(text);
         } catch (NumberFormatException e) {
             return defaultVal;
+        }
+    }
+
+    private void requestBluetoothIfNeeded() {
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT)
+                    != PackageManager.PERMISSION_GRANTED) {
+
+                requestPermissions(new String[]{Manifest.permission.BLUETOOTH_CONNECT}, 200);
+            }
         }
     }
 
