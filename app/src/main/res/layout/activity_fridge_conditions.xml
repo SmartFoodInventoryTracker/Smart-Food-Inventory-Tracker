@@ -51,284 +51,179 @@
     </androidx.appcompat.widget.Toolbar>
 
 
-    <!-- ✅ Temperature Card -->
-
-    <!-- ✅ Humidity Card -->
+    <!-- Main Content -->
     <ScrollView
-        android:layout_width="400dp"
-        android:layout_height="match_parent"
-        android:layout_marginStart="10dp"
-        android:layout_marginTop="70dp"
-        android:layout_marginEnd="10dp"
-        android:layout_marginBottom="80dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:id="@+id/scrollContent"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_margin="16dp"
+        app:layout_constraintTop_toBottomOf="@id/toolbar"
+        app:layout_constraintBottom_toTopOf="@id/scaleContainer"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/toolbar">
+        app:layout_constraintEnd_toEndOf="parent">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <androidx.cardview.widget.CardView
-                android:id="@+id/card_temp"
-                android:layout_width="400dp"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                android:layout_weight="1"
-                app:cardBackgroundColor="@android:color/white"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="6dp">
-
-                <LinearLayout
-                    android:layout_width="400dp"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:padding="12dp">
-
-                    <ImageView
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:src="@drawable/ic_temperature" />
-
-                    <TextView
-                        android:id="@+id/tempText"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp"
-                        android:text="Temperature: Loading..."
-                        android:textSize="18sp" />
-
-                    <com.github.anastr.speedviewlib.SpeedView
-                        android:id="@+id/speedViewTemp"
-                        android:layout_width="100dp"
-                        android:layout_height="100dp"
-                        android:layout_centerHorizontal="false"
-                        android:layout_marginStart="30dp"
-                        android:scrollbarSize="4dp"
-                        app:sv_centerCircleRadius="5dp"
-                        app:sv_indicatorWidth="5dp"
-                        app:sv_speedTextSize="0dp"
-                        app:sv_speedometerWidth="8dp"
-                        app:sv_textSize="0dp"
-                        app:sv_unitTextSize="0dp" />
-
-
-                </LinearLayout>
-
-            </androidx.cardview.widget.CardView>
-
-            <androidx.cardview.widget.CardView
-                android:id="@+id/card_humidity"
+            <!-- Temp & Humidity -->
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_marginBottom="12dp"
-                android:layout_weight="1"
-                app:cardBackgroundColor="@android:color/white"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="6dp"
-                tools:layout_editor_absoluteY="186dp">
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:weightSum="2"
+                android:layout_marginBottom="16dp">
 
-                <LinearLayout
-                    android:layout_width="match_parent"
+                <!-- Temperature Card -->
+                <androidx.cardview.widget.CardView
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:padding="12dp">
+                    android:layout_weight="1"
+                    android:layout_marginEnd="8dp"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="4dp">
 
-                    <ImageView
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:src="@drawable/ic_humidity" />
+                    <LinearLayout
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:padding="12dp"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
 
-                    <TextView
-                        android:id="@+id/humidityText"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp"
-                        android:text="Humidity: Loading..."
-                        android:textSize="18sp" />
+                        <TextView
+                            android:text="Temperature"
+                            android:textStyle="bold"
+                            android:layout_marginBottom="4dp"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="16sp" />
 
-                    <com.github.anastr.speedviewlib.SpeedView
-                        android:id="@+id/speedViewHum"
-                        android:layout_width="100dp"
-                        android:layout_height="100dp"
-                        android:layout_marginStart="15dp"
-                        android:scrollbarSize="4dp"
-                        android:translationX="50dp"
-                        app:sv_centerCircleRadius="5dp"
-                        app:sv_indicatorWidth="5dp"
-                        app:sv_speedTextSize="0dp"
-                        app:sv_speedometerWidth="8dp"
-                        app:sv_textSize="0dp"
-                        app:sv_unitTextSize="0dp" />
+                        <com.github.anastr.speedviewlib.SpeedView
+                            android:id="@+id/speedViewTemp"
+                            android:layout_width="100dp"
+                            android:layout_height="100dp"
+                            app:sv_withTremble="false"
+                            app:sv_unit=""
+                            app:sv_centerCircleRadius="10dp"
+                            app:sv_unitTextSize="0sp"
+                            app:sv_speedTextSize="0sp"
+                            app:sv_textSize="0sp"
+                            app:sv_tickNumber="0"
+                            app:sv_speedometerWidth="10dp"
+                            app:sv_backgroundCircleColor="@android:color/transparent"
+                            app:sv_startDegree="150"
+                            app:sv_endDegree="390"
+                            />
 
-                </LinearLayout>
 
-            </androidx.cardview.widget.CardView>
+                        <TextView
+                            android:id="@+id/tempText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="-- °C"
+                            android:textSize="14sp"
+                            android:layout_marginTop="8dp" />
 
-            <androidx.cardview.widget.CardView
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
+
+                <!-- Humidity Card -->
+                <androidx.cardview.widget.CardView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="4dp">
+
+                    <LinearLayout
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:padding="12dp"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <TextView
+                            android:text="Humidity"
+                            android:textStyle="bold"
+                            android:layout_marginBottom="4dp"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="16sp" />
+
+                        <com.github.anastr.speedviewlib.SpeedView
+                            android:id="@+id/speedViewHum"
+                            android:layout_width="100dp"
+                            android:layout_height="100dp"
+                            app:sv_withTremble="false"
+                            app:sv_unit=""
+                            app:sv_unitTextSize="0sp"
+                            app:sv_centerCircleRadius="10dp"
+                            app:sv_speedTextSize="0sp"
+                            app:sv_textSize="0sp"
+                            app:sv_tickNumber="0"
+                            app:sv_speedometerWidth="10dp"
+                            app:sv_backgroundCircleColor="@android:color/transparent"
+                            app:sv_startDegree="150"
+                            app:sv_endDegree="390"
+                            />
+
+
+                        <TextView
+                            android:id="@+id/humidityText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="-- %"
+                            android:textSize="14sp"
+                            android:layout_marginTop="8dp" />
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
+            </LinearLayout>
+
+            <!-- Gases (CO, LPG, NH4) -->
+            <!-- Repeatable layout: -->
+            <include
                 android:id="@+id/card_co"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                app:cardBackgroundColor="@android:color/white"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="6dp">
+                layout="@layout/item_gas_card" />
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:padding="12dp">
-
-                    <ImageView
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:src="@drawable/ic_co" />
-
-                    <TextView
-                        android:id="@+id/coText"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp"
-                        android:text="CO: Loading..."
-                        android:textSize="18sp" />
-
-                    <com.github.anastr.speedviewlib.SpeedView
-                        android:id="@+id/speedViewCO"
-                        android:layout_width="100dp"
-                        android:layout_height="100dp"
-                        android:layout_centerHorizontal="false"
-                        android:layout_marginStart="105dp"
-                        android:scrollbarSize="4dp"
-                        app:sv_centerCircleRadius="5dp"
-                        app:sv_indicatorWidth="5dp"
-                        app:sv_speedTextSize="0dp"
-                        app:sv_speedometerWidth="8dp"
-                        app:sv_textSize="0dp"
-                        app:sv_unitTextSize="0dp" />
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
-
-            <androidx.cardview.widget.CardView
+            <include
                 android:id="@+id/card_lpg"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                android:layout_weight="1"
-                app:cardBackgroundColor="@android:color/white"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="6dp">
+                layout="@layout/item_gas_card" />
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:padding="12dp">
+            <include
+                android:id="@+id/card_nh4"
+                layout="@layout/item_gas_card" />
 
-                    <ImageView
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:src="@drawable/ic_lpg" />
 
-                    <TextView
-                        android:id="@+id/lpgText"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp"
-                        android:text="LPG: Loading..."
-                        android:textSize="18sp" />
-
-                    <com.github.anastr.speedviewlib.SpeedView
-                        android:id="@+id/speedViewLPG"
-                        android:layout_width="100dp"
-                        android:layout_height="100dp"
-                        android:layout_centerHorizontal="false"
-                        android:layout_marginStart="95dp"
-                        android:scrollbarSize="4dp"
-                        app:sv_centerCircleRadius="5dp"
-                        app:sv_indicatorWidth="5dp"
-                        app:sv_speedTextSize="0dp"
-                        app:sv_speedometerWidth="8dp"
-                        app:sv_textSize="0dp"
-                        app:sv_unitTextSize="0dp" />
-
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
-
-            <androidx.cardview.widget.CardView
-                android:id="@+id/card_smoke"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                android:layout_weight="1"
-                app:cardBackgroundColor="@android:color/white"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="6dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:animateLayoutChanges="true"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:padding="12dp">
-
-                    <ImageView
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:src="@drawable/ic_smoke" />
-
-                    <TextView
-                        android:id="@+id/smokeText"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp"
-                        android:text="Smoke: Loading..."
-                        android:textSize="18sp" />
-
-                    <com.github.anastr.speedviewlib.SpeedView
-                        android:id="@+id/speedViewSmoke"
-                        android:layout_width="100dp"
-                        android:layout_height="100dp"
-                        android:layout_centerHorizontal="false"
-                        android:layout_marginStart="90dp"
-                        android:scrollbarSize="4dp"
-                        app:sv_centerCircleRadius="5dp"
-                        app:sv_indicatorWidth="5dp"
-                        app:sv_speedTextSize="0dp"
-                        app:sv_speedometerWidth="8dp"
-                        app:sv_textSize="0dp"
-                        app:sv_unitTextSize="0dp" />
-
-                </LinearLayout>
-
-            </androidx.cardview.widget.CardView>
         </LinearLayout>
     </ScrollView>
 
+    <!-- Overall Condition Bar -->
     <LinearLayout
         android:id="@+id/scaleContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center_horizontal"
         android:orientation="vertical"
-        android:padding="16dp"
+        android:gravity="center"
+        android:padding="12dp"
         app:layout_constraintBottom_toBottomOf="parent">
 
-        <!-- Colored Bar -->
+        <TextView
+            android:text="Overall Condition:"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
         <LinearLayout
             android:id="@+id/colorBar"
             android:layout_width="wrap_content"
-            android:layout_height="40dp"
-            android:orientation="horizontal" />
+            android:layout_height="20dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical" />
 
-        <!-- Arrow Row -->
         <LinearLayout
             android:id="@+id/arrowRow"
             android:layout_width="wrap_content"

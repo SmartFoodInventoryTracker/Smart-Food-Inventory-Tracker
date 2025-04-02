@@ -62,6 +62,7 @@ dependencies {
 
     //  Firebase Realtime Database
     implementation("com.google.firebase:firebase-database")
+
     //Speedview Gauges
     implementation("com.github.anastr:speedviewlib:1.6.1")
 
