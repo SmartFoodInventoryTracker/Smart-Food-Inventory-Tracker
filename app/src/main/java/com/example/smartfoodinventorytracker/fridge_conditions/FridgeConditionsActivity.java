@@ -69,7 +69,7 @@ public class FridgeConditionsActivity extends AppCompatActivity {
         setUpToolbar();
         initViews();
         setUpOverallBar();
-        fetchSensorData();
+        fetchDataFromFirebase();
     }
 
     private void setUpToolbar() {
@@ -97,7 +97,7 @@ public class FridgeConditionsActivity extends AppCompatActivity {
         ImageView coIcon = cardCO.findViewById(R.id.gasIcon);
         TextView coLabel = cardCO.findViewById(R.id.gasLabel);
         coIcon.setImageResource(R.drawable.ic_co);
-        coLabel.setText("CO");
+        coLabel.setText("CO :");
 
         // 🔥 LPG Card
         cardLPG = findViewById(R.id.card_lpg);
@@ -106,7 +106,7 @@ public class FridgeConditionsActivity extends AppCompatActivity {
         ImageView lpgIcon = cardLPG.findViewById(R.id.gasIcon);
         TextView lpgLabel = cardLPG.findViewById(R.id.gasLabel);
         lpgIcon.setImageResource(R.drawable.ic_lpg);
-        lpgLabel.setText("LPG");
+        lpgLabel.setText("LPG :");
 
         // 🧪 NH₄ Card
         cardNH4 = findViewById(R.id.card_nh4);
@@ -115,11 +115,8 @@ public class FridgeConditionsActivity extends AppCompatActivity {
         ImageView nh4Icon = cardNH4.findViewById(R.id.gasIcon);
         TextView nh4Label = cardNH4.findViewById(R.id.gasLabel);
         nh4Icon.setImageResource(R.drawable.ic_smoke);
-        nh4Label.setText("NH₄");
+        nh4Label.setText("NH₄ :");
     }
-
-
-
 
     private void setUpOverallBar() {
         for (int i = 0; i < totalBlocks; i++) {
@@ -146,7 +143,7 @@ public class FridgeConditionsActivity extends AppCompatActivity {
         }
     }
 
-    private void fetchSensorData() {
+    private void fetchDataFromFirebase() {
         databaseRef = FirebaseDatabase.getInstance().getReference().child("inventory");
 
         databaseRef.orderByKey().limitToLast(1).addValueEventListener(new ValueEventListener() {
@@ -162,7 +159,7 @@ public class FridgeConditionsActivity extends AppCompatActivity {
                     Double hum = snap.child("humidity").getValue(Double.class);
                     Integer co = snap.child("co").getValue(Integer.class);
                     Integer lpg = snap.child("lpg").getValue(Integer.class);
-                    Integer nh4 = snap.child("smoke").getValue(Integer.class);
+                    Integer smoke = snap.child("smoke").getValue(Integer.class);
 
                     Integer tempCond = snap.child("temperature condition").getValue(Integer.class);
                     Integer humCond = snap.child("humidity condition").getValue(Integer.class);
@@ -171,70 +168,61 @@ public class FridgeConditionsActivity extends AppCompatActivity {
                     Integer smokeCond = snap.child("smoke condition").getValue(Integer.class);
                     Integer overallCond = snap.child("overall condition").getValue(Integer.class);
 
-                    updateUI(temp, hum, co, lpg, nh4);
-                    updateGauges(tempCond, humCond, coCond, lpgCond, smokeCond, overallCond);
-                    triggerAllNotifications(temp, hum, co, lpg, nh4, tempCond, humCond, coCond, lpgCond, smokeCond);
+                    tempText.setText(temp != null ? temp + "°C" : "-- °C");
+                    humidityText.setText(hum != null ? hum + "%" : "-- %");
+                    coValue.setText(co != null ? co + " ppm" : "-- ppm");
+                    lpgValue.setText(lpg != null ? lpg + " ppm" : "-- ppm");
+                    nh4Value.setText(smoke != null ? smoke + " ppm" : "-- ppm");
+
+                    setGauge(tempCond, "t");
+                    setGauge(humCond, "h");
+                    setGauge(coCond, "c");
+                    setGauge(lpgCond, "l");
+                    setGauge(smokeCond, "s");
+                    setGauge(overallCond, "ov");
+
+                    triggerNotification("Temperature", temp, tempCond);
+                    triggerNotification("Humidity", hum, humCond);
+                    triggerNotification("CO Level", co, coCond);
+                    triggerNotification("LPG Level", lpg, lpgCond);
+                    triggerNotification("Smoke Level", smoke, smokeCond);
                 }
             }
 
             @Override
             public void onCancelled(DatabaseError error) {
-                Toast.makeText(FridgeConditionsActivity.this, "Firebase error!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(FridgeConditionsActivity.this, "Failed to load data!", Toast.LENGTH_SHORT).show();
             }
         });
     }
 
-    private void updateUI(Double temp, Double hum, Integer co, Integer lpg, Integer nh4) {
-        tempText.setText(temp != null ? temp + "°C" : "-- °C");
-        humidityText.setText(hum != null ? hum + "%" : "-- %");
-        coValue.setText(co != null ? co + " ppm" : "-- ppm");
-        lpgValue.setText(lpg != null ? lpg + " ppm" : "-- ppm");
-        nh4Value.setText(nh4 != null ? nh4 + " ppm" : "-- ppm");
-    }
+    private void setGauge(Integer val, String hint) {
+        if (val == null) val = 0;
+        float level = val == 0 ? 0f : val < 3 ? 30f : val < 9 ? 70f : 100f;
 
-    private void updateGauges(Integer temp, Integer hum, Integer co, Integer lpg, Integer smoke, Integer overall) {
-        setSpeed(speedTemp, temp);
-        setSpeed(speedHum, hum);
-        setSpeed(speedCO, co);
-        setSpeed(speedLPG, lpg);
-        setSpeed(speedNH4, smoke);
-
-        if (overall != null) {
-            int index = Math.min(14, Math.max(0, overall * 14 / 10));
-            setArrowPosition(index);
+        switch (hint) {
+            case "t": speedTemp.speedTo(level); break;
+            case "h": speedHum.speedTo(level); break;
+            case "c": speedCO.speedTo(level); break;
+            case "l": speedLPG.speedTo(level); break;
+            case "s": speedNH4.speedTo(level); break;
+            case "ov":
+                int index = Math.min(14, Math.max(0, val * 14 / 10));
+                setArrowPosition(index);
+                break;
         }
     }
 
-    private void setSpeed(SpeedView view, Integer level) {
-        if (level == null) {
-            view.speedTo(0);
-        } else if (level < 3) {
-            view.speedTo(30);
-        } else if (level < 9) {
-            view.speedTo(70);
-        } else {
-            view.speedTo(100);
-        }
-    }
+    private void triggerNotification(String type, Number newValue, Integer condition) {
+        if (newValue == null || condition == null) return;
 
-    private void triggerAllNotifications(Double temp, Double hum, Integer co, Integer lpg, Integer nh4,
-                                         Integer tempCond, Integer humCond, Integer coCond, Integer lpgCond, Integer smokeCond) {
-        String uid = FirebaseAuth.getInstance().getUid();
+        String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
         NotificationHelper helper = new NotificationHelper(getApplicationContext(), false, uid);
 
-        triggerIfChanged(helper, "Temperature", temp, tempCond);
-        triggerIfChanged(helper, "Humidity", hum, humCond);
-        triggerIfChanged(helper, "CO Level", co, coCond);
-        triggerIfChanged(helper, "LPG Level", lpg, lpgCond);
-        triggerIfChanged(helper, "Smoke Level", nh4, smokeCond);
-    }
-
-    private void triggerIfChanged(NotificationHelper helper, String type, Number value, Integer condition) {
-        if (value == null || condition == null) return;
         Number prev = lastStoredValues.get(type);
-        if (!value.equals(prev)) {
-            helper.sendConditionNotification(FirebaseAuth.getInstance().getUid(), type, value.longValue(), condition);
-            lastStoredValues.put(type, value);
+        if (prev == null || !prev.equals(newValue)) {
+            helper.sendConditionNotification(uid, type, newValue.longValue(), condition);
+            lastStoredValues.put(type, newValue);
         }
     }
 }
