@@ -32,7 +32,7 @@ public class ShoppingListItemAdapter extends RecyclerView.Adapter<ShoppingListIt
     private boolean isShoppingMode;
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView productName, productBrand, quantityBadge;
+        TextView productName, productBrand, quantityBadge, expiryBadge;
         ImageButton btnPlus, btnMinus;
         ImageView productImage;
 
@@ -44,6 +44,7 @@ public class ShoppingListItemAdapter extends RecyclerView.Adapter<ShoppingListIt
             btnPlus       = itemView.findViewById(R.id.btnPlus);
             btnMinus      = itemView.findViewById(R.id.btnMinus);
             productImage  = itemView.findViewById(R.id.productImage);
+            expiryBadge   = itemView.findViewById(R.id.expiryBadge);
         }
     }
 
@@ -75,6 +76,21 @@ public class ShoppingListItemAdapter extends RecyclerView.Adapter<ShoppingListIt
         holder.productName.setText(product.getName());
         holder.productBrand.setText("Brand: " + product.getBrand());
         holder.quantityBadge.setText(String.valueOf(product.getQuantity()));
+
+        // Handle expiry badge
+        if (isShoppingMode) {
+            holder.expiryBadge.setVisibility(View.VISIBLE);
+
+            String expiryText = getExpiryText(product.getExpiryDate());
+            holder.expiryBadge.setText(expiryText);
+
+            int expiryColor = getExpiryColor(expiryText);
+            holder.expiryBadge.setBackgroundTintList(android.content.res.ColorStateList.valueOf(expiryColor));
+        } else {
+            holder.expiryBadge.setVisibility(View.GONE);
+        }
+
+
 
         // Set category icon.
         int iconResId = CategoryUtils.getCategoryIcon(product.getName());
@@ -209,6 +225,53 @@ public class ShoppingListItemAdapter extends RecyclerView.Adapter<ShoppingListIt
             return true;
         });
     }
+
+    private String getExpiryText(String expiryDate) {
+        if (expiryDate == null || expiryDate.equals("Not set")) return "No expiry set";
+
+        try {
+            java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("d/M/yyyy");
+            java.time.LocalDate exp = java.time.LocalDate.parse(expiryDate, formatter);
+            java.time.LocalDate today = java.time.LocalDate.now();
+            long days = java.time.temporal.ChronoUnit.DAYS.between(today, exp);
+
+            if (days < 0) return "Expired";
+            else if (days == 0) return "Expires today";
+            else if (days < 3) return "Expires in " + days + " day" + (days > 1 ? "s" : "");
+            else if (days < 14) return "Expires in " + days + " days";
+            else if (days < 30) return "Expires in " + (days / 7) + " week" + ((days / 7) > 1 ? "s" : "");
+            else return "Expires in " + (days / 30) + " month" + ((days / 30) > 1 ? "s" : "");
+        } catch (Exception e) {
+            return "Invalid date";
+        }
+    }
+
+    private int getExpiryColor(String text) {
+        Context ctx = context;
+        if (text.equals("Expired")) {
+            return ctx.getColor(R.color.red);
+        } else if (text.contains("Expires today")) {
+            return ctx.getColor(R.color.orange);
+        } else if (text.contains("Expires in")) {
+            try {
+                String[] parts = text.split(" ");
+                int number = Integer.parseInt(parts[2]);
+
+                if (text.contains("day")) {
+                    if (number <= 2) return ctx.getColor(R.color.orange);
+                    else if (number <= 4) return ctx.getColor(R.color.yellow);
+                    else return ctx.getColor(R.color.green);
+                } else {
+                    return ctx.getColor(R.color.green);
+                }
+            } catch (Exception e) {
+                return ctx.getColor(android.R.color.darker_gray);
+            }
+        } else {
+            return ctx.getColor(android.R.color.darker_gray);
+        }
+    }
+
 
     private void updateProductInFirebase(Product product) {
         FirebaseDatabase.getInstance()

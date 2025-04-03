@@ -8,7 +8,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
@@ -19,7 +18,6 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
 import com.example.smartfoodinventorytracker.R;
 import com.example.smartfoodinventorytracker.inventory.Product;
 import com.google.firebase.auth.FirebaseAuth;
@@ -30,7 +28,6 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.ValueEventListener;
 import com.example.smartfoodinventorytracker.shopping_list.AddShoppingProductDialogFragment.AddShoppingProductListener;
 import com.example.smartfoodinventorytracker.shopping_list.AddShoppingManualProductDialogFragment.ManualShoppingProductListener;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -39,6 +36,10 @@ import java.util.Map;
 
 public class ShoppingListDetailActivity extends AppCompatActivity implements
         AddShoppingProductListener, ManualShoppingProductListener {
+
+    // Define string constants for mode titles.
+    private static final String EDIT_MODE_TITLE = "✍️ Edit Mode";
+    private static final String SHOPPING_MODE_TITLE = "🛍️ Shopping Mode";
 
     private RecyclerView recyclerView;
     private TextView emptyMessage;
@@ -85,7 +86,7 @@ public class ShoppingListDetailActivity extends AppCompatActivity implements
         isShoppingMode = "shopping".equals(mode);
 
         TextView headerTitle = findViewById(R.id.headerTitle);
-        headerTitle.setText(isShoppingMode ? "Shopping Mode" : "Edit Mode");
+        headerTitle.setText(isShoppingMode ? SHOPPING_MODE_TITLE : EDIT_MODE_TITLE);
 
         // Get the list key from Intent extras.
         listKey = getIntent().getStringExtra("listKey");
@@ -112,7 +113,7 @@ public class ShoppingListDetailActivity extends AppCompatActivity implements
         // Secondary button functionality depends on mode.
         secondaryBtn.setOnClickListener(v -> {
             if (!isShoppingMode) {
-                // "Go Shopping" logic (unchanged)
+                // "Go Shopping" logic.
                 new AlertDialog.Builder(this)
                         .setTitle("Enter Shopping Mode")
                         .setMessage("Are you sure you want to switch to shopping mode?")
@@ -121,13 +122,13 @@ public class ShoppingListDetailActivity extends AppCompatActivity implements
                             updateBottomButtons();
                             adapter.setShoppingMode(isShoppingMode);
                             adapter.notifyDataSetChanged();
-                            headerTitle.setText("Shopping Mode");
+                            headerTitle.setText(SHOPPING_MODE_TITLE);
                             Toast.makeText(this, "Shopping mode activated", Toast.LENGTH_SHORT).show();
                         })
                         .setNegativeButton("No", null)
                         .show();
             } else {
-                // "Confirm Purchase" logic: Merge identical items, keep the ID of the first encountered item.
+                // "Confirm Purchase" logic.
                 new AlertDialog.Builder(this)
                         .setTitle("Confirm Purchase")
                         .setMessage("Are you sure you want to confirm purchase?")
@@ -137,7 +138,7 @@ public class ShoppingListDetailActivity extends AppCompatActivity implements
                                     .child(userId)
                                     .child("inventory_product");
 
-                            // Step 1: Read existing inventory
+                            // Step 1: Read existing inventory.
                             inventoryRef.addListenerForSingleValueEvent(new ValueEventListener() {
                                 @Override
                                 public void onDataChange(@NonNull DataSnapshot inventorySnapshot) {
@@ -149,24 +150,21 @@ public class ShoppingListDetailActivity extends AppCompatActivity implements
                                         }
                                     }
 
-                                    // Step 2: Merge shopping list items into inventory
+                                    // Step 2: Merge shopping list items into inventory.
                                     for (Product shoppingProduct : productList) {
                                         boolean merged = false;
-
                                         for (Product inventoryProduct : existingInventory.values()) {
                                             if (productsMatch(inventoryProduct, shoppingProduct)) {
-                                                // Merge quantity and update date added
+                                                // Merge quantity and update date added.
                                                 inventoryProduct.setQuantity(inventoryProduct.getQuantity() + shoppingProduct.getQuantity());
                                                 inventoryProduct.setDateAdded(getCurrentDate());
-
                                                 inventoryRef.child(inventoryProduct.getBarcode()).setValue(inventoryProduct);
                                                 merged = true;
                                                 break;
                                             }
                                         }
-
                                         if (!merged) {
-                                            // Different product → assign new ID and insert as a new item
+                                            // Different product: assign new ID and insert as a new item.
                                             String newId = inventoryRef.push().getKey();
                                             shoppingProduct.setDateAdded(getCurrentDate());
                                             if (newId != null) {
@@ -177,17 +175,16 @@ public class ShoppingListDetailActivity extends AppCompatActivity implements
                                     }
 
                                     Toast.makeText(ShoppingListDetailActivity.this, "Purchase confirmed", Toast.LENGTH_SHORT).show();
-                                    // ✅ Update lastUsed timestamp for this list
+                                    // Update lastUsed timestamp.
                                     DatabaseReference listMetaRef = FirebaseDatabase.getInstance()
                                             .getReference("users")
                                             .child(userId)
                                             .child("shopping-list")
                                             .child(listKey)
                                             .child("lastUsed");
-
                                     listMetaRef.setValue(System.currentTimeMillis() / 1000);
 
-                                    // Clear expiry info from shopping products
+                                    // Clear expiry info from shopping products.
                                     DatabaseReference shoppingListRef = FirebaseDatabase.getInstance()
                                             .getReference("users")
                                             .child(userId)
@@ -195,49 +192,37 @@ public class ShoppingListDetailActivity extends AppCompatActivity implements
                                             .child(listKey)
                                             .child("items");
 
-                                    // Clear entire list first to avoid duplicates
                                     shoppingListRef.removeValue().addOnSuccessListener(aVoid -> {
-                                        // Step 1: Clear expiry
                                         for (Product p : productList) {
                                             p.setExpiryDate("Not set");
                                         }
-
-                                        // Step 2: Merge duplicates (by name + brand only, expiry is now ignored)
                                         Map<String, Product> mergedMap = new LinkedHashMap<>();
                                         for (Product p : productList) {
                                             String key = normalize(p.name) + "_" + normalize(p.brand);
                                             if (mergedMap.containsKey(key)) {
                                                 Product existing = mergedMap.get(key);
                                                 existing.setQuantity(existing.getQuantity() + p.getQuantity());
-                                                // Keep the most proper formatting of name
                                                 existing.name = capitalizeSentence(p.name);
                                             } else {
                                                 mergedMap.put(key, p);
                                             }
                                         }
-
-                                        // Step 3: Clear and re-write
                                         shoppingListRef.removeValue().addOnSuccessListener(unused -> {
                                             for (Product p : mergedMap.values()) {
                                                 shoppingListRef.child(p.getBarcode()).setValue(p);
                                             }
-
                                             productList.clear();
                                             productList.addAll(mergedMap.values());
                                             adapter.notifyDataSetChanged();
                                             updateEmptyMessage();
                                         });
-
                                         adapter.notifyDataSetChanged();
                                         updateEmptyMessage();
                                     });
-
-
-                                    adapter.notifyDataSetChanged();  // Reflect the updated expiry values in the list
-
-
+                                    adapter.notifyDataSetChanged();
+                                    // Switch back to Edit Mode.
                                     isShoppingMode = false;
-                                    headerTitle.setText("Edit Mode");
+                                    headerTitle.setText(EDIT_MODE_TITLE);
                                     updateBottomButtons();
                                     adapter.setShoppingMode(isShoppingMode);
                                     adapter.notifyDataSetChanged();
@@ -261,11 +246,8 @@ public class ShoppingListDetailActivity extends AppCompatActivity implements
         productList = new ArrayList<>();
         adapter = new ShoppingListItemAdapter(this, productList, isShoppingMode, userId, listKey);
         recyclerView.setAdapter(adapter);
-
-        // Load the shopping list items from Firebase.
         loadShoppingListItems(listKey);
     }
-
 
     private boolean productsMatch(Product a, Product b) {
         return normalize(a.name).equals(normalize(b.name)) &&
@@ -281,7 +263,6 @@ public class ShoppingListDetailActivity extends AppCompatActivity implements
         if (input == null || input.isEmpty()) return input;
         return input.substring(0, 1).toUpperCase() + input.substring(1).toLowerCase();
     }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -310,7 +291,6 @@ public class ShoppingListDetailActivity extends AppCompatActivity implements
                             .child("shopping-list")
                             .child(listKey)
                             .child("items");
-
                     shoppingListRef.removeValue().addOnSuccessListener(aVoid -> {
                         productList.clear();
                         adapter.notifyDataSetChanged();
@@ -324,25 +304,22 @@ public class ShoppingListDetailActivity extends AppCompatActivity implements
                 .show();
     }
 
-
     private String getCurrentDate() {
         java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("d/M/yyyy", java.util.Locale.getDefault());
         return sdf.format(new java.util.Date());
     }
 
-    private String buildCompositeKey(Product prod) {
-        String name = (prod.getName() == null) ? "" : prod.getName().trim().toLowerCase();
-        String brand = (prod.getBrand() == null) ? "" : prod.getBrand().trim().toLowerCase();
-        String expiry = (prod.getExpiryDate() == null) ? "" : prod.getExpiryDate().trim().toLowerCase();
-        return name + "_" + brand + "_" + expiry;
-    }
-
     private void updateBottomButtons() {
+        int black = getResources().getColor(android.R.color.black, null);
+        int blue = getResources().getColor(R.color.gray, null); // Using gray as blue in edit mode
+
         if (isShoppingMode) {
-            // In shopping mode, update secondary button text.
+            addItemBtn.setBackgroundTintList(android.content.res.ColorStateList.valueOf(black));
+            secondaryBtn.setBackgroundTintList(android.content.res.ColorStateList.valueOf(black));
             secondaryBtn.setText("Confirm Purchase");
         } else {
-            // In edit mode, secondary button text is "Go Shopping".
+            addItemBtn.setBackgroundTintList(android.content.res.ColorStateList.valueOf(blue));
+            secondaryBtn.setBackgroundTintList(android.content.res.ColorStateList.valueOf(blue));
             secondaryBtn.setText("Go Shopping");
         }
     }
@@ -387,16 +364,12 @@ public class ShoppingListDetailActivity extends AppCompatActivity implements
         }
     }
 
-    // ----------------- AddShoppingProductListener Methods -----------------
-
     @Override
     public void onAddManually() {
         AddShoppingManualProductDialogFragment manualDialog = new AddShoppingManualProductDialogFragment();
         manualDialog.setUserId(FirebaseAuth.getInstance().getCurrentUser().getUid());
         manualDialog.setManualProductListener(this);
-        manualDialog.setExistingProducts(productList);  // This is key
-
-        // Pass the current mode so the manual dialog can show expiry if in shopping mode.
+        manualDialog.setExistingProducts(productList);
         manualDialog.setShoppingMode(isShoppingMode);
         manualDialog.show(getSupportFragmentManager(), "AddShoppingManualProductDialog");
     }
@@ -411,21 +384,15 @@ public class ShoppingListDetailActivity extends AppCompatActivity implements
         // Optional callback; leave empty if not used.
     }
 
-    // ----------------- ManualShoppingProductListener Method -----------------
-
     @Override
     public void onProductAdded(Product product) {
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-
-        // Check if product already exists (case-insensitive match on name, brand, expiry)
         for (Product existing : productList) {
             if (productsMatch(existing, product)) {
                 Toast.makeText(this, "Product already exists", Toast.LENGTH_SHORT).show();
-                return; // Don't add duplicate
+                return;
             }
         }
-
-        // Add new product to Firebase
         FirebaseDatabase.getInstance()
                 .getReference("users")
                 .child(userId)
@@ -442,5 +409,4 @@ public class ShoppingListDetailActivity extends AppCompatActivity implements
                 })
                 .addOnFailureListener(e -> Toast.makeText(this, "Failed to add product", Toast.LENGTH_SHORT).show());
     }
-
 }

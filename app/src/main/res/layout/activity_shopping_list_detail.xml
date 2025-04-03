@@ -63,7 +63,7 @@
             android:paddingStart="10dp"
             android:paddingEnd="10dp"
             android:paddingTop="7dp"
-            android:text="Edit Mode"
+            android:text="✍️ Edit Mode"
             android:textColor="@android:color/black"
             android:textSize="18sp"
             android:textStyle="bold" />
@@ -117,7 +117,7 @@
         <Button
             android:id="@+id/secondaryBtn"
             android:layout_width="0dp"
-            android:backgroundTint="@color/black"
+            android:backgroundTint="@color/blue"
             android:layout_marginLeft="15dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"

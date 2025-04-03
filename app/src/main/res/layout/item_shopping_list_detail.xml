@@ -44,6 +44,17 @@
                 android:text="Brand: No Name"
                 android:textColor="#777777"
                 android:textSize="15sp" />
+
+            <TextView
+                android:id="@+id/expiryBadge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Exp: Not set"
+                android:textColor="#888888"
+                android:textSize="14sp"
+                android:visibility="gone"
+                android:layout_marginTop="2dp"/>
+
         </LinearLayout>
 
         <!-- Right Section: Image on top, minus/plus below -->
