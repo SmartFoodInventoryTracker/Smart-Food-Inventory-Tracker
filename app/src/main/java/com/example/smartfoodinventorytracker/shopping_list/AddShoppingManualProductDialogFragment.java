@@ -53,7 +53,7 @@ public class AddShoppingManualProductDialogFragment extends DialogFragment {
     @NonNull
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
-        // Inflate the layout for the manual product dialog.
+        // Inflate the layout.
         View view = LayoutInflater.from(getContext()).inflate(R.layout.dialog_manual_product, null);
 
         // Bind views.
@@ -83,17 +83,14 @@ public class AddShoppingManualProductDialogFragment extends DialogFragment {
             }
         });
 
-        // Show or hide expiry fields based on mode.
-        View expiryLabel = view.findViewById(R.id.expiryLabel);
+        // Configure expiry fields based on mode.
         if (isShoppingMode) {
             expiryInput.setVisibility(View.VISIBLE);
-            expiryLabel.setVisibility(View.VISIBLE);
             calendarIcon.setVisibility(View.VISIBLE);
             expiryInput.setOnClickListener(v -> showDatePicker());
             calendarIcon.setOnClickListener(v -> showDatePicker());
         } else {
             expiryInput.setVisibility(View.GONE);
-            expiryLabel.setVisibility(View.GONE);
             calendarIcon.setVisibility(View.GONE);
         }
 
@@ -106,9 +103,8 @@ public class AddShoppingManualProductDialogFragment extends DialogFragment {
                 Toast.makeText(getContext(), "Please enter product name", Toast.LENGTH_SHORT).show();
                 return;
             }
-            if (brand.isEmpty()) {
-                brand = "N/A";
-            }
+
+            if (brand.isEmpty()) brand = "N/A";
             if (quantity > MAX_QUANTITY) {
                 Toast.makeText(getContext(), "Maximum quantity is " + MAX_QUANTITY, Toast.LENGTH_SHORT).show();
                 return;
@@ -117,9 +113,9 @@ public class AddShoppingManualProductDialogFragment extends DialogFragment {
             String expiry;
             if (isShoppingMode) {
                 expiry = expiryInput.getText().toString().trim();
+                // In shopping mode, expiry is optional.
                 if(expiry.isEmpty()){
-                    Toast.makeText(getContext(), "Please enter expiry date", Toast.LENGTH_SHORT).show();
-                    return;
+                    expiry = "Not set";
                 }
             } else {
                 expiry = "Not set";

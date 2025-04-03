@@ -120,9 +120,10 @@ public class ShoppingProductDetailsDialogFragment extends DialogFragment {
         } else {
             if(expiryInput != null) {
                 expiryInput.setVisibility(View.GONE);
-                if(calendarIcon != null) {
-                    calendarIcon.setVisibility(View.GONE);
-                }
+                View expiryLabel = view.findViewById(R.id.expiryLabel);
+                View calendarIconView = view.findViewById(R.id.calendarIcon);
+                if(expiryLabel != null) expiryLabel.setVisibility(View.GONE);
+                if(calendarIconView != null) calendarIconView.setVisibility(View.GONE);
             }
         }
 
@@ -165,11 +166,10 @@ public class ShoppingProductDetailsDialogFragment extends DialogFragment {
 
             if(isShoppingMode) {
                 String newExpiry = expiryInput.getText().toString().trim();
+                // Now expiry is optional: if empty, default to "Not set"
                 if(newExpiry.isEmpty()) {
-                    Toast.makeText(getContext(), "Please enter expiry date", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                if(!DateInfo.isValidDateFormat(newExpiry)) {
+                    newExpiry = "Not set";
+                } else if(!DateInfo.isValidDateFormat(newExpiry)) {
                     Toast.makeText(getContext(), "Please enter a valid date (dd/MM/yyyy)", Toast.LENGTH_SHORT).show();
                     return;
                 }
@@ -206,7 +206,15 @@ public class ShoppingProductDetailsDialogFragment extends DialogFragment {
                 .create();
     }
 
-    // Helper method to show a DatePickerDialog.
+    // Helper method to safely parse quantity.
+    private int parseQuantity(String qtyStr) {
+        try {
+            return Integer.parseInt(qtyStr);
+        } catch(NumberFormatException e) {
+            return 1;
+        }
+    }
+
     private void showDatePicker(EditText expiryInput) {
         final Calendar calendar = Calendar.getInstance();
         DatePickerDialog datePicker = new DatePickerDialog(requireContext(),
@@ -220,14 +228,5 @@ public class ShoppingProductDetailsDialogFragment extends DialogFragment {
         // Prevent selecting past dates.
         datePicker.getDatePicker().setMinDate(calendar.getTimeInMillis());
         datePicker.show();
-    }
-
-    // Helper method to safely parse quantity.
-    private int parseQuantity(String qtyStr) {
-        try {
-            return Integer.parseInt(qtyStr);
-        } catch(NumberFormatException e) {
-            return 1;
-        }
     }
 }
