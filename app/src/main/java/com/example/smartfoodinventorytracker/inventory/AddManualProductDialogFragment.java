@@ -54,6 +54,9 @@ public class AddManualProductDialogFragment extends DialogFragment {
         Button btnDone = view.findViewById(R.id.btnDone);
         Button btnCancel = view.findViewById(R.id.btnCancel);
 
+        expiryInput = view.findViewById(R.id.expiryInput);
+        calendarIcon = view.findViewById(R.id.calendarIcon);
+
         expiryInput.setOnClickListener(v -> showDatePicker());
         calendarIcon.setOnClickListener(v -> showDatePicker());
 

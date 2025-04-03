@@ -15,7 +15,6 @@ import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.smartfoodinventorytracker.ProductDetailsDialogFragment;
 import com.example.smartfoodinventorytracker.R;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
