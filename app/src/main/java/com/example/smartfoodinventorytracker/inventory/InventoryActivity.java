@@ -503,20 +503,54 @@ public class InventoryActivity extends AppCompatActivity
     }
 
     private void saveProductToFirebase(String barcode, String name, String brand) {
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        DatabaseReference inventoryRef = FirebaseDatabase.getInstance()
+                .getReference("users")
+                .child(userId)
+                .child("inventory_product");
 
-        Product product = new Product(barcode, name, brand);
+        String expiry = "Not set"; // Or fetch from user input if available
 
-        LocalDate currentDate = LocalDate.now();
-        String formattedDate = currentDate.format(DateTimeFormatter.ofPattern("d/M/yyyy"));
-        product.setDateAdded(formattedDate);
+        Product newProduct = new Product(barcode, name, brand);
+        newProduct.setDateAdded(getCurrentDate());
+        newProduct.setExpiryDate(expiry);
+        newProduct.setQuantity(1); // Default quantity
 
-        databaseReference.child(barcode).setValue(product)
-                .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(this, "Product added to inventory!", Toast.LENGTH_SHORT).show();
-                    Log.d("Firebase", "Product saved: " + barcode + " - " + name);
-                })
-                .addOnFailureListener(e -> Toast.makeText(this, "Failed to add product", Toast.LENGTH_SHORT).show());
+        inventoryRef.get().addOnCompleteListener(task -> {
+            if (!task.isSuccessful()) {
+                Toast.makeText(this, "Failed to access inventory", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            boolean merged = false;
+            for (DataSnapshot itemSnap : task.getResult().getChildren()) {
+                Product existing = itemSnap.getValue(Product.class);
+                if (existing == null) continue;
+
+                boolean sameName = normalize(existing.getName()).equals(normalize(name));
+                boolean sameBrand = normalize(existing.getBrand()).equals(normalize(brand));
+                boolean sameExpiry = normalize(existing.getExpiryDate()).equals(normalize(expiry));
+
+                if (sameName && sameBrand && sameExpiry) {
+                    existing.setQuantity(existing.getQuantity() + 1);
+                    existing.setDateAdded(getCurrentDate());
+                    inventoryRef.child(existing.getBarcode()).setValue(existing);
+                    Toast.makeText(this, "Merged with existing item", Toast.LENGTH_SHORT).show();
+                    merged = true;
+                    break;
+                }
+            }
+
+            if (!merged) {
+                inventoryRef.child(barcode).setValue(newProduct)
+                        .addOnSuccessListener(aVoid ->
+                                Toast.makeText(this, "Product added", Toast.LENGTH_SHORT).show())
+                        .addOnFailureListener(e ->
+                                Toast.makeText(this, "Failed to add product", Toast.LENGTH_SHORT).show());
+            }
+        });
     }
+
 
     private void fetchInventoryData() {
         databaseReference.addValueEventListener(new ValueEventListener() {
