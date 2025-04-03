@@ -86,24 +86,16 @@ public class AddManualProductDialogFragment extends DialogFragment {
             if (brand.isEmpty()) brand = "N/A";
             if (expiry.isEmpty()) expiry = "Not set";
 
-            String barcode = "manual_" + System.currentTimeMillis();
-            Product product = new Product(barcode, name, brand);
+            Product product = new Product("", name, brand); // Empty barcode for now
             product.setQuantity(quantity);
             product.setExpiryDate(expiry);
             product.setDateAdded(getCurrentDate());
 
-            FirebaseDatabase.getInstance()
-                    .getReference("users").child(userId).child("inventory_product")
-                    .child(product.getBarcode())
-                    .setValue(product)
-                    .addOnSuccessListener(aVoid -> {
-                        Toast.makeText(getContext(), "Product added!", Toast.LENGTH_SHORT).show();
-                        if (listener != null) listener.onProductAdded(product);
-                        dismiss();
-                    })
-                    .addOnFailureListener(e -> {
-                        Toast.makeText(getContext(), "Failed to add product", Toast.LENGTH_SHORT).show();
-                    });
+            if (listener != null) {
+                listener.onProductAdded(product);
+            }
+            dismiss();
+
         });
 
         btnCancel.setOnClickListener(v -> dismiss());
