@@ -38,6 +38,44 @@
         android:hint="Brand"
         android:padding="10dp" />
 
+    <!-- Expiry Section -->
+    <TextView
+        android:id="@+id/expiryLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="4dp"
+        android:text="Expiry Date:"
+        android:textSize="14sp"
+        android:textStyle="bold" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="16dp">
+
+        <EditText
+            android:id="@+id/expiryInput"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="48dp"
+            android:background="@drawable/edittext_background"
+            android:padding="10dp"
+            android:hint="Select date"
+            android:inputType="none"
+            android:focusable="false"
+            android:clickable="true" />
+
+        <ImageView
+            android:id="@+id/calendarIcon"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginStart="8dp"
+            android:src="@drawable/ic_calendar"
+            android:contentDescription="Pick date" />
+    </LinearLayout>
+
     <!-- Quantity Label -->
     <TextView
         android:id="@+id/quantityLabel"
