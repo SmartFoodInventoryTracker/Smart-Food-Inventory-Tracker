@@ -2,6 +2,8 @@ package com.example.smartfoodinventorytracker.shopping_list;
 
 import android.annotation.SuppressLint;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -175,6 +177,15 @@ public class ShoppingListDetailActivity extends AppCompatActivity implements
                                     }
 
                                     Toast.makeText(ShoppingListDetailActivity.this, "Purchase confirmed", Toast.LENGTH_SHORT).show();
+                                    // ✅ Update lastUsed timestamp for this list
+                                    DatabaseReference listMetaRef = FirebaseDatabase.getInstance()
+                                            .getReference("users")
+                                            .child(userId)
+                                            .child("shopping-list")
+                                            .child(listKey)
+                                            .child("lastUsed");
+
+                                    listMetaRef.setValue(System.currentTimeMillis() / 1000);
 
                                     // Clear expiry info from shopping products
                                     DatabaseReference shoppingListRef = FirebaseDatabase.getInstance()
@@ -255,6 +266,7 @@ public class ShoppingListDetailActivity extends AppCompatActivity implements
         loadShoppingListItems(listKey);
     }
 
+
     private boolean productsMatch(Product a, Product b) {
         return normalize(a.name).equals(normalize(b.name)) &&
                 normalize(a.brand).equals(normalize(b.brand)) &&
@@ -271,6 +283,46 @@ public class ShoppingListDetailActivity extends AppCompatActivity implements
     }
 
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.shopping_list_detail_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (item.getItemId() == R.id.action_delete_all) {
+            confirmDeleteAllItems();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void confirmDeleteAllItems() {
+        new AlertDialog.Builder(this)
+                .setTitle("Delete All Items")
+                .setMessage("Are you sure you want to delete all items from this list?")
+                .setPositiveButton("Yes", (dialog, which) -> {
+                    String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+                    DatabaseReference shoppingListRef = FirebaseDatabase.getInstance()
+                            .getReference("users")
+                            .child(userId)
+                            .child("shopping-list")
+                            .child(listKey)
+                            .child("items");
+
+                    shoppingListRef.removeValue().addOnSuccessListener(aVoid -> {
+                        productList.clear();
+                        adapter.notifyDataSetChanged();
+                        updateEmptyMessage();
+                        Toast.makeText(this, "All items deleted", Toast.LENGTH_SHORT).show();
+                    }).addOnFailureListener(e -> {
+                        Toast.makeText(this, "Failed to delete items", Toast.LENGTH_SHORT).show();
+                    });
+                })
+                .setNegativeButton("No", null)
+                .show();
+    }
 
 
     private String getCurrentDate() {

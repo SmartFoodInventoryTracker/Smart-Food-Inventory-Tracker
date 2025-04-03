@@ -152,62 +152,74 @@ public class ShoppingListActivity extends AppCompatActivity {
         DatabaseReference shoppingRef = FirebaseDatabase.getInstance()
                 .getReference("users").child(userId).child("shopping-list");
 
-        shoppingRef.addListenerForSingleValueEvent(new ValueEventListener() {
+        shoppingRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 List<ShoppingList> allLists = new ArrayList<>();
+                ShoppingList mostRecent = null;
 
-                // Build flat list from Firebase.
                 for (DataSnapshot listSnapshot : snapshot.getChildren()) {
                     String key = listSnapshot.getKey();
+                    if (key == null) continue;
+
                     String listName = listSnapshot.child("name").getValue(String.class);
-                    if (listName == null) {
-                        listName = "Unnamed List";
-                    }
+                    if (listName == null) listName = "Unnamed List";
+
                     int itemCount = (int) listSnapshot.child("items").getChildrenCount();
-                    allLists.add(new ShoppingList(key, listName, itemCount));
+
+                    long timestamp = 0;
+                    if (listSnapshot.child("lastUsed").exists()) {
+                        Long ts = listSnapshot.child("lastUsed").getValue(Long.class);
+                        if (ts != null) timestamp = ts;
+                    } else if (listSnapshot.child("createdAt").exists()) {
+                        Long ts = listSnapshot.child("createdAt").getValue(Long.class);
+                        if (ts != null) timestamp = ts;
+                    }
+
+                    ShoppingList list = new ShoppingList(key, listName, itemCount, timestamp);
+                    allLists.add(list);
                 }
 
-                // Separate lists into recently used and custom lists.
-                List<ShoppingList> recentLists = new ArrayList<>();
+                // Find the most recently used list
+                for (ShoppingList list : allLists) {
+                    if (mostRecent == null || list.timestamp > mostRecent.timestamp) {
+                        mostRecent = list;
+                    }
+                }
+
+                List<Object> mixedList = new ArrayList<>();
                 List<ShoppingList> customLists = new ArrayList<>();
 
                 for (ShoppingList list : allLists) {
-                    // Here we assume that a recently used list has its name set to "last_used".
-                    if ("last_used".equalsIgnoreCase(list.name)) {
-                        recentLists.add(list);
-                    } else {
+                    if (!list.key.equals(mostRecent.key)) {
                         customLists.add(list);
                     }
                 }
 
-                // Build mixed list with headers.
-                List<Object> mixedList = new ArrayList<>();
+                // Sort custom lists by lastUsed descending
+                customLists.sort((a, b) -> Long.compare(b.timestamp, a.timestamp));
 
-                if (!recentLists.isEmpty()) {
+                if (mostRecent != null) {
                     mixedList.add("Recently Used");
-                    // Optionally, you can sort recentLists by a timestamp if available.
-                    // For now, we just add all recent lists.
-                    mixedList.addAll(recentLists);
+                    mixedList.add(mostRecent);
                 }
 
-                mixedList.add("Custom shopping lists");
+                mixedList.add("Custom Shopping Lists");
                 mixedList.addAll(customLists);
 
-                // Cache list key -> name mapping.
-                Map<String, String> keyToNameMap = new HashMap<>();
-                for (ShoppingList list : allLists) {
-                    keyToNameMap.put(list.key, list.name);
-                }
-                ShoppingListCache.saveListMap(ShoppingListActivity.this, keyToNameMap);
-
-                // Set up RecyclerView with mixed data.
                 RecyclerView recyclerView = findViewById(R.id.shoppingListsRecyclerView);
                 recyclerView.setLayoutManager(new LinearLayoutManager(ShoppingListActivity.this));
                 ShoppingListAdapter adapter = new ShoppingListAdapter(ShoppingListActivity.this, mixedList);
                 recyclerView.setAdapter(adapter);
 
                 updateEmptyMessageVisibility(mixedList);
+
+                // Optional: cache names
+                Map<String, String> nameMap = new HashMap<>();
+                for (ShoppingList list : allLists) {
+                    nameMap.put(list.key, list.name);
+                }
+                ShoppingListCache.saveListMap(ShoppingListActivity.this, nameMap);
             }
 
             @Override

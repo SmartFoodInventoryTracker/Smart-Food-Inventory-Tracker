@@ -7,6 +7,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.Menu;
 import android.view.View;
 import android.widget.ImageButton;
 
@@ -218,6 +219,45 @@ public class InventoryActivity extends AppCompatActivity
         //fetchInventoryData();
 
     }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.inventory_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull android.view.MenuItem item) {
+        if (item.getItemId() == R.id.action_delete_all_inventory) {
+            confirmDeleteAllInventoryItems();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void confirmDeleteAllInventoryItems() {
+        new AlertDialog.Builder(this)
+                .setTitle("Delete All Inventory Items")
+                .setMessage("Are you sure you want to delete all items from your inventory?")
+                .setPositiveButton("Yes", (dialog, which) -> {
+                    String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+                    DatabaseReference ref = FirebaseDatabase.getInstance()
+                            .getReference("users")
+                            .child(userId)
+                            .child("inventory_product");
+
+                    ref.removeValue().addOnSuccessListener(aVoid -> {
+                        productList.clear();
+                        inventoryAdapter.updateList(productList);
+                        Toast.makeText(this, "All inventory items deleted", Toast.LENGTH_SHORT).show();
+                    }).addOnFailureListener(e -> {
+                        Toast.makeText(this, "Failed to delete inventory items", Toast.LENGTH_SHORT).show();
+                    });
+                })
+                .setNegativeButton("No", null)
+                .show();
+    }
+
 
     @Override
     protected void onStart() {
