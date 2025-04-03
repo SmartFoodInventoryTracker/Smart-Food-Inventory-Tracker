@@ -3,6 +3,8 @@ package com.example.smartfoodinventorytracker.shopping_list;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -19,6 +21,8 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -57,8 +61,8 @@ public class ShoppingListActivity extends AppCompatActivity {
             getSupportActionBar().setDisplayShowHomeEnabled(true);
         }
 
-        ImageView addLogo = findViewById(R.id.addLogo);
-        addLogo.setOnClickListener(v -> {
+        FloatingActionButton fab = findViewById(R.id.fabAddShoppingList);
+        fab.setOnClickListener(v -> {
             View dialogView = LayoutInflater.from(this).inflate(R.layout.shopping_list_dialog_add_list, null);
             EditText listNameInput = dialogView.findViewById(R.id.listNameInput);
 
@@ -87,7 +91,6 @@ public class ShoppingListActivity extends AppCompatActivity {
                                     return;
                                 }
 
-                                // Count custom lists (exclude "last_used")
                                 long customListCount = 0;
                                 for (DataSnapshot listSnap : snapshot.getChildren()) {
                                     if (!"last_used".equals(listSnap.getKey())) {
@@ -100,14 +103,13 @@ public class ShoppingListActivity extends AppCompatActivity {
                                     return;
                                 }
 
-                                // ✅ Safe to create
                                 String listId = shoppingRef.push().getKey();
 
                                 if (listId != null) {
                                     Map<String, Object> listData = new HashMap<>();
                                     listData.put("name", listName);
                                     listData.put("createdAt", System.currentTimeMillis() / 1000);
-                                    listData.put("items", new HashMap<>()); // empty initially
+                                    listData.put("items", new HashMap<>());
 
                                     shoppingRef.child(listId).setValue(listData)
                                             .addOnSuccessListener(aVoid -> {
@@ -129,16 +131,64 @@ public class ShoppingListActivity extends AppCompatActivity {
                     .show();
         });
 
+
         loadShoppingListsFromFirebase();
 
         toolbar.setNavigationOnClickListener(v -> finish());
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.shopping_list_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (item.getItemId() == R.id.action_delete_all_lists) {
+            confirmDeleteAllLists();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void confirmDeleteAllLists() {
+        new AlertDialog.Builder(this)
+                .setTitle("Delete All Shopping Lists")
+                .setMessage("Are you sure you want to delete all your shopping lists?")
+                .setPositiveButton("Yes", (dialog, which) -> {
+                    String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+                    DatabaseReference shoppingRef = FirebaseDatabase.getInstance()
+                            .getReference("users")
+                            .child(userId)
+                            .child("shopping-list");
+
+                    shoppingRef.removeValue().addOnSuccessListener(aVoid -> {
+                        Toast.makeText(this, "All shopping lists deleted", Toast.LENGTH_SHORT).show();
+                        loadShoppingListsFromFirebase(); // refresh
+                    }).addOnFailureListener(e ->
+                            Toast.makeText(this, "Failed to delete lists", Toast.LENGTH_SHORT).show()
+                    );
+                })
+                .setNegativeButton("No", null)
+                .show();
+    }
+
+
+
     private void updateEmptyMessageVisibility(List<?> list) {
         TextView emptyMessage = findViewById(R.id.emptyListMessage);
         RecyclerView recyclerView = findViewById(R.id.shoppingListsRecyclerView);
 
-        if (list == null || list.isEmpty()) {
+        boolean hasActualLists = false;
+        for (Object obj : list) {
+            if (obj instanceof ShoppingList) {
+                hasActualLists = true;
+                break;
+            }
+        }
+
+        if (!hasActualLists) {
             emptyMessage.setVisibility(View.VISIBLE);
             recyclerView.setVisibility(View.GONE);
         } else {
@@ -146,6 +196,7 @@ public class ShoppingListActivity extends AppCompatActivity {
             recyclerView.setVisibility(View.VISIBLE);
         }
     }
+
 
     private void loadShoppingListsFromFirebase() {
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();

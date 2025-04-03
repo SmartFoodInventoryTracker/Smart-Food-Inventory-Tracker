@@ -9,6 +9,7 @@ import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -31,6 +32,7 @@ import java.util.ArrayList;
 public class AddShoppingManualProductDialogFragment extends DialogFragment {
 
     private EditText nameInput, brandInput, quantityInput, expiryInput;
+    private TextView expiryLabel;
     private ImageView calendarIcon, quantityMinus, quantityPlus;
     private List<Product> existingProducts = new ArrayList<>();
 
@@ -71,6 +73,7 @@ public class AddShoppingManualProductDialogFragment extends DialogFragment {
         brandInput = view.findViewById(R.id.brandInput);
         quantityInput = view.findViewById(R.id.quantityInput);
         expiryInput = view.findViewById(R.id.expiryInput);
+        expiryLabel = view.findViewById(R.id.expiryLabel); // Add this line
         calendarIcon = view.findViewById(R.id.calendarIcon);
         quantityMinus = view.findViewById(R.id.quantityMinus);
         quantityPlus = view.findViewById(R.id.quantityPlus);
@@ -95,14 +98,17 @@ public class AddShoppingManualProductDialogFragment extends DialogFragment {
 
         // Configure expiry fields based on mode.
         if (isShoppingMode) {
+            expiryLabel.setVisibility(View.VISIBLE);
             expiryInput.setVisibility(View.VISIBLE);
             calendarIcon.setVisibility(View.VISIBLE);
             expiryInput.setOnClickListener(v -> showDatePicker());
             calendarIcon.setOnClickListener(v -> showDatePicker());
         } else {
+            expiryLabel.setVisibility(View.GONE);
             expiryInput.setVisibility(View.GONE);
             calendarIcon.setVisibility(View.GONE);
         }
+
 
         btnDone.setOnClickListener(v -> {
             String name = nameInput.getText().toString().trim();
