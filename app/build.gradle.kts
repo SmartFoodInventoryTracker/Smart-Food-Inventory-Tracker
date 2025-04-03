@@ -68,6 +68,9 @@ dependencies {
 
     implementation("androidx.cardview:cardview:1.0.0")
 
+    // Android Charting Library
+    implementation ("com.github.PhilJay:MPAndroidChart:v3.1.0")
+
 
     // Google ML Kit Barcode Scanning
     implementation("com.google.mlkit:barcode-scanning:17.2.0")

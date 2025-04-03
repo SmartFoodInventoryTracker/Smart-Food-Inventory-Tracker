@@ -1,61 +1,84 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
-    android:padding="16dp"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/historyMain"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    tools:context=".fridge_conditions.FridgeHistoryActivity">
 
-    <!-- Toolbar -->
-    <LinearLayout
+    <!-- Top Toolbar -->
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/historyToolbar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="end"
-        android:layout_marginBottom="8dp">
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorPrimary"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        app:layout_constraintTop_toTopOf="parent" />
 
-        <Button
-            android:id="@+id/btnDateRange"
+    <!-- Scrollable content -->
+    <LinearLayout
+        android:id="@+id/historyContent"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:orientation="vertical"
+        android:padding="16dp"
+        app:layout_constraintTop_toBottomOf="@id/historyToolbar"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <!-- Title (optional, inside toolbar is fine too) -->
+        <TextView
+            android:id="@+id/historyTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Pick Date" />
+            android:text="📜 Fridge History"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="12dp" />
 
-        <Button
-            android:id="@+id/btnGraph"
-            android:layout_width="wrap_content"
+        <!-- Button Row -->
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:text="View Graph" />
+            android:orientation="horizontal"
+            android:gravity="end"
+            android:layout_marginBottom="8dp">
+
+            <Button
+                android:id="@+id/btnDateRange"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Pick Date" />
+
+            <Button
+                android:id="@+id/btnGraph"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="View Graph"
+                android:layout_marginStart="8dp" />
+        </LinearLayout>
+
+        <!-- Refresh Button -->
+        <Button
+            android:id="@+id/btnRefresh"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Refresh"
+            android:layout_marginBottom="12dp" />
+
+        <!-- RecyclerView for history -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/historyRecyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:clipToPadding="false"
+            android:paddingBottom="8dp"
+            tools:listitem="@layout/item_history_entry" />
+
     </LinearLayout>
 
-    <!-- 🔍 Date Range Filter (for now just a button placeholder) -->
-    <Button
-        android:id="@+id/btnDateRange"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Select Date Range" />
-
-    <!-- 📊 Graph Button -->
-    <Button
-        android:id="@+id/btnViewGraph"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="View Graph"
-        android:layout_marginTop="8dp" />
-
-    <!-- 🔄 Refresh Button -->
-    <Button
-        android:id="@+id/btnRefresh"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Refresh"
-        android:layout_marginTop="8dp" />
-
-    <!-- 🧾 RecyclerView for history cards -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/historyRecyclerView"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:layout_marginTop="16dp"/>
-</LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
