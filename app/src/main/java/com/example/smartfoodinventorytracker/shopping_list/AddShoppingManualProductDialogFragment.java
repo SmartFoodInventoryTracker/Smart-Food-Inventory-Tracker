@@ -24,10 +24,16 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
+import java.util.List;
+import java.util.ArrayList;
+
+
 public class AddShoppingManualProductDialogFragment extends DialogFragment {
 
     private EditText nameInput, brandInput, quantityInput, expiryInput;
     private ImageView calendarIcon, quantityMinus, quantityPlus;
+    private List<Product> existingProducts = new ArrayList<>();
+
 
     public interface ManualShoppingProductListener {
         void onProductAdded(Product product);
@@ -48,6 +54,10 @@ public class AddShoppingManualProductDialogFragment extends DialogFragment {
     // Setter for mode.
     public void setShoppingMode(boolean shoppingMode) {
         this.isShoppingMode = shoppingMode;
+    }
+
+    public void setExistingProducts(List<Product> existingProducts) {
+        this.existingProducts = existingProducts;
     }
 
     @NonNull
@@ -127,9 +137,20 @@ public class AddShoppingManualProductDialogFragment extends DialogFragment {
             product.setExpiryDate(expiry);
             product.setDateAdded(getCurrentDate());
 
+            for (Product existing : existingProducts) {
+                if (existing.getName().trim().equalsIgnoreCase(name) &&
+                        existing.getBrand().trim().equalsIgnoreCase(brand) &&
+                        existing.getExpiryDate().trim().equalsIgnoreCase(expiry)) {
+                    Toast.makeText(getContext(), "Product already exists", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+            }
+
             if (listener != null) {
                 listener.onProductAdded(product);
             }
+            dismiss();
+
             dismiss();
         });
 

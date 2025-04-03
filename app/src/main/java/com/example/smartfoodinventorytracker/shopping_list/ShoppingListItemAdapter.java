@@ -152,12 +152,36 @@ public class ShoppingListItemAdapter extends RecyclerView.Adapter<ShoppingListIt
                 @Override
                 public void onProductUpdated(Product updatedProduct) {
                     int pos = holder.getAdapterPosition();
-                    if (pos != RecyclerView.NO_POSITION) {
-                        productList.set(pos, updatedProduct);
-                        notifyItemChanged(pos);
-                        updateProductInFirebase(updatedProduct); // This saves name/brand/etc. changes too
+                    if (pos == RecyclerView.NO_POSITION) return;
+
+                    // Duplicate check (skip current item being edited)
+                    for (int i = 0; i < productList.size(); i++) {
+                        if (i == pos) continue; // skip the one being edited
+
+                        Product other = productList.get(i);
+                        boolean sameName = other.getName().trim().equalsIgnoreCase(updatedProduct.getName().trim());
+                        boolean sameBrand = other.getBrand().trim().equalsIgnoreCase(updatedProduct.getBrand().trim());
+                        boolean sameExpiry = other.getExpiryDate().trim().equalsIgnoreCase(updatedProduct.getExpiryDate().trim());
+
+                        if (sameName && sameBrand && sameExpiry) {
+                            Toast.makeText(context, "A similar product already exists", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
                     }
+
+                    // No duplicates, update product
+                    productList.set(pos, updatedProduct);
+                    FirebaseDatabase.getInstance()
+                            .getReference("users")
+                            .child(userId)
+                            .child("shopping-list")
+                            .child(listKey)
+                            .child(updatedProduct.getBarcode())
+                            .setValue(updatedProduct);
+
+                    notifyItemChanged(pos);
                 }
+
 
                 @Override
                 public void onProductDeleted(String barcode) {

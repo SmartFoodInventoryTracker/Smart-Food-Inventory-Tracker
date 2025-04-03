@@ -23,7 +23,9 @@ import com.example.smartfoodinventorytracker.inventory.CategoryUtils;
 import com.example.smartfoodinventorytracker.inventory.DateInfo;
 import com.google.firebase.database.FirebaseDatabase;
 
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 
 public class ShoppingProductDetailsDialogFragment extends DialogFragment {
 
@@ -33,6 +35,7 @@ public class ShoppingProductDetailsDialogFragment extends DialogFragment {
     private static final int MAX_QUANTITY = 50;
     // Mode flag: false = Edit mode; true = Shopping mode.
     private boolean isShoppingMode = false;
+    List<Product> existingProducts = new ArrayList<>();
 
     public interface ShoppingProductDialogListener {
         void onProductUpdated(Product updatedProduct);
@@ -63,8 +66,14 @@ public class ShoppingProductDetailsDialogFragment extends DialogFragment {
     @NonNull
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
+
         if(getArguments() != null) {
-            product = (Product) getArguments().getSerializable("product");
+            Product original = (Product) getArguments().getSerializable("product");
+            product = new Product(original.getBarcode(), original.getName(), original.getBrand());
+            product.setQuantity(original.getQuantity());
+            product.setExpiryDate(original.getExpiryDate());
+            product.setDateAdded(original.getDateAdded());
+
         }
         View view = LayoutInflater.from(getContext()).inflate(R.layout.dialog_shopping_product_details, null);
 
@@ -160,9 +169,24 @@ public class ShoppingProductDetailsDialogFragment extends DialogFragment {
                 return;
             }
 
+            // Duplicate check (ignore current product's barcode)
+            for (Product other : existingProducts) {
+                if (!other.getBarcode().equals(product.getBarcode()) &&
+                        other.getName().trim().equalsIgnoreCase(newName) &&
+                        other.getBrand().trim().equalsIgnoreCase(newBrand) &&
+                        other.getExpiryDate().trim().equalsIgnoreCase(
+                                isShoppingMode ? expiryInput.getText().toString().trim() : product.getExpiryDate())
+                ) {
+                    Toast.makeText(getContext(), "A similar product already exists", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+            }
+
+            // Proceed to update
             product.name = newName;
             product.brand = newBrand;
             product.setQuantity(newQty);
+
 
             if(isShoppingMode) {
                 String newExpiry = expiryInput.getText().toString().trim();
@@ -204,6 +228,10 @@ public class ShoppingProductDetailsDialogFragment extends DialogFragment {
         return new AlertDialog.Builder(requireContext())
                 .setView(view)
                 .create();
+    }
+
+    public void setExistingProducts(List<Product> products) {
+        this.existingProducts = products;
     }
 
     // Helper method to safely parse quantity.

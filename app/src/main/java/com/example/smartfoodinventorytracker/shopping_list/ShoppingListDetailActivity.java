@@ -150,8 +150,6 @@ public class ShoppingListDetailActivity extends AppCompatActivity implements
                                         for (Product inventoryProduct : existingInventory.values()) {
                                             if (productsMatch(inventoryProduct, shoppingProduct)) {
                                                 // Merge quantity and update date added
-                                                inventoryProduct.name = shoppingProduct.name;
-                                                inventoryProduct.brand = shoppingProduct.brand;
                                                 inventoryProduct.setQuantity(inventoryProduct.getQuantity() + shoppingProduct.getQuantity());
                                                 inventoryProduct.setDateAdded(getCurrentDate());
 
@@ -175,9 +173,51 @@ public class ShoppingListDetailActivity extends AppCompatActivity implements
                                     Toast.makeText(ShoppingListDetailActivity.this, "Purchase confirmed", Toast.LENGTH_SHORT).show();
 
                                     // Clear expiry info from shopping products
-                                    for (Product p : productList) {
-                                        p.setExpiryDate("Not set");
-                                    }
+                                    DatabaseReference shoppingListRef = FirebaseDatabase.getInstance()
+                                            .getReference("users")
+                                            .child(userId)
+                                            .child("shopping-list")
+                                            .child(listKey)
+                                            .child("items");
+
+                                    // Clear entire list first to avoid duplicates
+                                    shoppingListRef.removeValue().addOnSuccessListener(aVoid -> {
+                                        // Step 1: Clear expiry
+                                        for (Product p : productList) {
+                                            p.setExpiryDate("Not set");
+                                        }
+
+                                        // Step 2: Merge duplicates (by name + brand only, expiry is now ignored)
+                                        Map<String, Product> mergedMap = new LinkedHashMap<>();
+                                        for (Product p : productList) {
+                                            String key = normalize(p.name) + "_" + normalize(p.brand);
+                                            if (mergedMap.containsKey(key)) {
+                                                Product existing = mergedMap.get(key);
+                                                existing.setQuantity(existing.getQuantity() + p.getQuantity());
+                                                // Keep the most proper formatting of name
+                                                existing.name = capitalizeSentence(p.name);
+                                            } else {
+                                                mergedMap.put(key, p);
+                                            }
+                                        }
+
+                                        // Step 3: Clear and re-write
+                                        shoppingListRef.removeValue().addOnSuccessListener(unused -> {
+                                            for (Product p : mergedMap.values()) {
+                                                shoppingListRef.child(p.getBarcode()).setValue(p);
+                                            }
+
+                                            productList.clear();
+                                            productList.addAll(mergedMap.values());
+                                            adapter.notifyDataSetChanged();
+                                            updateEmptyMessage();
+                                        });
+
+                                        adapter.notifyDataSetChanged();
+                                        updateEmptyMessage();
+                                    });
+
+
                                     adapter.notifyDataSetChanged();  // Reflect the updated expiry values in the list
 
 
@@ -212,10 +252,21 @@ public class ShoppingListDetailActivity extends AppCompatActivity implements
     }
 
     private boolean productsMatch(Product a, Product b) {
-        return a.getName().trim().equalsIgnoreCase(b.getName().trim()) &&
-                a.getBrand().trim().equalsIgnoreCase(b.getBrand().trim()) &&
-                a.getExpiryDate().trim().equalsIgnoreCase(b.getExpiryDate().trim());
+        return normalize(a.name).equals(normalize(b.name)) &&
+                normalize(a.brand).equals(normalize(b.brand)) &&
+                normalize(a.expiryDate).equals(normalize(b.expiryDate));
     }
+
+    private String normalize(String s) {
+        return s == null ? "" : s.trim().toLowerCase();
+    }
+
+    private String capitalizeSentence(String input) {
+        if (input == null || input.isEmpty()) return input;
+        return input.substring(0, 1).toUpperCase() + input.substring(1).toLowerCase();
+    }
+
+
 
 
     private String getCurrentDate() {
@@ -287,6 +338,8 @@ public class ShoppingListDetailActivity extends AppCompatActivity implements
         AddShoppingManualProductDialogFragment manualDialog = new AddShoppingManualProductDialogFragment();
         manualDialog.setUserId(FirebaseAuth.getInstance().getCurrentUser().getUid());
         manualDialog.setManualProductListener(this);
+        manualDialog.setExistingProducts(productList);  // This is key
+
         // Pass the current mode so the manual dialog can show expiry if in shopping mode.
         manualDialog.setShoppingMode(isShoppingMode);
         manualDialog.show(getSupportFragmentManager(), "AddShoppingManualProductDialog");
@@ -307,6 +360,16 @@ public class ShoppingListDetailActivity extends AppCompatActivity implements
     @Override
     public void onProductAdded(Product product) {
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+
+        // Check if product already exists (case-insensitive match on name, brand, expiry)
+        for (Product existing : productList) {
+            if (productsMatch(existing, product)) {
+                Toast.makeText(this, "Product already exists", Toast.LENGTH_SHORT).show();
+                return; // Don't add duplicate
+            }
+        }
+
+        // Add new product to Firebase
         FirebaseDatabase.getInstance()
                 .getReference("users")
                 .child(userId)
@@ -316,11 +379,12 @@ public class ShoppingListDetailActivity extends AppCompatActivity implements
                 .child(product.getBarcode())
                 .setValue(product)
                 .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(ShoppingListDetailActivity.this, "Product added to shopping list!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Product added to shopping list!", Toast.LENGTH_SHORT).show();
                     productList.add(product);
                     adapter.notifyItemInserted(productList.size() - 1);
                     updateEmptyMessage();
                 })
-                .addOnFailureListener(e -> Toast.makeText(ShoppingListDetailActivity.this, "Failed to add product", Toast.LENGTH_SHORT).show());
+                .addOnFailureListener(e -> Toast.makeText(this, "Failed to add product", Toast.LENGTH_SHORT).show());
     }
+
 }
