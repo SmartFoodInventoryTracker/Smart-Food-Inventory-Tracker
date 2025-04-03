@@ -41,17 +41,20 @@
             android:id="@+id/gasGauge"
             android:layout_width="100dp"
             android:layout_height="100dp"
-            app:sv_withTremble="false"
-            app:sv_unit=""
+            android:layout_marginLeft="90dp"
+            android:layout_weight="0"
+            app:sv_backgroundCircleColor="@android:color/transparent"
             app:sv_centerCircleRadius="10dp"
-            app:sv_unitTextSize="0sp"
+            app:sv_endDegree="390"
             app:sv_speedTextSize="0sp"
+            app:sv_speedometerWidth="10dp"
+            app:sv_startDegree="150"
             app:sv_textSize="0sp"
             app:sv_tickNumber="0"
-            app:sv_speedometerWidth="10dp"
-            app:sv_backgroundCircleColor="@android:color/transparent"
-            app:sv_startDegree="150"
-            app:sv_endDegree="390"
-            />
+            app:sv_unit=""
+            app:sv_unitTextSize="0sp"
+            app:sv_withTremble="false" />
+
     </LinearLayout>
+
 </androidx.cardview.widget.CardView>
