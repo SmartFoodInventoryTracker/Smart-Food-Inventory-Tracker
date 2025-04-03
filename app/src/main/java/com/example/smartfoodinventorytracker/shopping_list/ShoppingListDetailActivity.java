@@ -156,9 +156,18 @@ public class ShoppingListDetailActivity extends AppCompatActivity implements
                                         for (Product inventoryProduct : existingInventory.values()) {
                                             if (productsMatch(inventoryProduct, shoppingProduct)) {
                                                 // Merge quantity and update date added.
-                                                inventoryProduct.setQuantity(inventoryProduct.getQuantity() + shoppingProduct.getQuantity());
+                                                int combinedQty = inventoryProduct.getQuantity() + shoppingProduct.getQuantity();
+                                                if (combinedQty > 99) {
+                                                    combinedQty = 99;
+                                                    Toast.makeText(ShoppingListDetailActivity.this,
+                                                            "Quantity capped at 99 for " + shoppingProduct.getName(), Toast.LENGTH_SHORT).show();
+                                                }
+
+                                                inventoryProduct.setQuantity(combinedQty);
                                                 inventoryProduct.setDateAdded(getCurrentDate());
+
                                                 inventoryRef.child(inventoryProduct.getBarcode()).setValue(inventoryProduct);
+
                                                 merged = true;
                                                 break;
                                             }
