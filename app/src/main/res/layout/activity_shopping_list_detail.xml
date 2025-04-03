@@ -64,11 +64,32 @@
             android:padding="16dp"
             android:textAppearance="?android:attr/textAppearanceMedium" />
 
+        <TextView
+            android:id="@+id/headerTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
+            android:paddingTop="7dp"
+            android:text="Edit Mode"
+            android:textColor="@android:color/black"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
+            android:layout_marginBottom="10dp"
+            android:background="@android:color/black" />
+
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/shoppingRecyclerView"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
+            android:layout_height="581dp"
+            android:layout_weight="0"
             android:clipToPadding="false"
             android:paddingBottom="100dp" />
     </LinearLayout>
@@ -85,6 +106,7 @@
         <Button
             android:id="@+id/addItemBtn"
             android:layout_width="0dp"
+            android:layout_marginRight="15dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="Add Item" />
@@ -92,6 +114,8 @@
         <Button
             android:id="@+id/secondaryBtn"
             android:layout_width="0dp"
+            android:backgroundTint="@color/black"
+            android:layout_marginLeft="15dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:layout_weight="1"

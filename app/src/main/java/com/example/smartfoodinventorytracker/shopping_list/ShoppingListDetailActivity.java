@@ -82,6 +82,9 @@ public class ShoppingListDetailActivity extends AppCompatActivity implements
         String mode = getIntent().getStringExtra("mode");
         isShoppingMode = "shopping".equals(mode);
 
+        TextView headerTitle = findViewById(R.id.headerTitle);
+        headerTitle.setText(isShoppingMode ? "Shopping Mode" : "Edit Mode");
+
         // Get the list key from Intent extras.
         listKey = getIntent().getStringExtra("listKey");
         if (listKey == null) {
@@ -116,6 +119,7 @@ public class ShoppingListDetailActivity extends AppCompatActivity implements
                             updateBottomButtons();
                             adapter.setShoppingMode(isShoppingMode);
                             adapter.notifyDataSetChanged();
+                            headerTitle.setText("Shopping Mode");
                             Toast.makeText(this, "Shopping mode activated", Toast.LENGTH_SHORT).show();
                         })
                         .setNegativeButton("No", null)
@@ -222,6 +226,7 @@ public class ShoppingListDetailActivity extends AppCompatActivity implements
 
 
                                     isShoppingMode = false;
+                                    headerTitle.setText("Edit Mode");
                                     updateBottomButtons();
                                     adapter.setShoppingMode(isShoppingMode);
                                     adapter.notifyDataSetChanged();
@@ -235,7 +240,6 @@ public class ShoppingListDetailActivity extends AppCompatActivity implements
                         })
                         .setNegativeButton("No", null)
                         .show();
-
             }
         });
 
