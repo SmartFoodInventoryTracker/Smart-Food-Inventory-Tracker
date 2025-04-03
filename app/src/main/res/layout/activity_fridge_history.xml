@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- Toolbar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="end"
+        android:layout_marginBottom="8dp">
+
+        <Button
+            android:id="@+id/btnDateRange"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Pick Date" />
+
+        <Button
+            android:id="@+id/btnGraph"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="View Graph" />
+    </LinearLayout>
+
+    <!-- 🔍 Date Range Filter (for now just a button placeholder) -->
+    <Button
+        android:id="@+id/btnDateRange"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Select Date Range" />
+
+    <!-- 📊 Graph Button -->
+    <Button
+        android:id="@+id/btnViewGraph"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="View Graph"
+        android:layout_marginTop="8dp" />
+
+    <!-- 🔄 Refresh Button -->
+    <Button
+        android:id="@+id/btnRefresh"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Refresh"
+        android:layout_marginTop="8dp" />
+
+    <!-- 🧾 RecyclerView for history cards -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/historyRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginTop="16dp"/>
+</LinearLayout>

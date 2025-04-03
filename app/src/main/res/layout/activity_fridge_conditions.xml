@@ -46,10 +46,20 @@
                 android:textSize="20sp"
                 android:textStyle="bold" />
 
+
+            <ImageView
+                android:id="@+id/historyLogo"
+                android:layout_width="25dp"
+                android:layout_height="25dp"
+                android:layout_gravity="center_vertical"
+                app:tint="@android:color/white"
+                android:layout_marginStart="0dp"
+                android:layout_weight="1"
+                android:src="@drawable/ic_history" />
+
         </LinearLayout>
 
     </androidx.appcompat.widget.Toolbar>
-
 
     <!-- Main Content -->
     <ScrollView

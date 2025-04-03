@@ -1,5 +1,6 @@
 package com.example.smartfoodinventorytracker.fridge_conditions;
 
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.Gravity;
@@ -64,7 +65,14 @@ public class FridgeConditionsActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_fridge_conditions);  // your updated XML
+        EdgeToEdge.enable(this);
+        setContentView(R.layout.activity_fridge_conditions);
+
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            return insets;
+        });
 
         setUpToolbar();
         initViews();
@@ -72,12 +80,19 @@ public class FridgeConditionsActivity extends AppCompatActivity {
         fetchDataFromFirebase();
     }
 
-    private void setUpToolbar() {
+    private void setUpToolbar(){
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayShowTitleEnabled(false);
+
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setDisplayShowHomeEnabled(true);
+        }
+
         toolbar.setNavigationOnClickListener(v -> finish());
     }
+
 
     private void initViews() {
         // 🌡️ Temp & Humidity
@@ -116,6 +131,12 @@ public class FridgeConditionsActivity extends AppCompatActivity {
         TextView nh4Label = cardNH4.findViewById(R.id.gasLabel);
         nh4Icon.setImageResource(R.drawable.ic_smoke);
         nh4Label.setText("NH₄ :");
+
+        ImageView historyButton = findViewById(R.id.historyLogo);
+        historyButton.setOnClickListener(v -> {
+            Intent intent = new Intent(FridgeConditionsActivity.this, FridgeHistoryActivity.class);
+            startActivity(intent);
+        });
     }
 
     private void setUpOverallBar() {
