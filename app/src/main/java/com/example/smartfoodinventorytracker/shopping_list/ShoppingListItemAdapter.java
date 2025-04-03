@@ -28,6 +28,8 @@ public class ShoppingListItemAdapter extends RecyclerView.Adapter<ShoppingListIt
     private final String userId;
     private final String listKey;
     private static final int MAX_QUANTITY = 50;
+    // New mode flag: false = Edit mode; true = Shopping mode.
+    private boolean isShoppingMode;
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView productName, productBrand, quantityBadge;
@@ -45,11 +47,17 @@ public class ShoppingListItemAdapter extends RecyclerView.Adapter<ShoppingListIt
         }
     }
 
-    public ShoppingListItemAdapter(Context context, List<Product> productList, String userId, String listKey) {
+    // Updated constructor includes the isShoppingMode flag.
+    public ShoppingListItemAdapter(Context context, List<Product> productList, boolean isShoppingMode, String userId, String listKey) {
         this.context = context;
         this.productList = productList;
+        this.isShoppingMode = isShoppingMode;
         this.userId = userId;
         this.listKey = listKey;
+    }
+
+    public void setShoppingMode(boolean shoppingMode) {
+        this.isShoppingMode = shoppingMode;
     }
 
     @NonNull
@@ -138,6 +146,8 @@ public class ShoppingListItemAdapter extends RecyclerView.Adapter<ShoppingListIt
 
             ShoppingProductDetailsDialogFragment dialog = ShoppingProductDetailsDialogFragment.newInstance(productList.get(adapterPosition));
             dialog.setUserId(userId);
+            // Pass the current mode to the dialog so it can display the expiry field if needed.
+            dialog.setShoppingMode(isShoppingMode);
             dialog.setShoppingProductDialogListener(new ShoppingProductDetailsDialogFragment.ShoppingProductDialogListener() {
                 @Override
                 public void onProductUpdated(Product updatedProduct) {

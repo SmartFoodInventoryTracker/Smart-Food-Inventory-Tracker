@@ -14,7 +14,6 @@
         android:background="?attr/colorPrimary"
         android:paddingStart="0dp"
         app:titleTextColor="@android:color/white">
-
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -22,7 +21,6 @@
             android:gravity="center_vertical"
             android:paddingStart="16dp"
             android:paddingEnd="16dp">
-
             <ImageView
                 android:id="@+id/shoppingListLogo"
                 android:layout_width="30dp"
@@ -31,7 +29,6 @@
                 app:tint="@android:color/white"
                 android:contentDescription="Shopping List Icon"
                 android:translationY="4dp" />
-
             <TextView
                 android:id="@+id/shoppingListTitle"
                 android:layout_width="wrap_content"
@@ -46,13 +43,13 @@
 
     <!-- Main Content Layout -->
     <LinearLayout
+        android:id="@+id/mainContent"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_marginTop="?attr/actionBarSize"
         android:orientation="vertical"
         android:padding="8dp"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior"
-        android:layout_marginTop="?attr/actionBarSize">
-
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
         <TextView
             android:id="@+id/emptyShoppingMessage"
             android:layout_width="match_parent"
@@ -62,32 +59,46 @@
             android:visibility="gone"
             android:padding="16dp"
             android:textAppearance="?android:attr/textAppearanceMedium" />
-
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/shoppingRecyclerView"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
             android:clipToPadding="false"
-            android:paddingBottom="72dp" />
+            android:paddingBottom="100dp" />
     </LinearLayout>
 
-    <!-- FAB to add item -->
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fab_add_item"
-        android:layout_width="wrap_content"
+    <!-- Bottom Buttons Container for Edit Mode -->
+    <LinearLayout
+        android:id="@+id/bottomButtonsContainer"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_margin="16dp"
-        android:src="@drawable/ic_add"
-        android:contentDescription="Add item" />
+        android:layout_gravity="bottom"
+        android:orientation="horizontal"
+        android:padding="16dp">
+        <Button
+            android:id="@+id/addItemBtn"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Add Item"/>
+        <Button
+            android:id="@+id/goShoppingBtn"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_weight="1"
+            android:text="Go Shopping"/>
+    </LinearLayout>
 
-    <!-- Confirm Button -->
+    <!-- Confirm Purchase Button for Shopping Mode -->
     <Button
         android:id="@+id/confirmPurchaseBtn"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Confirm Purchase"
         android:layout_margin="16dp"
-        android:visibility="gone" />
+        android:visibility="gone"
+        android:layout_gravity="bottom"/>
+
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

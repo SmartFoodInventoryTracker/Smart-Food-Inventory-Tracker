@@ -25,6 +25,8 @@ public class ShoppingProductDetailsDialogFragment extends DialogFragment {
     private ShoppingProductDialogListener listener;
     private String userId;
     private static final int MAX_QUANTITY = 50;
+    // New mode flag: false = Edit mode; true = Shopping mode.
+    private boolean isShoppingMode = false;
 
     public interface ShoppingProductDialogListener {
         void onProductUpdated(Product updatedProduct);
@@ -37,6 +39,11 @@ public class ShoppingProductDetailsDialogFragment extends DialogFragment {
 
     public void setShoppingProductDialogListener(ShoppingProductDialogListener listener) {
         this.listener = listener;
+    }
+
+    // Setter for mode
+    public void setShoppingMode(boolean shoppingMode) {
+        this.isShoppingMode = shoppingMode;
     }
 
     public static ShoppingProductDetailsDialogFragment newInstance(Product product) {
@@ -60,6 +67,8 @@ public class ShoppingProductDetailsDialogFragment extends DialogFragment {
         EditText nameInput = view.findViewById(R.id.nameInput);
         EditText brandInput = view.findViewById(R.id.brandInput);
         EditText quantityInput = view.findViewById(R.id.quantityInput);
+        // New: bind expiry input
+        EditText expiryInput = view.findViewById(R.id.expiryInput);
         ImageView quantityPlus = view.findViewById(R.id.quantityPlus);
         ImageView quantityMinus = view.findViewById(R.id.quantityMinus);
         Button btnDone = view.findViewById(R.id.btnDone);
@@ -84,6 +93,19 @@ public class ShoppingProductDetailsDialogFragment extends DialogFragment {
         nameInput.setText(product.getName());
         brandInput.setText(product.getBrand());
         quantityInput.setText(String.valueOf(product.getQuantity()));
+
+        // Conditionally show or hide expiry field:
+        if(isShoppingMode) {
+            if(expiryInput != null) {
+                expiryInput.setVisibility(View.VISIBLE);
+                // Pre-fill expiry if available; otherwise leave blank.
+                expiryInput.setText(product.getExpiryDate() != null && !product.getExpiryDate().equals("Not set") ? product.getExpiryDate() : "");
+            }
+        } else {
+            if(expiryInput != null) {
+                expiryInput.setVisibility(View.GONE);
+            }
+        }
 
         // Plus button increases the quantity by 1 (up to MAX_QUANTITY).
         quantityPlus.setOnClickListener(v -> {
@@ -121,6 +143,16 @@ public class ShoppingProductDetailsDialogFragment extends DialogFragment {
             product.name = newName;
             product.brand = newBrand;
             product.setQuantity(newQty);
+
+            if(isShoppingMode) {
+                String newExpiry = expiryInput.getText().toString().trim();
+                if(newExpiry.isEmpty()) {
+                    Toast.makeText(getContext(), "Please enter expiry date", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                product.setExpiryDate(newExpiry);
+            }
+            // In Edit mode, expiry remains unchanged.
 
             if (listener != null) {
                 listener.onProductUpdated(product);

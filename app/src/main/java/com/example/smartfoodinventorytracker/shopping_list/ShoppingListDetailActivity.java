@@ -3,6 +3,7 @@ package com.example.smartfoodinventorytracker.shopping_list;
 import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -18,7 +19,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.smartfoodinventorytracker.R;
 import com.example.smartfoodinventorytracker.inventory.Product;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -31,6 +31,9 @@ import com.example.smartfoodinventorytracker.shopping_list.AddShoppingManualProd
 import java.util.ArrayList;
 import java.util.List;
 
+// ... (imports remain unchanged)
+import androidx.appcompat.app.AlertDialog;
+
 public class ShoppingListDetailActivity extends AppCompatActivity implements
         AddShoppingProductListener, ManualShoppingProductListener {
 
@@ -40,6 +43,9 @@ public class ShoppingListDetailActivity extends AppCompatActivity implements
     private ShoppingListItemAdapter adapter;
     private boolean isShoppingMode = false;
     private String listKey; // The shopping list's unique key
+
+    // Bottom buttons from the XML layout.
+    private Button addItemBtn, goShoppingBtn, confirmPurchaseBtn;
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -70,11 +76,11 @@ public class ShoppingListDetailActivity extends AppCompatActivity implements
         TextView listDisplayName = findViewById(R.id.shoppingListTitle);
         listDisplayName.setText(listName != null ? listName : "Shopping List");
 
-        // Get mode extra (edit vs. shopping).
+        // Get mode extra.
         String mode = getIntent().getStringExtra("mode");
         isShoppingMode = "shopping".equals(mode);
 
-        // Get the list key from Intent extras BEFORE creating the adapter.
+        // Get the list key from Intent extras.
         listKey = getIntent().getStringExtra("listKey");
         if (listKey == null) {
             Toast.makeText(this, "No list key provided", Toast.LENGTH_SHORT).show();
@@ -82,38 +88,93 @@ public class ShoppingListDetailActivity extends AppCompatActivity implements
             return;
         }
 
-        // Retrieve userId.
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
-        // Setup FloatingActionButton for adding a product in edit mode.
-        FloatingActionButton addButton = findViewById(R.id.fab_add_item);
-        if (isShoppingMode) {
-            addButton.setVisibility(View.GONE);
-        } else {
-            addButton.setVisibility(View.VISIBLE);
-            addButton.setOnClickListener(v -> {
-                // Launch the shopping-specific dialog for adding a product.
-                AddShoppingProductDialogFragment dialog = new AddShoppingProductDialogFragment();
-                dialog.setListener(this);
-                dialog.show(getSupportFragmentManager(), "AddShoppingProductDialog");
-            });
-        }
+        // Initialize bottom buttons.
+        addItemBtn = findViewById(R.id.addItemBtn);
+        goShoppingBtn = findViewById(R.id.goShoppingBtn);
+        confirmPurchaseBtn = findViewById(R.id.confirmPurchaseBtn);
+
+        updateBottomButtons();
+
+        // "Add Item" button launches the add product dialog.
+        addItemBtn.setOnClickListener(v -> {
+            AddShoppingProductDialogFragment dialog = new AddShoppingProductDialogFragment();
+            dialog.setListener(this);
+            dialog.show(getSupportFragmentManager(), "AddShoppingProductDialog");
+        });
+
+        // "Go Shopping" button confirmation dialog.
+        goShoppingBtn.setOnClickListener(v -> {
+            new AlertDialog.Builder(this)
+                    .setTitle("Enter Shopping Mode")
+                    .setMessage("Are you sure you want to switch to shopping mode?")
+                    .setPositiveButton("Yes", (dialog, which) -> {
+                        isShoppingMode = true;
+                        updateBottomButtons();
+                        adapter.setShoppingMode(isShoppingMode);
+                        adapter.notifyDataSetChanged();
+                        Toast.makeText(this, "Shopping mode activated", Toast.LENGTH_SHORT).show();
+                    })
+                    .setNegativeButton("No", null)
+                    .show();
+        });
+
+        // "Confirm Purchase" button confirmation dialog.
+        confirmPurchaseBtn.setOnClickListener(v -> {
+            new AlertDialog.Builder(this)
+                    .setTitle("Confirm Purchase")
+                    .setMessage("Are you sure you want to confirm purchase?")
+                    .setPositiveButton("Yes", (dialog, which) -> {
+                        DatabaseReference inventoryRef = FirebaseDatabase.getInstance()
+                                .getReference("users")
+                                .child(userId)
+                                .child("inventory_product");
+                        for (Product product : productList) {
+                            inventoryRef.child(product.getBarcode()).setValue(product);
+                        }
+                        Toast.makeText(this, "Products added to inventory!", Toast.LENGTH_SHORT).show();
+                        // Optionally clear expiry info from the shopping products.
+                        for (Product product : productList) {
+                            product.setExpiryDate("Not set");
+                        }
+                        isShoppingMode = false;
+                        updateBottomButtons();
+                        adapter.setShoppingMode(isShoppingMode);
+                        adapter.notifyDataSetChanged();
+                    })
+                    .setNegativeButton("No", null)
+                    .show();
+        });
 
         // Setup RecyclerView.
         recyclerView = findViewById(R.id.shoppingRecyclerView);
         emptyMessage = findViewById(R.id.emptyShoppingMessage);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         productList = new ArrayList<>();
-        adapter = new ShoppingListItemAdapter(this, productList, userId, listKey);
+        adapter = new ShoppingListItemAdapter(this, productList, isShoppingMode, userId, listKey);
         recyclerView.setAdapter(adapter);
 
         // Load the shopping list items from Firebase.
         loadShoppingListItems(listKey);
     }
 
+    private void updateBottomButtons() {
+        // Always show the Add Item button.
+        addItemBtn.setVisibility(View.VISIBLE);
+
+        if (isShoppingMode) {
+            goShoppingBtn.setVisibility(View.GONE);
+            confirmPurchaseBtn.setVisibility(View.VISIBLE);
+        } else {
+            goShoppingBtn.setVisibility(View.VISIBLE);
+            confirmPurchaseBtn.setVisibility(View.GONE);
+        }
+    }
+
+
     private void loadShoppingListItems(String listKey) {
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        // Firebase path: users/{uid}/shopping-list/{listKey}/items
         DatabaseReference ref = FirebaseDatabase.getInstance()
                 .getReference("users")
                 .child(userId)
@@ -156,7 +217,6 @@ public class ShoppingListDetailActivity extends AppCompatActivity implements
 
     @Override
     public void onAddManually() {
-        // Launch the shopping-specific manual dialog.
         AddShoppingManualProductDialogFragment manualDialog = new AddShoppingManualProductDialogFragment();
         manualDialog.setUserId(FirebaseAuth.getInstance().getCurrentUser().getUid());
         manualDialog.setManualProductListener(this);

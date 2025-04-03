@@ -22,9 +22,8 @@ import java.util.Locale;
 
 public class AddShoppingManualProductDialogFragment extends DialogFragment {
 
-    private EditText nameInput, brandInput, quantityInput;
-    // The expiry-related views will be hidden.
-    // Ensure your XML assigns an ID (e.g., expiryLabel) to the expiry TextView.
+    private EditText nameInput, brandInput, quantityInput, expiryInput;
+    // The expiry-related views will be hidden unless in shopping mode.
 
     public interface ManualShoppingProductListener {
         void onProductAdded(Product product);
@@ -33,6 +32,8 @@ public class AddShoppingManualProductDialogFragment extends DialogFragment {
     private ManualShoppingProductListener listener;
     private String userId;
     private static final int MAX_QUANTITY = 50;
+    // New mode flag: false = Edit mode, true = Shopping mode.
+    private boolean isShoppingMode = false;
 
     public void setManualProductListener(ManualShoppingProductListener listener) {
         this.listener = listener;
@@ -40,6 +41,11 @@ public class AddShoppingManualProductDialogFragment extends DialogFragment {
 
     public void setUserId(String userId) {
         this.userId = userId;
+    }
+
+    // Setter for mode
+    public void setShoppingMode(boolean shoppingMode) {
+        this.isShoppingMode = shoppingMode;
     }
 
     @NonNull
@@ -52,22 +58,32 @@ public class AddShoppingManualProductDialogFragment extends DialogFragment {
         nameInput = view.findViewById(R.id.nameInput);
         brandInput = view.findViewById(R.id.brandInput);
         quantityInput = view.findViewById(R.id.quantityInput);
+        expiryInput = view.findViewById(R.id.expiryInput);
 
-        // Hide expiry-related fields:
-        // Hide the expiry label (ensure your XML TextView has android:id="@+id/expiryLabel")
+        // Conditionally show/hide expiry-related fields:
         View expiryLabel = view.findViewById(R.id.expiryLabel);
-        if(expiryLabel != null) {
-            expiryLabel.setVisibility(View.GONE);
-        }
-        // Hide the expiry input
-        View expiryInput = view.findViewById(R.id.expiryInput);
-        if(expiryInput != null) {
-            expiryInput.setVisibility(View.GONE);
-        }
-        // Hide the calendar icon, if present
         View calendarIcon = view.findViewById(R.id.calendarIcon);
-        if(calendarIcon != null) {
-            calendarIcon.setVisibility(View.GONE);
+        if (isShoppingMode) {
+            if(expiryLabel != null) {
+                expiryLabel.setVisibility(View.VISIBLE);
+            }
+            if(expiryInput != null) {
+                expiryInput.setVisibility(View.VISIBLE);
+            }
+            if(calendarIcon != null) {
+                calendarIcon.setVisibility(View.VISIBLE);
+                // Optionally, add a click listener to show a DatePicker.
+            }
+        } else {
+            if(expiryLabel != null) {
+                expiryLabel.setVisibility(View.GONE);
+            }
+            if(expiryInput != null) {
+                expiryInput.setVisibility(View.GONE);
+            }
+            if(calendarIcon != null) {
+                calendarIcon.setVisibility(View.GONE);
+            }
         }
 
         Button btnDone = view.findViewById(R.id.btnDone);
@@ -90,8 +106,16 @@ public class AddShoppingManualProductDialogFragment extends DialogFragment {
                 return;
             }
 
-            // We don't collect expiry here, so set it to "Not set"
-            String expiry = "Not set";
+            String expiry;
+            if(isShoppingMode) {
+                expiry = expiryInput.getText().toString().trim();
+                if(expiry.isEmpty()) {
+                    Toast.makeText(getContext(), "Please enter expiry date", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+            } else {
+                expiry = "Not set";
+            }
 
             // Generate a unique barcode for shopping products.
             String barcode = "shopping_" + System.currentTimeMillis();
