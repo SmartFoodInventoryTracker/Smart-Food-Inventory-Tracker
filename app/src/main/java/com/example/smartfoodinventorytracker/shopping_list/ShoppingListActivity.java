@@ -157,7 +157,7 @@ public class ShoppingListActivity extends AppCompatActivity {
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 List<ShoppingList> allLists = new ArrayList<>();
 
-                // Build flat list from Firebase
+                // Build flat list from Firebase.
                 for (DataSnapshot listSnapshot : snapshot.getChildren()) {
                     String key = listSnapshot.getKey();
                     String listName = listSnapshot.child("name").getValue(String.class);
@@ -168,41 +168,40 @@ public class ShoppingListActivity extends AppCompatActivity {
                     allLists.add(new ShoppingList(key, listName, itemCount));
                 }
 
-                // Build mixed list with headers
+                // Separate lists into recently used and custom lists.
+                List<ShoppingList> recentLists = new ArrayList<>();
+                List<ShoppingList> customLists = new ArrayList<>();
+
+                for (ShoppingList list : allLists) {
+                    // Here we assume that a recently used list has its name set to "last_used".
+                    if ("last_used".equalsIgnoreCase(list.name)) {
+                        recentLists.add(list);
+                    } else {
+                        customLists.add(list);
+                    }
+                }
+
+                // Build mixed list with headers.
                 List<Object> mixedList = new ArrayList<>();
 
-                // Section for "Last used" – only if there are any
-                List<ShoppingList> lastUsedLists = new ArrayList<>();
-                for (ShoppingList list : allLists) {
-                    if ("last_used".equalsIgnoreCase(list.name)) {
-                        lastUsedLists.add(list);
-                    }
-                }
-                if (!lastUsedLists.isEmpty()) {
-                    mixedList.add("Last used (3 last used)");
-                    // Add up to 3 last_used lists
-                    for (int i = 0; i < lastUsedLists.size() && i < 3; i++) {
-                        mixedList.add(lastUsedLists.get(i));
-                    }
+                if (!recentLists.isEmpty()) {
+                    mixedList.add("Recently Used");
+                    // Optionally, you can sort recentLists by a timestamp if available.
+                    // For now, we just add all recent lists.
+                    mixedList.addAll(recentLists);
                 }
 
-                // Section for "Custom shopping lists"
                 mixedList.add("Custom shopping lists");
-                for (ShoppingList list : allLists) {
-                    if (!"last_used".equalsIgnoreCase(list.name)) {
-                        mixedList.add(list);
-                    }
-                }
+                mixedList.addAll(customLists);
 
-                // 🌟 Cache list key → name locally
+                // Cache list key -> name mapping.
                 Map<String, String> keyToNameMap = new HashMap<>();
                 for (ShoppingList list : allLists) {
                     keyToNameMap.put(list.key, list.name);
                 }
                 ShoppingListCache.saveListMap(ShoppingListActivity.this, keyToNameMap);
 
-
-                // Set up RecyclerView with mixed data
+                // Set up RecyclerView with mixed data.
                 RecyclerView recyclerView = findViewById(R.id.shoppingListsRecyclerView);
                 recyclerView.setLayoutManager(new LinearLayoutManager(ShoppingListActivity.this));
                 ShoppingListAdapter adapter = new ShoppingListAdapter(ShoppingListActivity.this, mixedList);
