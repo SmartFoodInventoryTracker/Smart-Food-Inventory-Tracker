@@ -30,7 +30,10 @@ import com.example.smartfoodinventorytracker.shopping_list.AddShoppingProductDia
 import com.example.smartfoodinventorytracker.shopping_list.AddShoppingManualProductDialogFragment.ManualShoppingProductListener;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public class ShoppingListDetailActivity extends AppCompatActivity implements
         AddShoppingProductListener, ManualShoppingProductListener {
@@ -104,7 +107,7 @@ public class ShoppingListDetailActivity extends AppCompatActivity implements
         // Secondary button functionality depends on mode.
         secondaryBtn.setOnClickListener(v -> {
             if (!isShoppingMode) {
-                // "Go Shopping" functionality.
+                // "Go Shopping" logic (unchanged)
                 new AlertDialog.Builder(this)
                         .setTitle("Enter Shopping Mode")
                         .setMessage("Are you sure you want to switch to shopping mode?")
@@ -118,7 +121,7 @@ public class ShoppingListDetailActivity extends AppCompatActivity implements
                         .setNegativeButton("No", null)
                         .show();
             } else {
-                // "Confirm Purchase" functionality.
+                // "Confirm Purchase" logic: Merge identical items, keep the ID of the first encountered item.
                 new AlertDialog.Builder(this)
                         .setTitle("Confirm Purchase")
                         .setMessage("Are you sure you want to confirm purchase?")
@@ -127,21 +130,72 @@ public class ShoppingListDetailActivity extends AppCompatActivity implements
                                     .getReference("users")
                                     .child(userId)
                                     .child("inventory_product");
-                            for (Product product : productList) {
-                                inventoryRef.child(product.getBarcode()).setValue(product);
-                            }
-                            Toast.makeText(this, "Products added to inventory!", Toast.LENGTH_SHORT).show();
-                            // Optionally clear expiry info from the shopping products.
-                            for (Product product : productList) {
-                                product.setExpiryDate("Not set");
-                            }
-                            isShoppingMode = false;
-                            updateBottomButtons();
-                            adapter.setShoppingMode(isShoppingMode);
-                            adapter.notifyDataSetChanged();
+
+                            // Step 1: Read existing inventory
+                            inventoryRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(@NonNull DataSnapshot inventorySnapshot) {
+                                    Map<String, Product> existingInventory = new HashMap<>();
+                                    for (DataSnapshot itemSnap : inventorySnapshot.getChildren()) {
+                                        Product p = itemSnap.getValue(Product.class);
+                                        if (p != null) {
+                                            existingInventory.put(p.getBarcode(), p);
+                                        }
+                                    }
+
+                                    // Step 2: Merge shopping list items into inventory
+                                    for (Product shoppingProduct : productList) {
+                                        boolean merged = false;
+
+                                        for (Product inventoryProduct : existingInventory.values()) {
+                                            if (productsMatch(inventoryProduct, shoppingProduct)) {
+                                                // Merge quantity and update date added
+                                                inventoryProduct.name = shoppingProduct.name;
+                                                inventoryProduct.brand = shoppingProduct.brand;
+                                                inventoryProduct.setQuantity(inventoryProduct.getQuantity() + shoppingProduct.getQuantity());
+                                                inventoryProduct.setDateAdded(getCurrentDate());
+
+                                                inventoryRef.child(inventoryProduct.getBarcode()).setValue(inventoryProduct);
+                                                merged = true;
+                                                break;
+                                            }
+                                        }
+
+                                        if (!merged) {
+                                            // Different product → assign new ID and insert as a new item
+                                            String newId = inventoryRef.push().getKey();
+                                            shoppingProduct.setDateAdded(getCurrentDate());
+                                            if (newId != null) {
+                                                shoppingProduct.barcode = newId;
+                                                inventoryRef.child(newId).setValue(shoppingProduct);
+                                            }
+                                        }
+                                    }
+
+                                    Toast.makeText(ShoppingListDetailActivity.this, "Purchase confirmed", Toast.LENGTH_SHORT).show();
+
+                                    // Clear expiry info from shopping products
+                                    for (Product p : productList) {
+                                        p.setExpiryDate("Not set");
+                                    }
+                                    adapter.notifyDataSetChanged();  // Reflect the updated expiry values in the list
+
+
+                                    isShoppingMode = false;
+                                    updateBottomButtons();
+                                    adapter.setShoppingMode(isShoppingMode);
+                                    adapter.notifyDataSetChanged();
+                                }
+
+                                @Override
+                                public void onCancelled(@NonNull DatabaseError error) {
+                                    Toast.makeText(ShoppingListDetailActivity.this, "Failed to access inventory", Toast.LENGTH_SHORT).show();
+                                }
+                            });
                         })
                         .setNegativeButton("No", null)
                         .show();
+
             }
         });
 
@@ -155,6 +209,25 @@ public class ShoppingListDetailActivity extends AppCompatActivity implements
 
         // Load the shopping list items from Firebase.
         loadShoppingListItems(listKey);
+    }
+
+    private boolean productsMatch(Product a, Product b) {
+        return a.getName().trim().equalsIgnoreCase(b.getName().trim()) &&
+                a.getBrand().trim().equalsIgnoreCase(b.getBrand().trim()) &&
+                a.getExpiryDate().trim().equalsIgnoreCase(b.getExpiryDate().trim());
+    }
+
+
+    private String getCurrentDate() {
+        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("d/M/yyyy", java.util.Locale.getDefault());
+        return sdf.format(new java.util.Date());
+    }
+
+    private String buildCompositeKey(Product prod) {
+        String name = (prod.getName() == null) ? "" : prod.getName().trim().toLowerCase();
+        String brand = (prod.getBrand() == null) ? "" : prod.getBrand().trim().toLowerCase();
+        String expiry = (prod.getExpiryDate() == null) ? "" : prod.getExpiryDate().trim().toLowerCase();
+        return name + "_" + brand + "_" + expiry;
     }
 
     private void updateBottomButtons() {

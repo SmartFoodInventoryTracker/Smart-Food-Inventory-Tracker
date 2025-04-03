@@ -155,8 +155,10 @@ public class ShoppingListItemAdapter extends RecyclerView.Adapter<ShoppingListIt
                     if (pos != RecyclerView.NO_POSITION) {
                         productList.set(pos, updatedProduct);
                         notifyItemChanged(pos);
+                        updateProductInFirebase(updatedProduct); // This saves name/brand/etc. changes too
                     }
                 }
+
                 @Override
                 public void onProductDeleted(String barcode) {
                     int pos = holder.getAdapterPosition();
