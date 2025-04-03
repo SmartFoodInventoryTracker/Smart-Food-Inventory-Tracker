@@ -281,10 +281,8 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.View
                 int number = Integer.parseInt(parts[2]);
 
                 if (text.contains("day")) {
-                    if (number <= 2) {
+                    if (number <= 3) {
                         return ContextCompat.getColor(context, R.color.orange);
-                    } else if (number <= 4) {
-                        return ContextCompat.getColor(context, R.color.yellow);
                     } else {
                         return ContextCompat.getColor(context, R.color.green);
                     }

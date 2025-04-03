@@ -42,6 +42,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Brand: No Name"
+                android:layout_marginBottom="5dp"
                 android:textColor="#777777"
                 android:textSize="15sp" />
 
@@ -49,11 +50,14 @@
                 android:id="@+id/expiryBadge"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Exp: Not set"
-                android:textColor="#888888"
-                android:textSize="14sp"
-                android:visibility="gone"
-                android:layout_marginTop="2dp"/>
+                android:backgroundTint="@color/red"
+                android:text="Expires in 7 days"
+                android:textColor="@android:color/white"
+                android:textSize="12sp"
+                android:padding="7dp"
+                android:background="@drawable/rounded_button"
+                android:visibility="gone" />
+
 
         </LinearLayout>
 

@@ -248,6 +248,7 @@ public class ShoppingListItemAdapter extends RecyclerView.Adapter<ShoppingListIt
 
     private int getExpiryColor(String text) {
         Context ctx = context;
+
         if (text.equals("Expired")) {
             return ctx.getColor(R.color.red);
         } else if (text.contains("Expires today")) {
@@ -258,20 +259,19 @@ public class ShoppingListItemAdapter extends RecyclerView.Adapter<ShoppingListIt
                 int number = Integer.parseInt(parts[2]);
 
                 if (text.contains("day")) {
-                    if (number <= 2) return ctx.getColor(R.color.orange);
-                    else if (number <= 4) return ctx.getColor(R.color.yellow);
-                    else return ctx.getColor(R.color.green);
+                    if (number <= 3) return ctx.getColor(R.color.orange);  // ≤ 4 days → orange
+                    else return ctx.getColor(R.color.green);               // > 4 days → green
                 } else {
-                    return ctx.getColor(R.color.green);
+                    return ctx.getColor(R.color.green); // weeks/months
                 }
+
             } catch (Exception e) {
                 return ctx.getColor(android.R.color.darker_gray);
             }
         } else {
-            return ctx.getColor(android.R.color.darker_gray);
+            return ctx.getColor(android.R.color.darker_gray); // "No expiry set", etc.
         }
     }
-
 
     private void updateProductInFirebase(Product product) {
         FirebaseDatabase.getInstance()
