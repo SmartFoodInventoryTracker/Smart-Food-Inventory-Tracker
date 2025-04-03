@@ -135,7 +135,7 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.View
         holder.productImage.setImageResource(iconResId);
 
 
-        holder.itemView.setOnClickListener(v -> {
+        holder.itemView.setOnLongClickListener(v -> {
             Context viewContext = v.getContext();
 
             while (viewContext instanceof android.content.ContextWrapper && !(viewContext instanceof FragmentActivity)) {
@@ -152,88 +152,30 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.View
                     public void onProductUpdated(Product updatedProduct) {
                         int currentPos = holder.getAdapterPosition();
                         if (currentPos != RecyclerView.NO_POSITION) {
-                            itemList.set(currentPos, updatedProduct);  // ✅ update UI list
+                            itemList.set(currentPos, updatedProduct);
                             int indexInOriginal = originalList.indexOf(product);
                             if (indexInOriginal != -1) {
-                                originalList.set(indexInOriginal, updatedProduct);  // ✅ update original data
+                                originalList.set(indexInOriginal, updatedProduct);
                             }
-                            notifyItemChanged(currentPos); // 🔁 trigger UI refresh
+                            notifyItemChanged(currentPos);
                         }
                     }
 
                     @Override
                     public void onProductDeleted(String barcode) {
-                        removeProductByBarcode(barcode);
+                        int currentPos = holder.getAdapterPosition();
+                        if (currentPos != RecyclerView.NO_POSITION) {
+                            itemList.remove(currentPos);
+                            notifyItemRemoved(currentPos);
+                            originalList.remove(product);
+                        }
                     }
                 });
 
                 dialog.show(fm, "ProductDetailsDialog");
-            } else {
-                Log.e("InventoryAdapter", "Context is not a FragmentActivity");
             }
-        });
 
-
-        holder.itemView.setOnLongClickListener(v -> {
-            if (product.getQuantity() > 1) {
-                new AlertDialog.Builder(v.getContext())
-                        .setTitle("Multiple Quantities")
-                        .setMessage("This product has a quantity of " + product.getQuantity() + ". Do you want to delete one or all?")
-                        .setPositiveButton("Delete One", (dialog, which) -> {
-                            product.setQuantity(product.getQuantity() - 1);
-
-                            databaseReference.child(product.getBarcode())
-                                    .setValue(product)
-                                    .addOnSuccessListener(aVoid -> {
-                                        Toast.makeText(v.getContext(), "One item removed", Toast.LENGTH_SHORT).show();
-                                    })
-                                    .addOnFailureListener(e ->
-                                            Toast.makeText(v.getContext(), "Failed to update", Toast.LENGTH_SHORT).show());
-                        })
-
-
-                        .setNegativeButton("Delete All", (dialog, which) -> {
-                            databaseReference.child(product.getBarcode())
-                                    .removeValue()
-                                    .addOnSuccessListener(aVoid -> {
-                                        int itemPosition = holder.getAdapterPosition();
-                                        if (itemPosition != RecyclerView.NO_POSITION) {
-                                            itemList.remove(itemPosition);
-                                            notifyItemRemoved(itemPosition);
-                                        }
-                                        Toast.makeText(v.getContext(), "Product removed!", Toast.LENGTH_SHORT).show();
-                                    })
-                                    .addOnFailureListener(e ->
-                                            Toast.makeText(v.getContext(), "Failed to remove", Toast.LENGTH_SHORT).show());
-                        })
-                        .setNeutralButton("Cancel", null)
-                        .show();
-            } else {
-                new AlertDialog.Builder(v.getContext())
-                        .setTitle("Delete Product")
-                        .setMessage("Are you sure you want to remove this product?")
-                        .setPositiveButton("Yes", (dialog, which) -> {
-
-                            databaseReference.child(product.getBarcode())
-                                    .removeValue()
-                                    .addOnSuccessListener(aVoid -> {
-                                        int itemPosition = holder.getAdapterPosition();
-                                        if (itemPosition != RecyclerView.NO_POSITION) {
-                                            itemList.remove(itemPosition);
-                                            notifyItemRemoved(itemPosition);
-                                        }
-                                        Toast.makeText(v.getContext(), "Product removed!", Toast.LENGTH_SHORT).show();
-                                    })
-                                    .addOnFailureListener(e ->
-                                            Toast.makeText(v.getContext(), "Failed to remove", Toast.LENGTH_SHORT).show());
-                            notifyDataSetChanged();
-                        })
-                        .setNegativeButton("No", null)
-                        .show();
-            }
             return true;
-
-
         });
 
     }

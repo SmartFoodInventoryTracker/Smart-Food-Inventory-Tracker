@@ -19,6 +19,8 @@ import androidx.fragment.app.DialogFragment;
 
 
 import com.example.smartfoodinventorytracker.R;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 import java.time.LocalDate;
@@ -57,222 +59,200 @@ public class ProductDetailsDialogFragment extends DialogFragment {
     @NonNull
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
-
         if (getArguments() != null) {
             product = (Product) getArguments().getSerializable("product");
         }
 
-        View view = LayoutInflater.from(getContext()).inflate(R.layout.dialog_product_details, null);
+        View view = LayoutInflater.from(getContext()).inflate(R.layout.dialog_shopping_product_details, null);
 
-        // 🧩 UI refs
-        ImageView productImage = view.findViewById(R.id.productImageDialog);
-        TextView name = view.findViewById(R.id.nameText);
-        TextView brand = view.findViewById(R.id.brandText);
-        TextView expiryBadge = view.findViewById(R.id.expiryBadge);
-        TextView quantityBadge = view.findViewById(R.id.quantityBadge);
-        EditText expiryText = view.findViewById(R.id.expiryText);
-        EditText quantityText = view.findViewById(R.id.quantityText);
-        ImageView quantityMinus = view.findViewById(R.id.quantityMinus);
+        EditText nameInput = view.findViewById(R.id.nameInput);
+        EditText brandInput = view.findViewById(R.id.brandInput);
+        EditText expiryInput = view.findViewById(R.id.expiryInput);
+        EditText quantityInput = view.findViewById(R.id.quantityInput);
+        ImageView calendarIcon = view.findViewById(R.id.calendarIcon);
         ImageView quantityPlus = view.findViewById(R.id.quantityPlus);
+        ImageView quantityMinus = view.findViewById(R.id.quantityMinus);
+        Button btnDone = view.findViewById(R.id.btnDone);
+        Button btnCancel = view.findViewById(R.id.btnCancel);
+        Button btnDelete = view.findViewById(R.id.btnDelete);
 
-        LinearLayout readOnlyContainer = view.findViewById(R.id.readOnlyContainer);
-        LinearLayout editableContainer = view.findViewById(R.id.editableContainer);
-        LinearLayout saveCancelRow = view.findViewById(R.id.saveCancelRow);
-        LinearLayout buttonRow = view.findViewById(R.id.buttonRow);
+        // Pre-fill fields
+        nameInput.setText(product.getName());
+        brandInput.setText(product.getBrand());
+        expiryInput.setText(product.getExpiryDate());
+        quantityInput.setText(String.valueOf(product.getQuantity()));
 
-        Button editBtn = view.findViewById(R.id.editButton);
-        Button deleteBtn = view.findViewById(R.id.deleteButton);
-        Button saveBtn = view.findViewById(R.id.saveButton);
-        Button cancelEditBtn = view.findViewById(R.id.cancelEditButton);
+        // Enable/disable name/brand fields based on barcode type
+        nameInput.setEnabled(true);
+        brandInput.setEnabled(true);
 
-        ImageView expiryCalendarIcon = view.findViewById(R.id.expiryCalendarIcon);
-
-        // Load data
-        name.setText(product.getName());
-        brand.setText(product.getBrand());
-        expiryText.setText(product.getExpiryDate());
-        quantityText.setText(String.valueOf(product.getQuantity()));
-        quantityBadge.setText("Qty: " + product.getQuantity());
-        productImage.setImageResource(CategoryUtils.getCategoryIcon(product.getName()));
-
-        // Expiry badge
-        String expiryLabel = getExpiryText(product.getExpiryDate());
-        expiryBadge.setText(expiryLabel);
-
-        int expiryColor = getExpiryColor(product.getExpiryDate());
-        expiryBadge.setBackgroundTintList(android.content.res.ColorStateList.valueOf(expiryColor));
-        expiryBadge.setVisibility(View.VISIBLE);
-
-        // Quantity badge
-        int qtyColor = getQuantityColor(product.getQuantity());
-        quantityBadge.setBackgroundTintList(android.content.res.ColorStateList.valueOf(qtyColor));
-        quantityBadge.setVisibility(View.VISIBLE);
-
-        // Calendar picker logic (shared)
+        // Show date picker when clicking input or calendar icon
         View.OnClickListener dateClickListener = v -> {
-            if (!expiryText.isEnabled()) return;
-
-            final Calendar calendar = Calendar.getInstance();
-            DatePickerDialog datePickerDialog = new DatePickerDialog(requireContext(),
-                    (view1, year, month, dayOfMonth) -> {
+            Calendar calendar = Calendar.getInstance();
+            DatePickerDialog dialog = new DatePickerDialog(requireContext(),
+                    (datePicker, year, month, dayOfMonth) -> {
                         String selectedDate = dayOfMonth + "/" + (month + 1) + "/" + year;
-                        expiryText.setText(selectedDate);
+                        expiryInput.setText(selectedDate);
                     },
                     calendar.get(Calendar.YEAR),
                     calendar.get(Calendar.MONTH),
-                    calendar.get(Calendar.DAY_OF_MONTH)
-            );
-            datePickerDialog.show();
+                    calendar.get(Calendar.DAY_OF_MONTH));
+            dialog.show();
         };
-        expiryText.setOnClickListener(dateClickListener);
-        expiryCalendarIcon.setOnClickListener(dateClickListener);
+        expiryInput.setOnClickListener(dateClickListener);
+        calendarIcon.setOnClickListener(dateClickListener);
 
-        // Enable edit mode
-        editBtn.setOnClickListener(v -> {
-            boolean isManual = product.getBarcode() == null || product.getBarcode().startsWith("manual_");
-            name.setEnabled(isManual);
-            brand.setEnabled(isManual);
-            expiryText.setEnabled(true);
-            quantityText.setEnabled(true);
-
-            editableContainer.setVisibility(View.VISIBLE);
-            readOnlyContainer.setVisibility(View.GONE);
-            saveCancelRow.setVisibility(View.VISIBLE);
-            buttonRow.setVisibility(View.GONE);
-        });
-
-        // Cancel edit mode
-        cancelEditBtn.setOnClickListener(v -> {
-            name.setText(product.getName());
-            brand.setText(product.getBrand());
-            expiryText.setText(product.getExpiryDate());
-            quantityText.setText(String.valueOf(product.getQuantity()));
-
-            name.setEnabled(false);
-            brand.setEnabled(false);
-            expiryText.setEnabled(false);
-            quantityText.setEnabled(false);
-
-            editableContainer.setVisibility(View.GONE);
-            readOnlyContainer.setVisibility(View.VISIBLE);
-            saveCancelRow.setVisibility(View.GONE);
-            buttonRow.setVisibility(View.VISIBLE);
-        });
-
-        saveBtn.setOnClickListener(v -> {
-            String newExpiry = expiryText.getText().toString().trim();
-            int newQty = Integer.parseInt(quantityText.getText().toString().trim());
-
-            product.setExpiryDate(newExpiry);
-            product.setQuantity(newQty);
-
-            // 🔁 Update UI badges before closing
-            expiryBadge.setText(getExpiryText(newExpiry));
-            expiryBadge.setBackgroundTintList(android.content.res.ColorStateList.valueOf(getExpiryColor(newExpiry)));
-
-            quantityBadge.setBackgroundTintList(android.content.res.ColorStateList.valueOf(getQuantityColor(newQty)));
-
-
-
-            FirebaseDatabase.getInstance()
-                    .getReference("users")
-                    .child(userId)
-                    .child("inventory_product")
-                    .child(product.getBarcode())
-                    .setValue(product)
-                    .addOnSuccessListener(aVoid -> {
-                        Toast.makeText(getContext(), "Product updated", Toast.LENGTH_SHORT).show();
-                        if (listener != null) listener.onProductUpdated(product);
-                        dismiss();
-                    })
-                    .addOnFailureListener(e ->
-                            Toast.makeText(getContext(), "Failed to update", Toast.LENGTH_SHORT).show());
+        // Quantity adjustment
+        quantityPlus.setOnClickListener(v -> {
+            try {
+                int qty = Integer.parseInt(quantityInput.getText().toString().trim());
+                if (qty > 99) {
+                    Toast.makeText(getContext(), "Maximum quantity is 99", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                quantityInput.setText(String.valueOf(qty + 1));
+            } catch (NumberFormatException e) {
+                quantityInput.setText("1");
+            }
         });
 
         quantityMinus.setOnClickListener(v -> {
             try {
-                int qty = Integer.parseInt(quantityText.getText().toString().trim());
+                int qty = Integer.parseInt(quantityInput.getText().toString().trim());
                 if (qty > 1) {
-                    quantityText.setText(String.valueOf(qty - 1));
+                    quantityInput.setText(String.valueOf(qty - 1));
+                } else {
+                    Toast.makeText(getContext(), "Minimum quantity is 1", Toast.LENGTH_SHORT).show();
                 }
             } catch (NumberFormatException e) {
-                quantityText.setText("1"); // fallback
+                quantityInput.setText("1");
             }
         });
 
-        quantityPlus.setOnClickListener(v -> {
+
+        // Save changes
+        btnDone.setOnClickListener(v -> {
+            String newName = nameInput.getText().toString().trim();
+            String newBrand = brandInput.getText().toString().trim();
+            String newExpiry = expiryInput.getText().toString().trim();
+            int newQty;
+
+            if (newName.isEmpty()) {
+                Toast.makeText(getContext(), "Product name cannot be empty", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
             try {
-                int qty = Integer.parseInt(quantityText.getText().toString().trim());
-                quantityText.setText(String.valueOf(qty + 1));
+                newQty = Integer.parseInt(quantityInput.getText().toString().trim());
+                if (newQty <= 0) {
+                    Toast.makeText(getContext(), "Quantity must be at least 1", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                if (newQty > 99) {
+                    Toast.makeText(getContext(), "Maximum quantity per item is 99", Toast.LENGTH_SHORT).show();
+                    return;
+                }
             } catch (NumberFormatException e) {
-                quantityText.setText("1"); // fallback
+                Toast.makeText(getContext(), "Invalid quantity", Toast.LENGTH_SHORT).show();
+                return;
             }
+
+            DatabaseReference inventoryRef = FirebaseDatabase.getInstance()
+                    .getReference("users")
+                    .child(userId)
+                    .child("inventory_product");
+
+            inventoryRef.get().addOnSuccessListener(snapshot -> {
+                int currentSize = (int) snapshot.getChildrenCount();
+                if (!snapshot.hasChild(product.getBarcode()) && currentSize >= 99) {
+                    Toast.makeText(getContext(), "Inventory limit reached (99 items max)", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                // Create a temp product with updated fields
+                Product updated = new Product(product.getBarcode(), newName, newBrand);
+                updated.setExpiryDate(newExpiry);
+                updated.setQuantity(newQty);
+                updated.setDateAdded(getCurrentDate());
+
+                boolean merged = false;
+
+                for (DataSnapshot child : snapshot.getChildren()) {
+                    Product other = child.getValue(Product.class);
+                    if (other == null) continue;
+                    if (other.getBarcode().equals(product.getBarcode())) continue;
+
+                    if (productsMatch(other, updated)) {
+                        int totalQty = other.getQuantity() + updated.getQuantity();
+                        if (totalQty > 99) totalQty = 99;
+
+                        other.setQuantity(totalQty);
+                        other.setDateAdded(getCurrentDate());
+
+                        inventoryRef.child(other.getBarcode()).setValue(other);
+                        inventoryRef.child(product.getBarcode()).removeValue();
+
+                        Toast.makeText(getContext(), "Merged with existing item", Toast.LENGTH_SHORT).show();
+                        if (listener != null) listener.onProductDeleted(product.getBarcode());
+                        dismiss();
+                        merged = true;
+                        break;
+                    }
+                }
+
+                if (!merged) {
+                    // Just update this one
+                    product.name = newName;
+                    product.brand = newBrand;
+                    product.setExpiryDate(newExpiry);
+                    product.setQuantity(newQty);
+                    product.setDateAdded(getCurrentDate());
+
+                    inventoryRef.child(product.getBarcode()).setValue(product)
+                            .addOnSuccessListener(aVoid -> {
+                                Toast.makeText(getContext(), "Product updated", Toast.LENGTH_SHORT).show();
+                                if (listener != null) listener.onProductUpdated(product);
+                                dismiss();
+                            })
+                            .addOnFailureListener(e ->
+                                    Toast.makeText(getContext(), "Failed to update", Toast.LENGTH_SHORT).show());
+                }
+            });
         });
 
-        deleteBtn.setOnClickListener(v -> {
-            if (product.getQuantity() > 1) {
-                new AlertDialog.Builder(requireContext())
-                        .setTitle("Multiple Quantities")
-                        .setMessage("This product has a quantity of " + product.getQuantity() + ". Do you want to delete one or all?")
-                        .setPositiveButton("Delete One", (dialog, which) -> {
-                            product.setQuantity(product.getQuantity() - 1);
-                            FirebaseDatabase.getInstance()
-                                    .getReference("users")
-                                    .child(userId)
-                                    .child("inventory_product")
-                                    .child(product.getBarcode())
-                                    .setValue(product)
-                                    .addOnSuccessListener(aVoid -> {
-                                        Toast.makeText(getContext(), "One item removed", Toast.LENGTH_SHORT).show();
-                                        dismiss();
-                                    })
-                                    .addOnFailureListener(e ->
-                                            Toast.makeText(getContext(), "Failed to update", Toast.LENGTH_SHORT).show());
-                        })
-                        .setNegativeButton("Delete All", (dialog, which) -> {
-                            FirebaseDatabase.getInstance()
-                                    .getReference("users")
-                                    .child(userId)
-                                    .child("inventory_product")
-                                    .child(product.getBarcode())
-                                    .removeValue()
-                                    .addOnSuccessListener(aVoid -> {
-                                        Toast.makeText(getContext(), "Product deleted", Toast.LENGTH_SHORT).show();
-                                        dismiss();
-                                    })
-                                    .addOnFailureListener(e ->
-                                            Toast.makeText(getContext(), "Failed to delete", Toast.LENGTH_SHORT).show());
-                        })
-                        .setNeutralButton("Cancel", null)
-                        .show();
-            }
-            else {
-                new AlertDialog.Builder(requireContext())
-                        .setTitle("Delete Product")
-                        .setMessage("Are you sure you want to delete this product?")
-                        .setPositiveButton("Yes", (dialog, which) -> {
-                            FirebaseDatabase.getInstance()
-                                    .getReference("users")
-                                    .child(userId)
-                                    .child("inventory_product")
-                                    .child(product.getBarcode())
-                                    .removeValue()
-                                    .addOnSuccessListener(aVoid -> {
-                                        Toast.makeText(getContext(), "Product deleted", Toast.LENGTH_SHORT).show();
-                                        dismiss();
-                                    })
-                                    .addOnFailureListener(e ->
-                                            Toast.makeText(getContext(), "Failed to delete", Toast.LENGTH_SHORT).show());
-                        })
-                        .setNegativeButton("No", null)
-                        .show();
-            }
+        // Cancel = just close
+        btnCancel.setOnClickListener(v -> dismiss());
+
+        // Delete product
+        btnDelete.setOnClickListener(v -> {
+            new AlertDialog.Builder(requireContext())
+                    .setTitle("Delete Product")
+                    .setMessage("Are you sure you want to delete this product?")
+                    .setPositiveButton("Yes", (dialog, which) -> {
+                        FirebaseDatabase.getInstance()
+                                .getReference("users")
+                                .child(userId)
+                                .child("inventory_product")
+                                .child(product.getBarcode())
+                                .removeValue()
+                                .addOnSuccessListener(aVoid -> {
+                                    Toast.makeText(getContext(), "Product deleted", Toast.LENGTH_SHORT).show();
+                                    if (listener != null) listener.onProductDeleted(product.getBarcode());
+                                    dismiss();
+                                })
+                                .addOnFailureListener(e ->
+                                        Toast.makeText(getContext(), "Failed to delete", Toast.LENGTH_SHORT).show());
+                    })
+                    .setNegativeButton("No", null)
+                    .show();
+
         });
 
         return new AlertDialog.Builder(requireContext())
                 .setView(view)
                 .create();
     }
+
 
     // 🔍 Expiry label
     private String getExpiryText(String expiryDate) {
@@ -314,4 +294,18 @@ public class ProductDetailsDialogFragment extends DialogFragment {
         else if (quantity >= 2) return ContextCompat.getColor(requireContext(), R.color.orange);
         else return ContextCompat.getColor(requireContext(), R.color.red);
     }
+
+    private boolean productsMatch(Product a, Product b) {
+        return a.getName().equalsIgnoreCase(b.getName()) &&
+                a.getBrand().equalsIgnoreCase(b.getBrand()) &&
+                a.getExpiryDate().equalsIgnoreCase(b.getExpiryDate());
+    }
+
+    private String getCurrentDate() {
+        LocalDate today = LocalDate.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d/M/yyyy");
+        return today.format(formatter);
+    }
+
+
 }

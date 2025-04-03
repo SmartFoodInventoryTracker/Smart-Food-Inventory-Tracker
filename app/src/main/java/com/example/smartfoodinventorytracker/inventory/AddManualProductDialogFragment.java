@@ -69,7 +69,11 @@ public class AddManualProductDialogFragment extends DialogFragment {
 
         quantityPlus.setOnClickListener(v -> {
             int currentQty = getSafeQuantity();
-            quantityInput.setText(String.valueOf(currentQty + 1));
+            if (currentQty >= 99) {
+                Toast.makeText(getContext(), "Maximum quantity is 99", Toast.LENGTH_SHORT).show();
+            } else {
+                quantityInput.setText(String.valueOf(currentQty + 1));
+            }
         });
 
         btnDone.setOnClickListener(v -> {
@@ -83,10 +87,19 @@ public class AddManualProductDialogFragment extends DialogFragment {
                 return;
             }
 
+            if (quantity <= 0) {
+                Toast.makeText(getContext(), "Quantity must be at least 1", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            if (quantity > 99) {
+                Toast.makeText(getContext(), "Maximum quantity per item is 99", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
             if (brand.isEmpty()) brand = "N/A";
             if (expiry.isEmpty()) expiry = "Not set";
 
-            Product product = new Product("", name, brand); // Empty barcode for now
+            Product product = new Product("", name, brand);
             product.setQuantity(quantity);
             product.setExpiryDate(expiry);
             product.setDateAdded(getCurrentDate());
@@ -95,8 +108,8 @@ public class AddManualProductDialogFragment extends DialogFragment {
                 listener.onProductAdded(product);
             }
             dismiss();
-
         });
+
 
         btnCancel.setOnClickListener(v -> dismiss());
 

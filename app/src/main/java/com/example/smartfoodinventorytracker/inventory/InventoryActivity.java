@@ -532,7 +532,13 @@ public class InventoryActivity extends AppCompatActivity
                 boolean sameExpiry = normalize(existing.getExpiryDate()).equals(normalize(expiry));
 
                 if (sameName && sameBrand && sameExpiry) {
-                    existing.setQuantity(existing.getQuantity() + 1);
+                    int mergedQty = existing.getQuantity() + 1;
+                    if (mergedQty > 99) {
+                        mergedQty = 99;
+                        Toast.makeText(this, "Merged quantity capped at 99 for " + name, Toast.LENGTH_SHORT).show();
+                    }
+                    existing.setQuantity(mergedQty);
+
                     existing.setDateAdded(getCurrentDate());
                     inventoryRef.child(existing.getBarcode()).setValue(existing);
                     Toast.makeText(this, "Merged with existing item", Toast.LENGTH_SHORT).show();
@@ -632,7 +638,12 @@ public class InventoryActivity extends AppCompatActivity
                 boolean sameExpiry = normalize(existing.getExpiryDate()).equals(normalize(newProduct.getExpiryDate()));
 
                 if (sameName && sameBrand && sameExpiry) {
-                    existing.setQuantity(existing.getQuantity() + newProduct.getQuantity());
+                    int mergedQty = existing.getQuantity() + newProduct.getQuantity();
+                    if (mergedQty > 99) {
+                        mergedQty = 99;
+                        Toast.makeText(this, "Merged quantity capped at 99 for " + newProduct.getName(), Toast.LENGTH_SHORT).show();
+                    }
+                    existing.setQuantity(mergedQty);
                     existing.setDateAdded(getCurrentDate());
                     inventoryRef.child(existing.getBarcode()).setValue(existing);
                     Toast.makeText(this, "Merged with existing product", Toast.LENGTH_SHORT).show();
