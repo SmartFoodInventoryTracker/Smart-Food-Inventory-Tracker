@@ -27,6 +27,8 @@ import java.util.Locale;
 
 import java.util.List;
 import java.util.ArrayList;
+import android.text.InputFilter;
+import com.example.smartfoodinventorytracker.utils.AppConstants;
 
 
 public class AddShoppingManualProductDialogFragment extends DialogFragment {
@@ -35,7 +37,6 @@ public class AddShoppingManualProductDialogFragment extends DialogFragment {
     private TextView expiryLabel;
     private ImageView calendarIcon, quantityMinus, quantityPlus;
     private List<Product> existingProducts = new ArrayList<>();
-
 
     public interface ManualShoppingProductListener {
         void onProductAdded(Product product);
@@ -79,6 +80,9 @@ public class AddShoppingManualProductDialogFragment extends DialogFragment {
         quantityPlus = view.findViewById(R.id.quantityPlus);
         Button btnDone = view.findViewById(R.id.btnDone);
         Button btnCancel = view.findViewById(R.id.btnCancel);
+
+        nameInput.setFilters(new InputFilter[] { new InputFilter.LengthFilter(AppConstants.MAX_CHAR) });
+        brandInput.setFilters(new InputFilter[] { new InputFilter.LengthFilter(AppConstants.MAX_CHAR) });
 
         // Setup plus/minus listeners.
         quantityMinus.setOnClickListener(v -> {

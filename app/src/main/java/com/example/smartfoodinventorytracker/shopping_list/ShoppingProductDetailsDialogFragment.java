@@ -19,13 +19,14 @@ import androidx.fragment.app.DialogFragment;
 
 import com.example.smartfoodinventorytracker.R;
 import com.example.smartfoodinventorytracker.inventory.Product;
-import com.example.smartfoodinventorytracker.inventory.CategoryUtils;
 import com.example.smartfoodinventorytracker.inventory.DateInfo;
 import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import android.text.InputFilter;
+import com.example.smartfoodinventorytracker.utils.AppConstants;
 
 public class ShoppingProductDetailsDialogFragment extends DialogFragment {
 
@@ -41,7 +42,6 @@ public class ShoppingProductDetailsDialogFragment extends DialogFragment {
     public void setListKey(String listKey) {
         this.listKey = listKey;
     }
-
 
     public interface ShoppingProductDialogListener {
         void onProductUpdated(Product updatedProduct);
@@ -79,7 +79,6 @@ public class ShoppingProductDetailsDialogFragment extends DialogFragment {
             product.setQuantity(original.getQuantity());
             product.setExpiryDate(original.getExpiryDate());
             product.setDateAdded(original.getDateAdded());
-
         }
         View view = LayoutInflater.from(getContext()).inflate(R.layout.dialog_shopping_product_details, null);
 
@@ -95,6 +94,10 @@ public class ShoppingProductDetailsDialogFragment extends DialogFragment {
         Button btnDone = view.findViewById(R.id.btnDone);
         Button btnCancel = view.findViewById(R.id.btnCancel);
         Button btnDelete = view.findViewById(R.id.btnDelete);
+
+        nameInput.setFilters(new InputFilter[] { new InputFilter.LengthFilter(AppConstants.MAX_CHAR) });
+        brandInput.setFilters(new InputFilter[] { new InputFilter.LengthFilter(AppConstants.MAX_CHAR) });
+
 
         // Prevent typing "0" as first character.
         quantityInput.setFilters(new InputFilter[]{
@@ -112,7 +115,12 @@ public class ShoppingProductDetailsDialogFragment extends DialogFragment {
 
         // Populate fields.
         nameInput.setText(product.getName());
-        brandInput.setText(product.getBrand());
+        // If the brand is "N/A", show an empty field so it appears blank.
+        if ("N/A".equals(product.getBrand())) {
+            brandInput.setText("");
+        } else {
+            brandInput.setText(product.getBrand());
+        }
         quantityInput.setText(String.valueOf(product.getQuantity()));
 
         // Setup expiry field based on mode.
@@ -190,9 +198,13 @@ public class ShoppingProductDetailsDialogFragment extends DialogFragment {
 
             // Proceed to update
             product.name = newName;
-            product.brand = newBrand;
+            // If the brand field is empty, save it as "N/A"
+            if(newBrand.isEmpty()) {
+                product.brand = "N/A";
+            } else {
+                product.brand = newBrand;
+            }
             product.setQuantity(newQty);
-
 
             if(isShoppingMode) {
                 String newExpiry = expiryInput.getText().toString().trim();
@@ -229,7 +241,6 @@ public class ShoppingProductDetailsDialogFragment extends DialogFragment {
                 if (listener != null) listener.onProductUpdated(product);
                 dismiss();
             }
-
         });
 
         // Cancel button dismisses dialog.
@@ -250,7 +261,7 @@ public class ShoppingProductDetailsDialogFragment extends DialogFragment {
                     .show();
         });
 
-        return new AlertDialog.Builder(requireContext())
+        return new AlertDialog.Builder(getContext())
                 .setView(view)
                 .create();
     }

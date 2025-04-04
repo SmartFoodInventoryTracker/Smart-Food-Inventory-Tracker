@@ -17,8 +17,10 @@ import androidx.fragment.app.DialogFragment;
 
 import com.example.smartfoodinventorytracker.R;
 import com.google.firebase.database.FirebaseDatabase;
+import com.example.smartfoodinventorytracker.utils.AppConstants;
 
 import java.util.Calendar;
+import android.text.InputFilter;
 
 public class AddManualProductDialogFragment extends DialogFragment {
 
@@ -56,6 +58,9 @@ public class AddManualProductDialogFragment extends DialogFragment {
 
         expiryInput = view.findViewById(R.id.expiryInput);
         calendarIcon = view.findViewById(R.id.calendarIcon);
+
+        nameInput.setFilters(new InputFilter[] { new InputFilter.LengthFilter(AppConstants.MAX_CHAR) });
+        brandInput.setFilters(new InputFilter[] { new InputFilter.LengthFilter(AppConstants.MAX_CHAR) });
 
         expiryInput.setOnClickListener(v -> showDatePicker());
         calendarIcon.setOnClickListener(v -> showDatePicker());

@@ -8,8 +8,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.EditText;
-import android.widget.LinearLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -17,16 +15,17 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
 
-
 import com.example.smartfoodinventorytracker.R;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.example.smartfoodinventorytracker.utils.AppConstants;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Calendar;
+import android.text.InputFilter;
 
 public class ProductDetailsDialogFragment extends DialogFragment {
 
@@ -37,7 +36,6 @@ public class ProductDetailsDialogFragment extends DialogFragment {
     public void setUserId(String userId) {
         this.userId = userId;
     }
-
 
     public interface ProductDialogListener {
         void onProductUpdated(Product updatedProduct);
@@ -76,9 +74,18 @@ public class ProductDetailsDialogFragment extends DialogFragment {
         Button btnCancel = view.findViewById(R.id.btnCancel);
         Button btnDelete = view.findViewById(R.id.btnDelete);
 
+        nameInput.setFilters(new InputFilter[] { new InputFilter.LengthFilter(AppConstants.MAX_CHAR) });
+        brandInput.setFilters(new InputFilter[] { new InputFilter.LengthFilter(AppConstants.MAX_CHAR) });
+
+
         // Pre-fill fields
         nameInput.setText(product.getName());
-        brandInput.setText(product.getBrand());
+        // If the brand is "N/A", show an empty field instead
+        if ("N/A".equals(product.getBrand())) {
+            brandInput.setText("");
+        } else {
+            brandInput.setText(product.getBrand());
+        }
         expiryInput.setText(product.getExpiryDate());
         quantityInput.setText(String.valueOf(product.getQuantity()));
 
@@ -89,14 +96,16 @@ public class ProductDetailsDialogFragment extends DialogFragment {
         // Show date picker when clicking input or calendar icon
         View.OnClickListener dateClickListener = v -> {
             Calendar calendar = Calendar.getInstance();
-            DatePickerDialog dialog = new DatePickerDialog(requireContext(),
+            DatePickerDialog dialog = new DatePickerDialog(
+                    requireContext(),
                     (datePicker, year, month, dayOfMonth) -> {
                         String selectedDate = dayOfMonth + "/" + (month + 1) + "/" + year;
                         expiryInput.setText(selectedDate);
                     },
                     calendar.get(Calendar.YEAR),
                     calendar.get(Calendar.MONTH),
-                    calendar.get(Calendar.DAY_OF_MONTH));
+                    calendar.get(Calendar.DAY_OF_MONTH)
+            );
             dialog.show();
         };
         expiryInput.setOnClickListener(dateClickListener);
@@ -129,19 +138,20 @@ public class ProductDetailsDialogFragment extends DialogFragment {
             }
         });
 
-
         // Save changes
         btnDone.setOnClickListener(v -> {
-            String newName = nameInput.getText().toString().trim();
-            String newBrand = brandInput.getText().toString().trim();
-            String newExpiry = expiryInput.getText().toString().trim();
-            int newQty;
+            final String newName = nameInput.getText().toString().trim();
 
-            if (newName.isEmpty()) {
-                Toast.makeText(getContext(), "Product name cannot be empty", Toast.LENGTH_SHORT).show();
-                return;
+            // Convert an empty brand field to "N/A"
+            String tempBrand = brandInput.getText().toString().trim();
+            if (tempBrand.isEmpty()) {
+                tempBrand = "N/A";
             }
+            final String newBrand = tempBrand;
 
+            final String newExpiry = expiryInput.getText().toString().trim();
+
+            final int newQty;
             try {
                 newQty = Integer.parseInt(quantityInput.getText().toString().trim());
                 if (newQty <= 0) {
@@ -157,13 +167,18 @@ public class ProductDetailsDialogFragment extends DialogFragment {
                 return;
             }
 
+            if (newName.isEmpty()) {
+                Toast.makeText(getContext(), "Product name cannot be empty", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
             DatabaseReference inventoryRef = FirebaseDatabase.getInstance()
                     .getReference("users")
                     .child(userId)
                     .child("inventory_product");
 
             inventoryRef.get().addOnSuccessListener(snapshot -> {
-                int currentSize = (int) snapshot.getChildrenCount();
+                final int currentSize = (int) snapshot.getChildrenCount();
                 if (!snapshot.hasChild(product.getBarcode()) && currentSize >= 99) {
                     Toast.makeText(getContext(), "Inventory limit reached (99 items max)", Toast.LENGTH_SHORT).show();
                     return;
@@ -245,7 +260,6 @@ public class ProductDetailsDialogFragment extends DialogFragment {
                     })
                     .setNegativeButton("No", null)
                     .show();
-
         });
 
         return new AlertDialog.Builder(requireContext())
@@ -253,11 +267,9 @@ public class ProductDetailsDialogFragment extends DialogFragment {
                 .create();
     }
 
-
     // 🔍 Expiry label
     private String getExpiryText(String expiryDate) {
         if (expiryDate == null || expiryDate.equals("Not set")) return "No expiry set";
-
         try {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d/M/yyyy");
             LocalDate exp = LocalDate.parse(expiryDate, formatter);
@@ -306,6 +318,4 @@ public class ProductDetailsDialogFragment extends DialogFragment {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d/M/yyyy");
         return today.format(formatter);
     }
-
-
 }
