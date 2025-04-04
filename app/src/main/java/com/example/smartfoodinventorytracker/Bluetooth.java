@@ -99,11 +99,33 @@ public class Bluetooth {
         // Handle or ignore failed connection
         }
     }
-
+    public void reconnect() throws IOException {
+        if (channel != null) {
+            try {
+                channel.close();
+            } catch (IOException e) {
+                Log.e("Bluetooth", "Error closing socket", e);
+            }
+            channel = null;
+        }
+        setConnection();
+    }
     public void transmitCredentials(String cred) throws IOException {
-            setConnection();
+        if (channel == null || !channel.isConnected()) {
+            setConnection(); // only create a new socket if not already connected
+        }
+
+        try {
             OutputStream out = channel.getOutputStream();
             out.write(cred.getBytes());
+            out.flush(); // always flush to ensure data is sent
+        } catch (IOException e) {
+            Log.e("Bluetooth", "Write failed. Reconnecting...", e);
+            reconnect(); // close and re-establish connection
+            OutputStream out = channel.getOutputStream();
+            out.write(cred.getBytes()); // try again once
+            out.flush();
+        }
     }
 
 }

@@ -26,6 +26,7 @@ import androidx.appcompat.widget.SwitchCompat;
 
 import com.example.smartfoodinventorytracker.Bluetooth;
 import com.example.smartfoodinventorytracker.R;
+import com.google.firebase.auth.FirebaseAuth;
 
 import java.io.IOException;
 
@@ -121,11 +122,12 @@ public class SettingsActivity extends AppCompatActivity {
         save.setOnClickListener(view->{
             String ssid = ssidField.getText().toString();
             String password = passwordField.getText().toString();
+            String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
             if((!ssid.isEmpty())&&(!password.isEmpty())) {
                 try {
                     if (btHelper != null) {
                         Log.d("Bluetooth","Supposed to be sending the data");
-                        btHelper.transmitCredentials(ssid + "," + password);
+                        btHelper.transmitCredentials(ssid + "," + password + "," + userId);
                     } else {
 
                     }
