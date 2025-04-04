@@ -51,7 +51,7 @@ public class FridgeHistoryActivity extends AppCompatActivity {
         btnDateRange.setOnClickListener(v -> openDatePicker());
 
         btnGraph.setOnClickListener(v -> {
-            Intent intent = new Intent(this, FridgeGraphActivity.class);
+            Intent intent = new Intent(FridgeHistoryActivity.this, FridgeGraph2Activity.class);
             startActivity(intent);
         });
 

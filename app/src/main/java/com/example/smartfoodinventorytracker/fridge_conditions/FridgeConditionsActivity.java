@@ -68,6 +68,7 @@ public class FridgeConditionsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_fridge_conditions);
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -283,6 +284,11 @@ public class FridgeConditionsActivity extends AppCompatActivity {
         }
     }
 
+    private void saveDataCondition()
+    {
+        databaseRef = FirebaseDatabase.getInstance().getReference().child("inventory");
+
+    }
     private void fetchDataFromFirebase() {
         databaseRef = FirebaseDatabase.getInstance().getReference().child("inventory");
 

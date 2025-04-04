@@ -8,7 +8,7 @@
 
     <!-- Dropdown to select metric -->
     <Spinner
-        android:id="@+id/metricSpinner"
+        android:id="@+id/metricSpinner2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:entries="@array/metrics_array"
@@ -16,7 +16,7 @@
 
     <!-- Line Chart -->
     <com.github.mikephil.charting.charts.LineChart
-        android:id="@+id/lineChart"
+        android:id="@+id/lineChart_2"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
