@@ -1,6 +1,10 @@
 package com.example.smartfoodinventorytracker.settings;
 
+import android.Manifest;
+import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 
 import androidx.activity.EdgeToEdge;
@@ -10,18 +14,29 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import android.util.Log;
 import android.view.Gravity;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.appcompat.widget.SwitchCompat;
 
+import com.example.smartfoodinventorytracker.Bluetooth;
 import com.example.smartfoodinventorytracker.R;
+import com.google.firebase.auth.FirebaseAuth;
+
+import java.io.IOException;
 
 
 public class SettingsActivity extends AppCompatActivity {
 
     private SwitchCompat switchFridge, switchExpiry;
+    private Bluetooth btHelper;
+    private Button save;
+    private EditText ssidField, passwordField;
     private TextView inputExpiredHours, inputWeek1Days, inputWeek2Days;
     private SharedPreferences prefs;
     private static final String PREFS_NAME = "user_settings";
@@ -41,12 +56,9 @@ public class SettingsActivity extends AppCompatActivity {
         findViewById(R.id.toolbar).setOnClickListener(v -> finish());
 
         prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        setUpBluetooth(this);
+        setUpUi();
 
-        switchFridge = findViewById(R.id.switch_fridge);
-        switchExpiry = findViewById(R.id.switch_expiry);
-        inputExpiredHours = findViewById(R.id.input_expired_hours);
-        inputWeek1Days = findViewById(R.id.input_week1_days);
-        inputWeek2Days = findViewById(R.id.input_week2_days);
 
         /// Load saved values using a unified key "expired_every_minutes"
         switchFridge.setChecked(prefs.getBoolean("fridge_alerts", true));
@@ -91,6 +103,48 @@ public class SettingsActivity extends AppCompatActivity {
         setUpToolbar();
     }
 
+    private void setUpBluetooth(Context cont){
+        btHelper = new Bluetooth(cont);
+    }
+
+
+    private void setUpUi()
+    {
+        switchFridge = findViewById(R.id.switch_fridge);
+        switchExpiry = findViewById(R.id.switch_expiry);
+        inputExpiredHours = findViewById(R.id.input_expired_hours);
+        inputWeek1Days = findViewById(R.id.input_week1_days);
+        inputWeek2Days = findViewById(R.id.input_week2_days);
+        ssidField=findViewById(R.id.ssid);
+        passwordField=findViewById(R.id.password);
+        save = findViewById(R.id.buttonSave);
+        requestBluetoothIfNeeded();
+        save.setOnClickListener(view->{
+            String ssid = ssidField.getText().toString();
+            String password = passwordField.getText().toString();
+            String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+            if((!ssid.isEmpty())&&(!password.isEmpty())) {
+                try {
+                    if (btHelper != null) {
+                        Log.d("Bluetooth","Supposed to be sending the data");
+                        btHelper.transmitCredentials(ssid + "," + password + "," + userId);
+                    } else {
+
+                    }
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+
+
+            }
+
+        });
+
+
+    }
+
+
+
     private void setUpToolbar() {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -134,6 +188,16 @@ public class SettingsActivity extends AppCompatActivity {
             return Integer.parseInt(text);
         } catch (NumberFormatException e) {
             return defaultVal;
+        }
+    }
+
+    private void requestBluetoothIfNeeded() {
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT)
+                    != PackageManager.PERMISSION_GRANTED) {
+
+                requestPermissions(new String[]{Manifest.permission.BLUETOOTH_CONNECT}, 200);
+            }
         }
     }
 
