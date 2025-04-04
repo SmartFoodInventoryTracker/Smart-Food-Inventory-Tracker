@@ -67,6 +67,17 @@
                     app:sv_unitTextSize="0sp"
                     app:sv_withTremble="false" />
 
+                <TextView
+                    android:id="@+id/gasStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:text="Status"
+                    android:textColor="#333333"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+
                 <ImageView
                     android:id="@+id/infoIcon"
                     android:layout_width="24dp"
