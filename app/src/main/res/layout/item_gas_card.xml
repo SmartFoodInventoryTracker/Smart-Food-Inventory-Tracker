@@ -1,141 +1,152 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/card_co"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="12dp">
 
-    <!-- 🌫️ Main Card Content -->
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:cardCornerRadius="12dp"
         app:cardElevation="4dp">
 
-        <FrameLayout
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:clipChildren="false">
+            android:orientation="vertical"
+            android:padding="12dp">
 
-            <!-- Main content of the gas card -->
-            <LinearLayout
-                android:id="@+id/gasContentLayout"
+            <!-- 🔹 Content: Icon + Text Block + Gauge -->
+            <FrameLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:padding="12dp"
-                android:gravity="center_vertical">
+                android:clipChildren="false">
 
-                <ImageView
-                    android:id="@+id/gasIcon"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:src="@drawable/ic_co" />
+                <LinearLayout
+                    android:id="@+id/gasContentLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
 
-                <TextView
-                    android:id="@+id/gasLabel"
+                    <!-- Icon -->
+                    <ImageView
+                        android:id="@+id/gasIcon"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:src="@drawable/ic_co" />
+
+                    <!-- Text block (label, status, value, info) -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:layout_marginStart="8dp">
+
+                        <!-- Label + Info icon -->
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical">
+
+                            <TextView
+                                android:id="@+id/gasLabel"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="CO :"
+                                android:textSize="16sp"
+                                android:textStyle="bold" />
+
+                            <ImageView
+                                android:id="@+id/infoIcon"
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:layout_marginStart="4dp"
+                                android:contentDescription="Info Icon"
+                                android:src="@drawable/ic_info"
+                                app:tint="@android:color/darker_gray" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/gasStatus"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Status"
+                            android:textSize="15sp"
+                            android:textStyle="bold"
+                            android:textColor="#4CAF50"
+                            android:layout_marginTop="2dp" />
+
+                        <TextView
+                            android:id="@+id/gasValue"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="-- ppm"
+                            android:textSize="17sp"
+                            android:textStyle="bold"
+                            android:layout_marginTop="2dp"
+                            android:textAlignment="center" />
+                    </LinearLayout>
+
+                    <!-- Gauge (shifted right) -->
+                    <com.github.anastr.speedviewlib.SpeedView
+                        android:id="@+id/gasGauge"
+                        android:layout_width="100dp"
+                        android:layout_height="100dp"
+                        android:layout_marginStart="12dp"
+                        app:sv_backgroundCircleColor="@android:color/transparent"
+                        app:sv_centerCircleRadius="10dp"
+                        app:sv_endDegree="390"
+                        app:sv_speedTextSize="0sp"
+                        app:sv_speedometerWidth="10dp"
+                        app:sv_startDegree="150"
+                        app:sv_textSize="0sp"
+                        app:sv_tickNumber="0"
+                        app:sv_unit=""
+                        app:sv_unitTextSize="0sp"
+                        app:sv_withTremble="false" />
+                </LinearLayout>
+
+                <!-- 🧷 Tooltip bubble -->
+                <LinearLayout
+                    android:id="@+id/infoHelperTooltip"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:text="Gas"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
+                    android:orientation="vertical"
+                    android:layout_gravity="end|top"
+                    android:layout_marginEnd="12dp"
+                    android:layout_marginTop="4dp"
+                    android:gravity="center_horizontal"
+                    android:visibility="gone"
+                    android:elevation="6dp">
 
-                <TextView
-                    android:id="@+id/gasValue"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="6dp"
-                    android:text="-- ppm"
-                    android:textSize="16sp" />
+                    <TextView
+                        android:id="@+id/tooltipText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/tooltip_bg"
+                        android:text="Tap for info"
+                        android:textColor="#333333"
+                        android:textStyle="bold"
+                        android:textSize="13sp"
+                        android:padding="6dp"
+                        android:elevation="6dp" />
 
-                <com.github.anastr.speedviewlib.SpeedView
-                    android:id="@+id/gasGauge"
-                    android:layout_width="100dp"
-                    android:layout_height="100dp"
-                    android:layout_marginLeft="20dp"
-                    app:sv_backgroundCircleColor="@android:color/transparent"
-                    app:sv_centerCircleRadius="10dp"
-                    app:sv_endDegree="390"
-                    app:sv_speedTextSize="0sp"
-                    app:sv_speedometerWidth="10dp"
-                    app:sv_startDegree="150"
-                    app:sv_textSize="0sp"
-                    app:sv_tickNumber="0"
-                    app:sv_unit=""
-                    app:sv_unitTextSize="0sp"
-                    app:sv_withTremble="false" />
-
-                <TextView
-                    android:id="@+id/gasStatus"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="12dp"
-                    android:text="Status"
-                    android:textColor="#333333"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
-
-
-                <ImageView
-                    android:id="@+id/infoIcon"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:layout_marginStart="8dp"
-                    android:contentDescription="Info Icon"
-                    android:src="@drawable/ic_info"
-                    app:tint="@android:color/darker_gray" />
-            </LinearLayout>
-
-            <!-- Floating tooltip bubble with tail -->
-            <LinearLayout
-                android:id="@+id/infoHelperTooltip"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_gravity="end|top"
-                android:layout_marginEnd="12dp"
-                android:layout_marginTop="4dp"
-                android:gravity="center_horizontal"
-                android:visibility="gone"
-                android:shadowColor="#44000000"
-                android:shadowDx="0"
-                android:shadowDy="1"
-                android:shadowRadius="2"
-                android:elevation="6dp">
-
-                <!-- Bubble -->
-                <TextView
-                    android:id="@+id/tooltipText"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/tooltip_bg"
-                    android:text="Tap for info"
-                    android:textColor="#333333"
-                    android:textStyle="bold"
-                    android:textSize="13sp"
-                    android:padding="6dp"
-                    android:elevation="6dp"
-                    android:shadowColor="#55000000"
-                    android:shadowDx="1"
-                    android:shadowDy="1"
-                    android:shadowRadius="2" />
-
-                <!-- Triangle tail image -->
-                <ImageView
-                    android:layout_width="12dp"
-                    android:layout_height="6dp"
-                    android:src="@drawable/tooltip_tail"
-                    android:layout_marginTop="-1dp"
-                    android:contentDescription="Tooltip tail" />
-
-            </LinearLayout>
-
-        </FrameLayout>
+                    <ImageView
+                        android:layout_width="12dp"
+                        android:layout_height="6dp"
+                        android:src="@drawable/tooltip_tail"
+                        android:layout_marginTop="-1dp"
+                        android:contentDescription="Tooltip tail" />
+                </LinearLayout>
+            </FrameLayout>
+        </LinearLayout>
     </androidx.cardview.widget.CardView>
 
-    <!-- 🧊 Final Overlay Inline on Card -->
+    <!-- Info Overlay -->
     <LinearLayout
         android:id="@+id/infoOverlay"
         android:layout_width="match_parent"
@@ -182,6 +193,4 @@
             android:contentDescription="Close Info"
             app:tint="@android:color/white" />
     </LinearLayout>
-
-
 </FrameLayout>
