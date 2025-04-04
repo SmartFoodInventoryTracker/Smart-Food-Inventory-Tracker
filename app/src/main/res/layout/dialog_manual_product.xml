@@ -39,12 +39,13 @@
 
     <!-- Expiry Date -->
     <TextView
-        android:text="Expiry Date:"
-        android:textStyle="bold"
-        android:textSize="14sp"
-        android:layout_marginBottom="4dp"
+        android:id="@+id/expiryLabel"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="4dp"
+        android:text="Expiry Date:"
+        android:textSize="14sp"
+        android:textStyle="bold" />
 
     <LinearLayout
         android:layout_width="match_parent"

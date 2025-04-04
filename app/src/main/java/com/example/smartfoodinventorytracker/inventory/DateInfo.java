@@ -41,7 +41,7 @@ public class DateInfo {
         return Integer.compare(day1, day2);
     }
 
-    private static boolean isValidDateFormat(String date) {
+    public static boolean isValidDateFormat(String date) {
         return date.matches("\\d{1,2}/\\d{1,2}/\\d{4}");
     }
 
