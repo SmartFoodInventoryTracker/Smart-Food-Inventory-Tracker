@@ -62,10 +62,14 @@ dependencies {
 
     //  Firebase Realtime Database
     implementation("com.google.firebase:firebase-database")
+
     //Speedview Gauges
     implementation("com.github.anastr:speedviewlib:1.6.1")
 
     implementation("androidx.cardview:cardview:1.0.0")
+
+    // Android Charting Library
+    implementation ("com.github.PhilJay:MPAndroidChart:v3.1.0")
 
 
     // Google ML Kit Barcode Scanning

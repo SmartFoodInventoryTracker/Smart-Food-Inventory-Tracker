@@ -10,5 +10,13 @@
         <item>Daily</item>
     </string-array>
 
+    <string-array name="metrics_array">
+        <item>Temperature</item>
+        <item>Humidity</item>
+        <item>CO</item>
+        <item>LPG</item>
+        <item>NH₄</item>
+    </string-array>
+
 
 </resources>
