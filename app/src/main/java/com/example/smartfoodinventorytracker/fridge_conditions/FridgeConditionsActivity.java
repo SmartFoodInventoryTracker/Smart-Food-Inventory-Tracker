@@ -37,6 +37,7 @@ import androidx.core.app.NavUtils;
 
 public class FridgeConditionsActivity extends AppCompatActivity {
 
+    private String userId;
     private TextView coText, lpgText, nh4Text;
     private TextView tempText, humidityText;
     private SpeedView speedTemp, speedHum;
@@ -76,11 +77,18 @@ public class FridgeConditionsActivity extends AppCompatActivity {
             return insets;
         });
 
+        // ✅ Get userId from Intent or fallback to current user
+        userId = getIntent().getStringExtra("USER_ID");
+        if (userId == null) {
+            userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        }
+
         setUpToolbar();
         initViews();
         setUpOverallBar();
         fetchDataFromFirebase();
     }
+
 
     private void setUpToolbar(){
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -288,7 +296,7 @@ public class FridgeConditionsActivity extends AppCompatActivity {
     }
 
     private void fetchDataFromFirebase() {
-        databaseRef = FirebaseDatabase.getInstance().getReference().child("inventory");
+        this.databaseRef = FirebaseDatabase.getInstance().getReference("users").child(userId).child("fridge_condition");
 
         databaseRef.orderByKey().limitToLast(1).addValueEventListener(new ValueEventListener() {
             @Override
