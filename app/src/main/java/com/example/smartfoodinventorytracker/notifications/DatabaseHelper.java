@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+
 import com.example.smartfoodinventorytracker.inventory.Product;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -16,7 +18,9 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 public class DatabaseHelper {
@@ -211,74 +215,115 @@ public class DatabaseHelper {
     // 3) checkExpiryNotifications for items in "users/{userId}/inventory_product"
     // ------------------------------------------------------------------------
     public static void checkExpiryNotifications(String userId, NotificationHelper notificationHelper) {
-        DatabaseReference inventoryProdRef = FirebaseDatabase.getInstance()
-                .getReference("users")
-                .child(userId)
-                .child("inventory_product");
+        DatabaseReference inventoryRef = FirebaseDatabase.getInstance()
+                .getReference("users").child(userId).child("inventory_product");
 
-        inventoryProdRef.addListenerForSingleValueEvent(new ValueEventListener() {
+        inventoryRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
+            public void onDataChange(DataSnapshot snapshot) {
                 LocalDate today = LocalDate.now();
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d/M/yyyy");
+
+                Map<Long, List<String>> grouped = new HashMap<>();
                 Context context = notificationHelper.getContext();
                 SharedPreferences prefs = context.getSharedPreferences("user_settings", Context.MODE_PRIVATE);
-                SharedPreferences sentTimes = context.getSharedPreferences("notif_times", Context.MODE_PRIVATE);
+                SharedPreferences sent = context.getSharedPreferences("notif_times", Context.MODE_PRIVATE);
 
-                boolean expiryEnabled = prefs.getBoolean("expiry_alerts", true);
-                int minutesForExpired = prefs.getInt("expired_every_minutes", 1);
-                int daysForWeek1 = prefs.getInt("week1_every_days", 2);
-                int daysForWeek2 = prefs.getInt("week2_every_days", 3);
-
+                boolean enabled = prefs.getBoolean("expiry_alerts", true);
+                int expiredM = prefs.getInt("expired_every_minutes", 4);
+                int week1D = prefs.getInt("week1_every_days", 2);
+                int week2D = prefs.getInt("week2_every_days", 3);
                 long now = System.currentTimeMillis();
 
-                if (!expiryEnabled) return;
+                if (!enabled) return;
 
-                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                    Product product = snapshot.getValue(Product.class);
-                    if (product == null
-                            || product.getExpiryDate() == null
-                            || product.getExpiryDate().equals("Not set")) {
-                        continue;
-                    }
+                for (DataSnapshot child : snapshot.getChildren()) {
+                    Product product = child.getValue(Product.class);
+                    if (product == null || product.getExpiryDate() == null || product.getExpiryDate().equals("Not set")) continue;
 
                     try {
-                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d/M/yyyy");
                         LocalDate expiry = LocalDate.parse(product.getExpiryDate(), formatter);
                         long daysLeft = ChronoUnit.DAYS.between(today, expiry);
-                        String key = product.getBarcode();  // Unique key for each product
+                        if (daysLeft > 14) continue;
 
-                        if (daysLeft <= 0) {
-                            long last = sentTimes.getLong(key + "_expired", 0);
-                            long secondsSince = TimeUnit.MILLISECONDS.toSeconds(now - last);
-                            if (secondsSince >= minutesForExpired * 60) {
-                                notificationHelper.sendExpiryNotification(product.getName(), daysLeft);
-                                sentTimes.edit().putLong(key + "_expired", now).apply();
-                            }
-                        } else if (daysLeft <= 7) {
-                            long last = sentTimes.getLong(key + "_week1", 0);
-                            long daysSince = TimeUnit.MILLISECONDS.toDays(now - last);
-                            if (daysSince >= daysForWeek1) {
-                                notificationHelper.sendExpiryNotification(product.getName(), daysLeft);
-                                sentTimes.edit().putLong(key + "_week1", now).apply();
-                            }
-                        } else if (daysLeft <= 14) {
-                            long last = sentTimes.getLong(key + "_week2", 0);
-                            long daysSince = TimeUnit.MILLISECONDS.toDays(now - last);
-                            if (daysSince >= daysForWeek2) {
-                                notificationHelper.sendExpiryNotification(product.getName(), daysLeft);
-                                sentTimes.edit().putLong(key + "_week2", now).apply();
-                            }
-                        }
+                        grouped.computeIfAbsent(daysLeft, k -> new ArrayList<>()).add(product.getName());
                     } catch (Exception e) {
-                        Log.e("ExpiryCheck", "Error parsing date for " + product.getName(), e);
+                        Log.e("ExpiryCheck", "Error parsing: " + product.getName(), e);
+                    }
+                }
+
+                for (Map.Entry<Long, List<String>> entry : grouped.entrySet()) {
+                    long daysLeft = entry.getKey();
+                    List<String> items = entry.getValue();
+                    String groupKey = "group_" + daysLeft;
+                    long lastSent = sent.getLong(groupKey, 0);
+
+                    boolean shouldNotify = false;
+
+                    if (daysLeft <= 0 && (now - lastSent >= expiredM * 60 * 1000L)) {
+                        shouldNotify = true;
+                    } else if (daysLeft <= 7 && (TimeUnit.MILLISECONDS.toDays(now - lastSent) >= week1D)) {
+                        shouldNotify = true;
+                    } else if (daysLeft <= 14 && (TimeUnit.MILLISECONDS.toDays(now - lastSent) >= week2D)) {
+                        shouldNotify = true;
+                    }
+
+                    if (shouldNotify) {
+                        String message;
+                        if (daysLeft < 0) {
+                            message = "❌ Expired: " + String.join(", ", items);
+                        } else if (daysLeft == 0) {
+                            message = "📅 Expires today: " + String.join(", ", items);
+                        } else if (daysLeft == 1) {
+                            message = "⏰ Expires tomorrow: " + String.join(", ", items);
+                        } else {
+                            message = "🕒 Expires in " + daysLeft + " days: " + String.join(", ", items);
+                        }
+
+                        notificationHelper.sendNotification(
+                                NotificationHelper.EXPIRY_ALERT_TITLE,
+                                message,
+                                com.example.smartfoodinventorytracker.inventory.InventoryActivity.class,
+                                "" // no search
+                        );
+
+                        sent.edit().putLong(groupKey, now).apply();
                     }
                 }
             }
 
             @Override
-            public void onCancelled(DatabaseError databaseError) {
-                Log.e("DatabaseHelper", "checkExpiryNotifications failed", databaseError.toException());
+            public void onCancelled(DatabaseError error) {
+                Log.e("checkExpiryNotifications", "Failed", error.toException());
             }
         });
     }
+
+    public static void deleteNotification(NotificationItem item, String userId, Runnable onComplete) {
+        DatabaseReference notifRef = FirebaseDatabase.getInstance()
+                .getReference("users").child(userId).child("notifications");
+        notifRef.orderByChild("timestamp").equalTo(item.getTimestamp())
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        for (DataSnapshot child : snapshot.getChildren()) {
+                            String title = child.child("title").getValue(String.class);
+                            String message = child.child("message").getValue(String.class);
+                            if (title != null && message != null &&
+                                    title.equals(item.getTitle()) && message.equals(item.getMessage())) {
+                                child.getRef().removeValue();
+                                break;
+                            }
+                        }
+                        onComplete.run();
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        onComplete.run();
+                    }
+                });
+    }
+
+
 }
