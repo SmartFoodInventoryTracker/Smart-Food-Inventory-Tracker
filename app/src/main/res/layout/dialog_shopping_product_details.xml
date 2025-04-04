@@ -135,28 +135,19 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:backgroundTint="@color/blue"
-            android:text="Done"
+            android:text="Save"
             android:textColor="@android:color/white" />
 
         <Button
-            android:id="@+id/btnCancel"
+            android:id="@+id/btnDelete"
             android:layout_width="0dp"
             android:layout_marginLeft="10dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:layout_marginStart="8dp"
-            android:backgroundTint="@color/blue"
-            android:text="Cancel"
+            android:backgroundTint="@color/red"
+            android:text="Delete"
             android:textColor="@android:color/white" />
     </LinearLayout>
-
-    <!-- Delete button spanning full width -->
-    <Button
-        android:id="@+id/btnDelete"
-        android:layout_width="200dp"
-        android:layout_height="wrap_content"
-        android:backgroundTint="@color/red"
-        android:text="Delete"
-        android:textColor="@android:color/white" />
 
 </LinearLayout>

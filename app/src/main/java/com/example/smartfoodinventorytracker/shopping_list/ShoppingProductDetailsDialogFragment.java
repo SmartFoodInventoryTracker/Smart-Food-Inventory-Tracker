@@ -92,7 +92,6 @@ public class ShoppingProductDetailsDialogFragment extends DialogFragment {
         ImageView quantityPlus = view.findViewById(R.id.quantityPlus);
         ImageView quantityMinus = view.findViewById(R.id.quantityMinus);
         Button btnDone = view.findViewById(R.id.btnDone);
-        Button btnCancel = view.findViewById(R.id.btnCancel);
         Button btnDelete = view.findViewById(R.id.btnDelete);
 
         nameInput.setFilters(new InputFilter[] { new InputFilter.LengthFilter(AppConstants.MAX_CHAR) });
@@ -243,8 +242,6 @@ public class ShoppingProductDetailsDialogFragment extends DialogFragment {
             }
         });
 
-        // Cancel button dismisses dialog.
-        btnCancel.setOnClickListener(v -> dismiss());
 
         // Delete button: confirm deletion.
         btnDelete.setOnClickListener(v -> {
