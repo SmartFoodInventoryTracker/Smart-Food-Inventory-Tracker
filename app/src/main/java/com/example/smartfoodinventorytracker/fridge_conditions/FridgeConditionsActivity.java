@@ -1,6 +1,7 @@
 package com.example.smartfoodinventorytracker.fridge_conditions;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.Gravity;
@@ -218,7 +219,28 @@ public class FridgeConditionsActivity extends AppCompatActivity {
             speedNH4.setAlpha(1f);
         });
 
+        SharedPreferences prefs = getSharedPreferences("app_prefs", MODE_PRIVATE);
+        boolean tooltipShown = false;
 
+        TextView infoHelperTooltip = cardCO.findViewById(R.id.infoHelperTooltip);
+
+        if (!tooltipShown) {
+            infoHelperTooltip.setVisibility(View.VISIBLE);
+            infoHelperTooltip.setAlpha(0f);
+            infoHelperTooltip.animate()
+                    .alpha(1f)
+                    .setDuration(400)
+                    .withEndAction(() -> infoHelperTooltip.postDelayed(() -> {
+                        infoHelperTooltip.animate()
+                                .alpha(0f)
+                                .setDuration(400)
+                                .withEndAction(() -> infoHelperTooltip.setVisibility(View.GONE))
+                                .start();
+                    }, 3500))
+                    .start();
+
+            prefs.edit().putBoolean("tooltip_shown", true).apply();
+        }
 
         // 📜 History Button
         ImageView historyButton = findViewById(R.id.historyLogo);
