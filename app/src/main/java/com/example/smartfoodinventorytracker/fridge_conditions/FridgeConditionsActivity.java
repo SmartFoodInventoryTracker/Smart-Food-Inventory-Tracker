@@ -1,6 +1,7 @@
 package com.example.smartfoodinventorytracker.fridge_conditions;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.Gravity;
@@ -114,6 +115,35 @@ public class FridgeConditionsActivity extends AppCompatActivity {
         coIcon.setImageResource(R.drawable.ic_co);
         coLabel.setText("CO :");
 
+        ImageView coInfoIcon = cardCO.findViewById(R.id.infoIcon);
+        LinearLayout coOverlay = cardCO.findViewById(R.id.infoOverlay);
+        ImageView coClose = cardCO.findViewById(R.id.closeInfo);
+        TextView coInfoText = cardCO.findViewById(R.id.infoText);
+        TextView coInfoTitle = cardCO.findViewById(R.id.infoTitle);
+        View coMainLayout = cardCO.findViewById(R.id.gasContentLayout);
+
+        coInfoTitle.setText("CO (Carbon Monoxide)");
+        coInfoText.setText("A colorless, odorless gas. High levels may indicate spoilage or poor airflow inside the fridge.");
+
+        coInfoIcon.setOnClickListener(v -> {
+            coOverlay.setVisibility(View.VISIBLE);
+            coOverlay.setAlpha(0f);
+            coOverlay.setTranslationY(20f);
+            coOverlay.animate().alpha(1f).translationY(0f).setDuration(200).start();
+            coMainLayout.setAlpha(0.3f);
+            speedCO.setAlpha(0.2f);
+        });
+
+        coClose.setOnClickListener(v -> {
+            coOverlay.animate().alpha(0f).translationY(20f).setDuration(150).withEndAction(() -> {
+                coOverlay.setVisibility(View.GONE);
+                coOverlay.setAlpha(1f);
+            }).start();
+            coMainLayout.setAlpha(1f);
+            speedCO.setAlpha(1f);
+        });
+
+
         // 🔥 LPG Card
         cardLPG = findViewById(R.id.card_lpg);
         lpgValue = cardLPG.findViewById(R.id.gasValue);
@@ -122,6 +152,35 @@ public class FridgeConditionsActivity extends AppCompatActivity {
         TextView lpgLabel = cardLPG.findViewById(R.id.gasLabel);
         lpgIcon.setImageResource(R.drawable.ic_lpg);
         lpgLabel.setText("LPG :");
+
+        ImageView lpgInfoIcon = cardLPG.findViewById(R.id.infoIcon);
+        LinearLayout lpgOverlay = cardLPG.findViewById(R.id.infoOverlay);
+        ImageView lpgClose = cardLPG.findViewById(R.id.closeInfo);
+        TextView lpgInfoText = cardLPG.findViewById(R.id.infoText);
+        TextView lpgInfoTitle = cardLPG.findViewById(R.id.infoTitle);
+        View lpgMainLayout = cardLPG.findViewById(R.id.gasContentLayout);
+
+        lpgInfoTitle.setText("LPG (Liquefied Petroleum Gas)");
+        lpgInfoText.setText("Not normally found in fridges. Its presence could suggest a gas leak or chemical contamination.");
+
+        lpgInfoIcon.setOnClickListener(v -> {
+            lpgOverlay.setVisibility(View.VISIBLE);
+            lpgOverlay.setAlpha(0f);
+            lpgOverlay.setTranslationY(20f);
+            lpgOverlay.animate().alpha(1f).translationY(0f).setDuration(200).start();
+            lpgMainLayout.setAlpha(0.3f);
+            speedLPG.setAlpha(0.2f);
+        });
+
+        lpgClose.setOnClickListener(v -> {
+            lpgOverlay.animate().alpha(0f).translationY(20f).setDuration(150).withEndAction(() -> {
+                lpgOverlay.setVisibility(View.GONE);
+                lpgOverlay.setAlpha(1f);
+            }).start();
+            lpgMainLayout.setAlpha(1f);
+            speedLPG.setAlpha(1f);
+        });
+
 
         // 🧪 NH₄ Card
         cardNH4 = findViewById(R.id.card_nh4);
@@ -132,11 +191,71 @@ public class FridgeConditionsActivity extends AppCompatActivity {
         nh4Icon.setImageResource(R.drawable.ic_smoke);
         nh4Label.setText("NH₄ :");
 
+        ImageView nh4InfoIcon = cardNH4.findViewById(R.id.infoIcon);
+        LinearLayout nh4Overlay = cardNH4.findViewById(R.id.infoOverlay);
+        ImageView nh4Close = cardNH4.findViewById(R.id.closeInfo);
+        TextView nh4InfoText = cardNH4.findViewById(R.id.infoText);
+        TextView nh4InfoTitle = cardNH4.findViewById(R.id.infoTitle);
+        View nh4MainLayout = cardNH4.findViewById(R.id.gasContentLayout);
+
+        nh4InfoTitle.setText("NH₄ (Ammonia)");
+        nh4InfoText.setText("Commonly produced by spoiling food. High levels can suggest meat, dairy, or produce spoilage.");
+
+        nh4InfoIcon.setOnClickListener(v -> {
+            nh4Overlay.setVisibility(View.VISIBLE);
+            nh4Overlay.setAlpha(0f);
+            nh4Overlay.setTranslationY(20f);
+            nh4Overlay.animate().alpha(1f).translationY(0f).setDuration(200).start();
+            nh4MainLayout.setAlpha(0.3f);
+            speedNH4.setAlpha(0.2f);
+        });
+
+        nh4Close.setOnClickListener(v -> {
+            nh4Overlay.animate().alpha(0f).translationY(20f).setDuration(150).withEndAction(() -> {
+                nh4Overlay.setVisibility(View.GONE);
+                nh4Overlay.setAlpha(1f);
+            }).start();
+            nh4MainLayout.setAlpha(1f);
+            speedNH4.setAlpha(1f);
+        });
+
+        SharedPreferences prefs = getSharedPreferences("app_prefs", MODE_PRIVATE);
+        boolean tooltipShown = false;
+
+        LinearLayout infoHelperTooltip = cardCO.findViewById(R.id.infoHelperTooltip);
+
+        if (!tooltipShown) {
+            infoHelperTooltip.setVisibility(View.VISIBLE);
+            infoHelperTooltip.setAlpha(0f);
+            infoHelperTooltip.setTranslationX(100f); // Start farther right for more visible slide
+
+            infoHelperTooltip.animate()
+                    .translationX(0f)               // Slide into position
+                    .alpha(1f)                      // Fade in
+                    .setDuration(600)               // Slower slide in
+                    .setInterpolator(new android.view.animation.DecelerateInterpolator()) // Smooth approach
+                    .withEndAction(() -> infoHelperTooltip.postDelayed(() -> {
+                        infoHelperTooltip.animate()
+                                .translationX(100f) // Slide back out to the right
+                                .alpha(0f)
+                                .setDuration(600)   // Slower fade & slide out
+                                .setInterpolator(new android.view.animation.DecelerateInterpolator())
+                                .withEndAction(() -> infoHelperTooltip.setVisibility(View.GONE))
+                                .start();
+                    }, 3500))
+                    .start();
+
+            prefs.edit().putBoolean("tooltip_shown", true).apply();
+        }
+
+
+        // 📜 History Button
         ImageView historyButton = findViewById(R.id.historyLogo);
         historyButton.setOnClickListener(v -> {
             Intent intent = new Intent(FridgeConditionsActivity.this, FridgeHistoryActivity.class);
             startActivity(intent);
         });
+
     }
 
     private void setUpOverallBar() {
