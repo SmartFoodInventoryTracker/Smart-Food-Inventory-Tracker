@@ -61,6 +61,23 @@
 
     </androidx.appcompat.widget.Toolbar>
 
+    <TextView
+        android:id="@+id/infoTooltip"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="80dp"
+        android:padding="8dp"
+        android:background="@drawable/tooltip_bg"
+        android:text="ℹ Tap the info icon on each card to learn more"
+        android:textColor="#FFFFFF"
+        android:textSize="13sp"
+        android:elevation="6dp"
+        android:visibility="invisible"
+        android:textAlignment="center"
+        app:layout_constraintTop_toBottomOf="@id/toolbar"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
     <!-- Main Content -->
     <ScrollView
         android:id="@+id/scrollContent"
