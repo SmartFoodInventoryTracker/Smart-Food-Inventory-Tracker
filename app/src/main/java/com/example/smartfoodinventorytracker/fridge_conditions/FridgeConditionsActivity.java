@@ -366,3 +366,5 @@ public class FridgeConditionsActivity extends AppCompatActivity {
         }
     }
 }
+
+//
