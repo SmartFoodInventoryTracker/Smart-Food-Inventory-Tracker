@@ -549,12 +549,40 @@ public class InventoryActivity extends AppCompatActivity
             }
 
             if (!merged) {
-                inventoryRef.child(barcode).setValue(newProduct)
-                        .addOnSuccessListener(aVoid ->
-                                Toast.makeText(this, "Product added", Toast.LENGTH_SHORT).show())
-                        .addOnFailureListener(e ->
-                                Toast.makeText(this, "Failed to add product", Toast.LENGTH_SHORT).show());
+                // Generate a new ID if expiry is different
+                String newId = inventoryRef.push().getKey();
+                if (newId != null) {
+                    newProduct.barcode = newId;
+                    inventoryRef.child(newId).setValue(newProduct)
+                            .addOnSuccessListener(aVoid -> {
+                                Toast.makeText(this, "Product added", Toast.LENGTH_SHORT).show();
+
+                                // ✅ Open edit dialog
+                                ProductDetailsDialogFragment dialog = ProductDetailsDialogFragment.newInstance(newProduct);
+                                dialog.setUserId(userId);
+                                dialog.setProductDialogListener(new ProductDetailsDialogFragment.ProductDialogListener() {
+                                    @Override
+                                    public void onProductUpdated(Product updatedProduct) {
+                                        // Optional: update UI
+                                    }
+
+                                    @Override
+                                    public void onProductDeleted(String barcode) {
+                                        // Optional: handle delete
+                                    }
+                                });
+                                dialog.show(InventoryActivity.this.getSupportFragmentManager(), "ProductDetailsDialog");
+
+                                // ✅ Store product name temporarily in intent
+                                Intent intent = getIntent();
+                                intent.putExtra("data", name); // For search bar
+                                intent.putExtra("sortNewest", true); // Signal to sort by newest
+                            })
+                            .addOnFailureListener(e ->
+                                    Toast.makeText(this, "Failed to add product", Toast.LENGTH_SHORT).show());
+                }
             }
+
         });
     }
 
@@ -660,7 +688,27 @@ public class InventoryActivity extends AppCompatActivity
                     newProduct.barcode = newId;
                     newProduct.setDateAdded(getCurrentDate());
                     inventoryRef.child(newId).setValue(newProduct)
-                            .addOnSuccessListener(aVoid -> Toast.makeText(this, "Product added", Toast.LENGTH_SHORT).show());
+                            .addOnSuccessListener(aVoid -> {
+                                Toast.makeText(this, "Product added", Toast.LENGTH_SHORT).show();
+                                // 👉 Open edit dialog so user can set expiry
+                                ProductDetailsDialogFragment dialog = ProductDetailsDialogFragment.newInstance(newProduct);
+                                dialog.setUserId(userId);
+                                dialog.setProductDialogListener(new ProductDetailsDialogFragment.ProductDialogListener() {
+                                    @Override
+                                    public void onProductUpdated(Product updatedProduct) {
+                                        // Optional: You can update your UI or adapter here
+                                    }
+
+                                    @Override
+                                    public void onProductDeleted(String barcode) {
+                                        // Optional: Handle if the user deletes the product immediately
+                                    }
+                                });
+                                dialog.show(getSupportFragmentManager(), "ProductDetailsDialog");
+                            })
+                            .addOnFailureListener(e ->
+                                    Toast.makeText(this, "Failed to add product", Toast.LENGTH_SHORT).show());
+
                 }
             }
         });
