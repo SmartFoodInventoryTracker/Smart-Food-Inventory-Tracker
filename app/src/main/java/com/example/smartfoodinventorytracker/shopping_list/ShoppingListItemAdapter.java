@@ -48,7 +48,7 @@ public class ShoppingListItemAdapter extends RecyclerView.Adapter<ShoppingListIt
         }
     }
 
-    // Updated constructor includes the isShoppingMode flag.
+    // Constructor includes the isShoppingMode flag.
     public ShoppingListItemAdapter(Context context, List<Product> productList, boolean isShoppingMode, String userId, String listKey) {
         this.context = context;
         this.productList = productList;
@@ -80,17 +80,13 @@ public class ShoppingListItemAdapter extends RecyclerView.Adapter<ShoppingListIt
         // Handle expiry badge
         if (isShoppingMode) {
             holder.expiryBadge.setVisibility(View.VISIBLE);
-
             String expiryText = getExpiryText(product.getExpiryDate());
             holder.expiryBadge.setText(expiryText);
-
             int expiryColor = getExpiryColor(expiryText);
             holder.expiryBadge.setBackgroundTintList(android.content.res.ColorStateList.valueOf(expiryColor));
         } else {
             holder.expiryBadge.setVisibility(View.GONE);
         }
-
-
 
         // Set category icon.
         int iconResId = CategoryUtils.getCategoryIcon(product.getName());
@@ -156,15 +152,15 @@ public class ShoppingListItemAdapter extends RecyclerView.Adapter<ShoppingListIt
         });
 
         // Long press launches the edit dialog.
-        holder.itemView.setOnLongClickListener(v -> {
+        holder.itemView.setOnClickListener(v -> {
             int adapterPosition = holder.getAdapterPosition();
-            if (adapterPosition == RecyclerView.NO_POSITION) return true;
+            if (adapterPosition == RecyclerView.NO_POSITION) return;
 
             ShoppingProductDetailsDialogFragment dialog = ShoppingProductDetailsDialogFragment.newInstance(productList.get(adapterPosition));
             dialog.setUserId(userId);
             // Pass the current mode to the dialog so it can display the expiry field if needed.
             dialog.setShoppingMode(isShoppingMode);
-            dialog.setListKey(listKey); // ✅ Required for saving edits in Edit Mode
+            dialog.setListKey(listKey); // Required for saving edits in Edit Mode.
             dialog.setShoppingProductDialogListener(new ShoppingProductDetailsDialogFragment.ShoppingProductDialogListener() {
                 @Override
                 public void onProductUpdated(Product updatedProduct) {
@@ -174,12 +170,10 @@ public class ShoppingListItemAdapter extends RecyclerView.Adapter<ShoppingListIt
                     // Duplicate check (skip current item being edited)
                     for (int i = 0; i < productList.size(); i++) {
                         if (i == pos) continue; // skip the one being edited
-
                         Product other = productList.get(i);
                         boolean sameName = other.getName().trim().equalsIgnoreCase(updatedProduct.getName().trim());
                         boolean sameBrand = other.getBrand().trim().equalsIgnoreCase(updatedProduct.getBrand().trim());
                         boolean sameExpiry = other.getExpiryDate().trim().equalsIgnoreCase(updatedProduct.getExpiryDate().trim());
-
                         if (sameName && sameBrand && sameExpiry) {
                             Toast.makeText(context, "A similar product already exists", Toast.LENGTH_SHORT).show();
                             return;
@@ -195,10 +189,8 @@ public class ShoppingListItemAdapter extends RecyclerView.Adapter<ShoppingListIt
                             .child(listKey)
                             .child(updatedProduct.getBarcode())
                             .setValue(updatedProduct);
-
                     notifyItemChanged(pos);
                 }
-
 
                 @Override
                 public void onProductDeleted(String barcode) {
@@ -223,19 +215,16 @@ public class ShoppingListItemAdapter extends RecyclerView.Adapter<ShoppingListIt
                 }
             });
             dialog.show(((FragmentActivity) context).getSupportFragmentManager(), "ShoppingProductDetailsDialog");
-            return true;
         });
     }
 
     private String getExpiryText(String expiryDate) {
         if (expiryDate == null || expiryDate.equals("Not set")) return "No expiry set";
-
         try {
             java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("d/M/yyyy");
             java.time.LocalDate exp = java.time.LocalDate.parse(expiryDate, formatter);
             java.time.LocalDate today = java.time.LocalDate.now();
             long days = java.time.temporal.ChronoUnit.DAYS.between(today, exp);
-
             if (days < 0) return "Expired";
             else if (days == 0) return "Expires today";
             else if (days < 3) return "Expires in " + days + " day" + (days > 1 ? "s" : "");
@@ -249,7 +238,6 @@ public class ShoppingListItemAdapter extends RecyclerView.Adapter<ShoppingListIt
 
     private int getExpiryColor(String text) {
         Context ctx = context;
-
         if (text.equals("Expired")) {
             return ctx.getColor(R.color.red);
         } else if (text.contains("Expires today")) {
@@ -258,19 +246,17 @@ public class ShoppingListItemAdapter extends RecyclerView.Adapter<ShoppingListIt
             try {
                 String[] parts = text.split(" ");
                 int number = Integer.parseInt(parts[2]);
-
                 if (text.contains("day")) {
-                    if (number <= 3) return ctx.getColor(R.color.orange);  // ≤ 4 days → orange
-                    else return ctx.getColor(R.color.green);               // > 4 days → green
+                    if (number <= 3) return ctx.getColor(R.color.orange);
+                    else return ctx.getColor(R.color.green);
                 } else {
-                    return ctx.getColor(R.color.green); // weeks/months
+                    return ctx.getColor(R.color.green);
                 }
-
             } catch (Exception e) {
                 return ctx.getColor(android.R.color.darker_gray);
             }
         } else {
-            return ctx.getColor(android.R.color.darker_gray); // "No expiry set", etc.
+            return ctx.getColor(android.R.color.darker_gray);
         }
     }
 

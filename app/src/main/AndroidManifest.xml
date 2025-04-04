@@ -80,7 +80,7 @@
             android:exported="false" />
 
         <activity
-            android:name=".inventory.BarcodeScannerActivity"
+            android:name=".utils.BarcodeScannerActivity"
             android:exported="false"
             android:parentActivityName=".inventory.InventoryActivity" />
 
