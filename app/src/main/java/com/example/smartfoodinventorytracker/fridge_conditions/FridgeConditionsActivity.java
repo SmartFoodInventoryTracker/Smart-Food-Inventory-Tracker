@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import androidx.core.app.NavUtils;
 
 public class FridgeConditionsActivity extends AppCompatActivity {
 
@@ -91,7 +92,7 @@ public class FridgeConditionsActivity extends AppCompatActivity {
             getSupportActionBar().setDisplayShowHomeEnabled(true);
         }
 
-        toolbar.setNavigationOnClickListener(v -> finish());
+        toolbar.setNavigationOnClickListener(v -> NavUtils.navigateUpFromSameTask(this));
     }
 
 

@@ -1,108 +1,112 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:card_view="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:padding="10dp"
-    android:background="#EEEEEE"
-    android:layout_margin="5dp">
-
-
-    <!-- Text Content on the left -->
-    <LinearLayout
-        android:paddingStart="8dp"
-        android:lineSpacingExtra="4dp"
-        android:layout_width="240dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:orientation="vertical">
-
-        <TextView
-            android:id="@+id/productName"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Product Name"
-            android:textSize="18sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/productBrand"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Brand"
-            android:textColor="#666"
-            android:textSize="16sp" />
-
-        <TextView
-            android:id="@+id/productBarcode"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Barcode:"
-            android:textSize="14sp"
-            android:textColor="@android:color/darker_gray"
-            android:visibility="gone" />
-
-
-
-        <TextView
-            android:id="@+id/prodcutDateAdded"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="Date Added: Not set"
-            android:textColor="@android:color/darker_gray"
-            android:textSize="14sp" />
-
-        <TextView
-            android:id="@+id/expiryBadge"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:paddingStart="8dp"
-            android:paddingEnd="8dp"
-            android:paddingTop="2dp"
-            android:paddingBottom="2dp"
-            android:text="Expires in 3 days"
-            android:textSize="12sp"
-            android:textColor="@android:color/white"
-            android:backgroundTint="@android:color/darker_gray"
-            android:background="@drawable/bg_expiry_badge"
-            android:visibility="gone"
-            />
-
-
-    </LinearLayout>
+    card_view:cardCornerRadius="8dp"
+    android:layout_margin="5dp"
+    card_view:cardElevation="2dp"
+    card_view:cardUseCompatPadding="true"
+    android:foreground="@null">
 
     <LinearLayout
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:gravity="center_horizontal">
+        android:orientation="horizontal"
+        android:padding="10dp"
+        android:background="@color/white">
 
-        <TextView
-            android:id="@+id/quantityBadge"
+        <!-- Text Content on the left -->
+        <LinearLayout
+            android:paddingStart="8dp"
+            android:lineSpacingExtra="4dp"
+            android:layout_width="240dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/productName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Product Name"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/productBrand"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Brand"
+                android:textColor="#666"
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/productBarcode"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Barcode:"
+                android:textSize="14sp"
+                android:textColor="@android:color/darker_gray"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/prodcutDateAdded"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Date Added: Not set"
+                android:textColor="@android:color/darker_gray"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/expiryBadge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
+                android:paddingTop="2dp"
+                android:paddingBottom="2dp"
+                android:text="Expires in 3 days"
+                android:textSize="12sp"
+                android:textColor="@android:color/white"
+                android:backgroundTint="@android:color/darker_gray"
+                android:background="@drawable/bg_expiry_badge"
+                android:visibility="gone" />
+        </LinearLayout>
+
+        <!-- Right Section: Quantity and Image -->
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="4dp"
-            android:background="@drawable/bg_quantity_badge"
-            android:paddingStart="8dp"
-            android:paddingEnd="8dp"
-            android:paddingTop="2dp"
-            android:paddingBottom="2dp"
-            android:text="Qty: 1"
-            android:textColor="@android:color/white"
-            android:textSize="12sp"
-            android:textStyle="bold"
-            android:visibility="gone" />
+            android:orientation="vertical"
+            android:gravity="center_horizontal">
 
-        <ImageView
-            android:id="@+id/productImage"
-            android:layout_width="94dp"
-            android:layout_height="84dp"
-            android:layout_gravity="center"
-            android:contentDescription="Product image"
-            android:src="@drawable/placeholder_image" />
+            <TextView
+                android:id="@+id/quantityBadge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="4dp"
+                android:background="@drawable/bg_quantity_badge"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
+                android:paddingTop="2dp"
+                android:paddingBottom="2dp"
+                android:text="Qty: 1"
+                android:textColor="@android:color/white"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:visibility="gone" />
+
+            <ImageView
+                android:id="@+id/productImage"
+                android:layout_width="94dp"
+                android:layout_height="84dp"
+                android:layout_gravity="center"
+                android:contentDescription="Product image"
+                android:src="@drawable/placeholder_image" />
+        </LinearLayout>
     </LinearLayout>
-
-</LinearLayout>
+</androidx.cardview.widget.CardView>
