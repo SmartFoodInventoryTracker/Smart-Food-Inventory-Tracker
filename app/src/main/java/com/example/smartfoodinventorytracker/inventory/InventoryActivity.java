@@ -7,6 +7,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.Menu;
 import android.view.View;
 import android.widget.ImageButton;
 
@@ -50,6 +51,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import androidx.core.app.NavUtils;
 
 public class InventoryActivity extends AppCompatActivity
         implements AddProductDialogFragment.AddProductDialogListener,
@@ -220,6 +222,45 @@ public class InventoryActivity extends AppCompatActivity
     }
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.inventory_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull android.view.MenuItem item) {
+        if (item.getItemId() == R.id.action_delete_all_inventory) {
+            confirmDeleteAllInventoryItems();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void confirmDeleteAllInventoryItems() {
+        new AlertDialog.Builder(this)
+                .setTitle("Delete All Inventory Items")
+                .setMessage("Are you sure you want to delete all items from your inventory?")
+                .setPositiveButton("Yes", (dialog, which) -> {
+                    String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+                    DatabaseReference ref = FirebaseDatabase.getInstance()
+                            .getReference("users")
+                            .child(userId)
+                            .child("inventory_product");
+
+                    ref.removeValue().addOnSuccessListener(aVoid -> {
+                        productList.clear();
+                        inventoryAdapter.updateList(productList);
+                        Toast.makeText(this, "All inventory items deleted", Toast.LENGTH_SHORT).show();
+                    }).addOnFailureListener(e -> {
+                        Toast.makeText(this, "Failed to delete inventory items", Toast.LENGTH_SHORT).show();
+                    });
+                })
+                .setNegativeButton("No", null)
+                .show();
+    }
+
+
+    @Override
     protected void onStart() {
         super.onStart();
         fetchInventoryData();
@@ -330,7 +371,7 @@ public class InventoryActivity extends AppCompatActivity
             getSupportActionBar().setDisplayShowHomeEnabled(true);
         }
 
-        toolbar.setNavigationOnClickListener(v -> finish());
+        toolbar.setNavigationOnClickListener(v -> NavUtils.navigateUpFromSameTask(this));
 
     }
 
@@ -463,20 +504,60 @@ public class InventoryActivity extends AppCompatActivity
     }
 
     private void saveProductToFirebase(String barcode, String name, String brand) {
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        DatabaseReference inventoryRef = FirebaseDatabase.getInstance()
+                .getReference("users")
+                .child(userId)
+                .child("inventory_product");
 
-        Product product = new Product(barcode, name, brand);
+        String expiry = "Not set"; // Or fetch from user input if available
 
-        LocalDate currentDate = LocalDate.now();
-        String formattedDate = currentDate.format(DateTimeFormatter.ofPattern("d/M/yyyy"));
-        product.setDateAdded(formattedDate);
+        Product newProduct = new Product(barcode, name, brand);
+        newProduct.setDateAdded(getCurrentDate());
+        newProduct.setExpiryDate(expiry);
+        newProduct.setQuantity(1); // Default quantity
 
-        databaseReference.child(barcode).setValue(product)
-                .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(this, "Product added to inventory!", Toast.LENGTH_SHORT).show();
-                    Log.d("Firebase", "Product saved: " + barcode + " - " + name);
-                })
-                .addOnFailureListener(e -> Toast.makeText(this, "Failed to add product", Toast.LENGTH_SHORT).show());
+        inventoryRef.get().addOnCompleteListener(task -> {
+            if (!task.isSuccessful()) {
+                Toast.makeText(this, "Failed to access inventory", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            boolean merged = false;
+            for (DataSnapshot itemSnap : task.getResult().getChildren()) {
+                Product existing = itemSnap.getValue(Product.class);
+                if (existing == null) continue;
+
+                boolean sameName = normalize(existing.getName()).equals(normalize(name));
+                boolean sameBrand = normalize(existing.getBrand()).equals(normalize(brand));
+                boolean sameExpiry = normalize(existing.getExpiryDate()).equals(normalize(expiry));
+
+                if (sameName && sameBrand && sameExpiry) {
+                    int mergedQty = existing.getQuantity() + 1;
+                    if (mergedQty > 99) {
+                        mergedQty = 99;
+                        Toast.makeText(this, "Merged quantity capped at 99 for " + name, Toast.LENGTH_SHORT).show();
+                    }
+                    existing.setQuantity(mergedQty);
+
+                    existing.setDateAdded(getCurrentDate());
+                    inventoryRef.child(existing.getBarcode()).setValue(existing);
+                    Toast.makeText(this, "Merged with existing item", Toast.LENGTH_SHORT).show();
+                    merged = true;
+                    break;
+                }
+            }
+
+            if (!merged) {
+                inventoryRef.child(barcode).setValue(newProduct)
+                        .addOnSuccessListener(aVoid ->
+                                Toast.makeText(this, "Product added", Toast.LENGTH_SHORT).show())
+                        .addOnFailureListener(e ->
+                                Toast.makeText(this, "Failed to add product", Toast.LENGTH_SHORT).show());
+            }
+        });
     }
+
 
     private void fetchInventoryData() {
         databaseReference.addValueEventListener(new ValueEventListener() {
@@ -533,22 +614,66 @@ public class InventoryActivity extends AppCompatActivity
     }
 
     @Override
-    public void onProductAdded(Product product) {
-        // ✅ Ensure Date Added is set
-        if (product.getDateAdded() == null || product.getDateAdded().isEmpty()) {
-            LocalDate currentDate = LocalDate.now();
-            String formattedDate = currentDate.format(DateTimeFormatter.ofPattern("d/M/yyyy"));
-            product.setDateAdded(formattedDate);
-        }
+    public void onProductAdded(Product newProduct) {
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        DatabaseReference inventoryRef = FirebaseDatabase.getInstance()
+                .getReference("users")
+                .child(userId)
+                .child("inventory_product");
 
-        // ✅ Save to Firebase (This will automatically trigger fetchInventoryData())
-        databaseReference.child(product.getBarcode()).setValue(product)
-                .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(this, "Product added successfully!", Toast.LENGTH_SHORT).show();
-                })
-                .addOnFailureListener(e -> Toast.makeText(this, "Failed to add product", Toast.LENGTH_SHORT).show());
+        inventoryRef.get().addOnCompleteListener(task -> {
+            if (!task.isSuccessful()) {
+                Toast.makeText(this, "Failed to access inventory", Toast.LENGTH_SHORT).show();
+                return;
+            }
 
+            DataSnapshot snapshot = task.getResult();
+            boolean merged = false;
 
+            for (DataSnapshot itemSnap : snapshot.getChildren()) {
+                Product existing = itemSnap.getValue(Product.class);
+                if (existing == null) continue;
+
+                boolean sameName = normalize(existing.getName()).equals(normalize(newProduct.getName()));
+                boolean sameBrand = normalize(existing.getBrand()).equals(normalize(newProduct.getBrand()));
+                boolean sameExpiry = normalize(existing.getExpiryDate()).equals(normalize(newProduct.getExpiryDate()));
+
+                if (sameName && sameBrand && sameExpiry) {
+                    int mergedQty = existing.getQuantity() + newProduct.getQuantity();
+                    if (mergedQty > 99) {
+                        mergedQty = 99;
+                        Toast.makeText(this, "Merged quantity capped at 99 for " + newProduct.getName(), Toast.LENGTH_SHORT).show();
+                    }
+                    existing.setQuantity(mergedQty);
+                    existing.setDateAdded(getCurrentDate());
+                    inventoryRef.child(existing.getBarcode()).setValue(existing);
+                    Toast.makeText(this, "Merged with existing product", Toast.LENGTH_SHORT).show();
+                    merged = true;
+                    break;
+                }
+            }
+
+            if (!merged) {
+                // Add as new product
+                String newId = inventoryRef.push().getKey();
+                if (newId != null) {
+                    newProduct.barcode = newId;
+                    newProduct.setDateAdded(getCurrentDate());
+                    inventoryRef.child(newId).setValue(newProduct)
+                            .addOnSuccessListener(aVoid -> Toast.makeText(this, "Product added", Toast.LENGTH_SHORT).show());
+                }
+            }
+        });
     }
+
+    private String normalize(String s) {
+        return s == null ? "" : s.trim().toLowerCase();
+    }
+
+    private String getCurrentDate() {
+        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("d/M/yyyy", java.util.Locale.getDefault());
+        return sdf.format(new java.util.Date());
+    }
+
 
 }

@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:gravity="center_horizontal"
+    android:background="@drawable/dialog_background">
+
+    <!-- Title -->
+    <TextView
+        android:id="@+id/editDialogTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Edit Product"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="20dp" />
+
+    <!-- Product Name -->
+    <EditText
+        android:id="@+id/nameInput"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginBottom="12dp"
+        android:background="@drawable/edittext_background"
+        android:hint="Product Name"
+        android:padding="10dp" />
+
+    <!-- Brand Name -->
+    <EditText
+        android:id="@+id/brandInput"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/edittext_background"
+        android:hint="Brand"
+        android:padding="10dp" />
+
+    <!-- Expiry Section -->
+    <TextView
+        android:id="@+id/expiryLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="4dp"
+        android:text="Expiry Date:"
+        android:textSize="14sp"
+        android:textStyle="bold" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="16dp">
+
+        <EditText
+            android:id="@+id/expiryInput"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="48dp"
+            android:background="@drawable/edittext_background"
+            android:padding="10dp"
+            android:hint="Select date"
+            android:inputType="none"
+            android:focusable="false"
+            android:clickable="true" />
+
+        <ImageView
+            android:id="@+id/calendarIcon"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginStart="8dp"
+            android:src="@drawable/ic_calendar"
+            android:contentDescription="Pick date" />
+    </LinearLayout>
+
+    <!-- Quantity Label -->
+    <TextView
+        android:id="@+id/quantityLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="4dp"
+        android:text="Quantity:"
+        android:textSize="14sp"
+        android:textStyle="bold" />
+
+    <!-- Quantity Row: minus / quantity / plus -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="20dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:id="@+id/quantityMinus"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:contentDescription="Decrease quantity"
+            android:src="@drawable/ic_minus" />
+
+        <EditText
+            android:id="@+id/quantityInput"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:layout_marginHorizontal="8dp"
+            android:background="@drawable/edittext_background"
+            android:gravity="center"
+            android:inputType="number"
+            android:text="1"
+            android:padding="10dp" />
+
+        <ImageView
+            android:id="@+id/quantityPlus"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:contentDescription="Increase quantity"
+            android:src="@drawable/ic_plus" />
+    </LinearLayout>
+
+    <!-- Horizontal layout for Done and Cancel buttons -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="12dp">
+
+        <Button
+            android:id="@+id/btnDone"
+            android:layout_width="0dp"
+            android:layout_marginRight="10dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:backgroundTint="@color/blue"
+            android:text="Done"
+            android:textColor="@android:color/white" />
+
+        <Button
+            android:id="@+id/btnCancel"
+            android:layout_width="0dp"
+            android:layout_marginLeft="10dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="8dp"
+            android:backgroundTint="@color/blue"
+            android:text="Cancel"
+            android:textColor="@android:color/white" />
+    </LinearLayout>
+
+    <!-- Delete button spanning full width -->
+    <Button
+        android:id="@+id/btnDelete"
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:backgroundTint="@color/red"
+        android:text="Delete"
+        android:textColor="@android:color/white" />
+
+</LinearLayout>
