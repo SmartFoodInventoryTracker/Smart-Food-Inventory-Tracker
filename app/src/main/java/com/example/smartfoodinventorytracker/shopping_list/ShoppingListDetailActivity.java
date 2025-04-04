@@ -210,12 +210,19 @@ public class ShoppingListDetailActivity extends AppCompatActivity implements
                                             String key = normalize(p.name) + "_" + normalize(p.brand);
                                             if (mergedMap.containsKey(key)) {
                                                 Product existing = mergedMap.get(key);
-                                                existing.setQuantity(existing.getQuantity() + p.getQuantity());
+                                                int combinedQty = existing.getQuantity() + p.getQuantity();
+                                                if (combinedQty > 50) {
+                                                    combinedQty = 50;
+                                                    Toast.makeText(ShoppingListDetailActivity.this,
+                                                            "Quantity capped at 50 for " + p.getName(), Toast.LENGTH_SHORT).show();
+                                                }
+                                                existing.setQuantity(combinedQty);
                                                 existing.name = capitalizeSentence(p.name);
                                             } else {
                                                 mergedMap.put(key, p);
                                             }
                                         }
+
                                         shoppingListRef.removeValue().addOnSuccessListener(unused -> {
                                             for (Product p : mergedMap.values()) {
                                                 shoppingListRef.child(p.getBarcode()).setValue(p);

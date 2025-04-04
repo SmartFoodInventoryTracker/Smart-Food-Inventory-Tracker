@@ -36,6 +36,12 @@ public class ShoppingProductDetailsDialogFragment extends DialogFragment {
     // Mode flag: false = Edit mode; true = Shopping mode.
     private boolean isShoppingMode = false;
     List<Product> existingProducts = new ArrayList<>();
+    private String listKey;
+
+    public void setListKey(String listKey) {
+        this.listKey = listKey;
+    }
+
 
     public interface ShoppingProductDialogListener {
         void onProductUpdated(Product updatedProduct);
@@ -201,10 +207,29 @@ public class ShoppingProductDetailsDialogFragment extends DialogFragment {
             }
             // In Edit mode, expiry remains unchanged.
 
-            if(listener != null) {
-                listener.onProductUpdated(product);
+            // Save to Firebase (Edit Mode only)
+            if (!isShoppingMode && listKey != null) {
+                FirebaseDatabase.getInstance()
+                        .getReference("users")
+                        .child(userId)
+                        .child("shopping-list")
+                        .child(listKey)
+                        .child("items")
+                        .child(product.getBarcode())
+                        .setValue(product)
+                        .addOnSuccessListener(aVoid -> {
+                            Toast.makeText(getContext(), "Product updated", Toast.LENGTH_SHORT).show();
+                            if (listener != null) listener.onProductUpdated(product);
+                            dismiss();
+                        })
+                        .addOnFailureListener(e -> {
+                            Toast.makeText(getContext(), "Failed to update product", Toast.LENGTH_SHORT).show();
+                        });
+            } else {
+                if (listener != null) listener.onProductUpdated(product);
+                dismiss();
             }
-            dismiss();
+
         });
 
         // Cancel button dismisses dialog.

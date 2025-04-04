@@ -164,6 +164,7 @@ public class ShoppingListItemAdapter extends RecyclerView.Adapter<ShoppingListIt
             dialog.setUserId(userId);
             // Pass the current mode to the dialog so it can display the expiry field if needed.
             dialog.setShoppingMode(isShoppingMode);
+            dialog.setListKey(listKey); // ✅ Required for saving edits in Edit Mode
             dialog.setShoppingProductDialogListener(new ShoppingProductDetailsDialogFragment.ShoppingProductDialogListener() {
                 @Override
                 public void onProductUpdated(Product updatedProduct) {
