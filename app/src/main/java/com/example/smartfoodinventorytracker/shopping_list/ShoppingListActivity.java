@@ -39,6 +39,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import androidx.core.app.NavUtils;
 
 public class ShoppingListActivity extends AppCompatActivity {
 
@@ -134,7 +135,7 @@ public class ShoppingListActivity extends AppCompatActivity {
 
         loadShoppingListsFromFirebase();
 
-        toolbar.setNavigationOnClickListener(v -> finish());
+        toolbar.setNavigationOnClickListener(v -> NavUtils.navigateUpFromSameTask(this));
     }
 
     @Override

@@ -1,6 +1,7 @@
 package com.example.smartfoodinventorytracker.shopping_list;
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -33,6 +34,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import androidx.core.app.NavUtils;
 
 public class ShoppingListDetailActivity extends AppCompatActivity implements
         AddShoppingProductListener, ManualShoppingProductListener {
@@ -74,7 +76,7 @@ public class ShoppingListDetailActivity extends AppCompatActivity implements
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setDisplayShowHomeEnabled(true);
         }
-        toolbar.setNavigationOnClickListener(v -> finish());
+        toolbar.setNavigationOnClickListener(v -> NavUtils.navigateUpFromSameTask(this));
 
         // Get list name and set title.
         String listName = getIntent().getStringExtra("listName");
@@ -108,6 +110,25 @@ public class ShoppingListDetailActivity extends AppCompatActivity implements
             AddShoppingProductDialogFragment dialog = new AddShoppingProductDialogFragment();
             dialog.setListener(this);
             dialog.show(getSupportFragmentManager(), "AddShoppingProductDialog");
+        });
+
+        toolbar.setNavigationOnClickListener(v -> {
+            if (isShoppingMode) {
+                new AlertDialog.Builder(this)
+                        .setTitle("Leave Shopping Mode?")
+                        .setMessage("Do you want to leave shopping mode and return to edit mode?")
+                        .setPositiveButton("Yes", (dialog, which) -> {
+                            isShoppingMode = false;
+                            adapter.setShoppingMode(false);
+                            adapter.notifyDataSetChanged();
+                            updateBottomButtons();
+                            ((TextView)findViewById(R.id.headerTitle)).setText(EDIT_MODE_TITLE);
+                        })
+                        .setNegativeButton("No", null)
+                        .show();
+            } else {
+                finish();
+            }
         });
 
         // Secondary button functionality depends on mode.
@@ -237,11 +258,23 @@ public class ShoppingListDetailActivity extends AppCompatActivity implements
                                     });
                                     adapter.notifyDataSetChanged();
                                     // Switch back to Edit Mode.
-                                    isShoppingMode = false;
-                                    headerTitle.setText(EDIT_MODE_TITLE);
-                                    updateBottomButtons();
-                                    adapter.setShoppingMode(isShoppingMode);
-                                    adapter.notifyDataSetChanged();
+                                    new AlertDialog.Builder(ShoppingListDetailActivity.this)
+                                            .setTitle("Purchase Complete")
+                                            .setMessage("Your purchase was saved. What would you like to do next?")
+                                            .setPositiveButton("Return to Edit Mode", (dialogInterface, i) -> {
+                                                isShoppingMode = false;
+                                                headerTitle.setText(EDIT_MODE_TITLE);
+                                                updateBottomButtons();
+                                                adapter.setShoppingMode(false);
+                                                adapter.notifyDataSetChanged();
+                                            })
+                                            .setNegativeButton("Go to Inventory", (dialogInterface, i) -> {
+                                                finish();
+                                                startActivity(new Intent(ShoppingListDetailActivity.this, com.example.smartfoodinventorytracker.inventory.InventoryActivity.class));
+                                            })
+                                            .setCancelable(false)
+                                            .show();
+
                                 }
 
                                 @Override

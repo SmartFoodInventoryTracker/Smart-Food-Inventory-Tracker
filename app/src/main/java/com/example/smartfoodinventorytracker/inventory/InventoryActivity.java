@@ -51,6 +51,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import androidx.core.app.NavUtils;
 
 public class InventoryActivity extends AppCompatActivity
         implements AddProductDialogFragment.AddProductDialogListener,
@@ -370,7 +371,7 @@ public class InventoryActivity extends AppCompatActivity
             getSupportActionBar().setDisplayShowHomeEnabled(true);
         }
 
-        toolbar.setNavigationOnClickListener(v -> finish());
+        toolbar.setNavigationOnClickListener(v -> NavUtils.navigateUpFromSameTask(this));
 
     }
 
