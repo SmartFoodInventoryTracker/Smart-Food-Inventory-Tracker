@@ -15,7 +15,8 @@
 
         <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:clipChildren="false">
 
             <!-- Main content of the gas card -->
             <LinearLayout
@@ -76,26 +77,50 @@
                     app:tint="@android:color/darker_gray" />
             </LinearLayout>
 
-            <!-- Floating tooltip that appears above info icon -->
-            <TextView
+            <!-- Floating tooltip bubble with tail -->
+            <LinearLayout
                 android:id="@+id/infoHelperTooltip"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:orientation="vertical"
                 android:layout_gravity="end|top"
                 android:layout_marginEnd="12dp"
                 android:layout_marginTop="4dp"
-                android:background="@drawable/tooltip_bg"
-                android:padding="6dp"
-                android:text="Tap for info"
-                android:textColor="#333333"
-                android:textStyle="bold"
-                android:textSize="13sp"
-                android:elevation="6dp"
-                android:shadowColor="#55000000"
-                android:shadowDx="1"
+                android:gravity="center_horizontal"
+                android:visibility="gone"
+                android:shadowColor="#44000000"
+                android:shadowDx="0"
                 android:shadowDy="1"
-                android:shadowRadius="1.5"
-                android:visibility="gone" />
+                android:shadowRadius="2"
+                android:elevation="6dp">
+
+                <!-- Bubble -->
+                <TextView
+                    android:id="@+id/tooltipText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/tooltip_bg"
+                    android:text="Tap for info"
+                    android:textColor="#333333"
+                    android:textStyle="bold"
+                    android:textSize="13sp"
+                    android:padding="6dp"
+                    android:elevation="6dp"
+                    android:shadowColor="#55000000"
+                    android:shadowDx="1"
+                    android:shadowDy="1"
+                    android:shadowRadius="2" />
+
+                <!-- Triangle tail image -->
+                <ImageView
+                    android:layout_width="12dp"
+                    android:layout_height="6dp"
+                    android:src="@drawable/tooltip_tail"
+                    android:layout_marginTop="-1dp"
+                    android:contentDescription="Tooltip tail" />
+
+            </LinearLayout>
+
         </FrameLayout>
     </androidx.cardview.widget.CardView>
 

@@ -222,18 +222,24 @@ public class FridgeConditionsActivity extends AppCompatActivity {
         SharedPreferences prefs = getSharedPreferences("app_prefs", MODE_PRIVATE);
         boolean tooltipShown = false;
 
-        TextView infoHelperTooltip = cardCO.findViewById(R.id.infoHelperTooltip);
+        LinearLayout infoHelperTooltip = cardCO.findViewById(R.id.infoHelperTooltip);
 
         if (!tooltipShown) {
             infoHelperTooltip.setVisibility(View.VISIBLE);
             infoHelperTooltip.setAlpha(0f);
+            infoHelperTooltip.setTranslationX(100f); // Start farther right for more visible slide
+
             infoHelperTooltip.animate()
-                    .alpha(1f)
-                    .setDuration(400)
+                    .translationX(0f)               // Slide into position
+                    .alpha(1f)                      // Fade in
+                    .setDuration(600)               // Slower slide in
+                    .setInterpolator(new android.view.animation.DecelerateInterpolator()) // Smooth approach
                     .withEndAction(() -> infoHelperTooltip.postDelayed(() -> {
                         infoHelperTooltip.animate()
+                                .translationX(100f) // Slide back out to the right
                                 .alpha(0f)
-                                .setDuration(400)
+                                .setDuration(600)   // Slower fade & slide out
+                                .setInterpolator(new android.view.animation.DecelerateInterpolator())
                                 .withEndAction(() -> infoHelperTooltip.setVisibility(View.GONE))
                                 .start();
                     }, 3500))
@@ -241,6 +247,7 @@ public class FridgeConditionsActivity extends AppCompatActivity {
 
             prefs.edit().putBoolean("tooltip_shown", true).apply();
         }
+
 
         // 📜 History Button
         ImageView historyButton = findViewById(R.id.historyLogo);
