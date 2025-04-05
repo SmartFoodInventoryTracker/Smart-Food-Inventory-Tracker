@@ -285,8 +285,9 @@ public class FridgeConditionsActivity extends AppCompatActivity {
     }
 
     private void fetchDataFromFirebase() {
-        databaseRef = FirebaseDatabase.getInstance().getReference().child("inventory");
-
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        databaseRef = FirebaseDatabase.getInstance()
+                .getReference("users").child(userId).child("inventory");
         databaseRef.orderByKey().limitToLast(1).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot snapshot) {

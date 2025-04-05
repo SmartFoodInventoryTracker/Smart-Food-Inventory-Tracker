@@ -76,6 +76,7 @@ public class FridgeGraph2Activity extends AppCompatActivity {
                 .getReference("users").child(userId).child("inventory");
         List<FridgeHistoryItem> historyList = new ArrayList<>();
 
+
         databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -101,27 +102,52 @@ public class FridgeGraph2Activity extends AppCompatActivity {
                 // Handle possible errors.
                 //Log.e("FirebaseError", "Error fetching data", error.toException());
             }
+
         });
 
 
 
-        List<Entry> entries = new ArrayList<>();
 
-        for (int i = 0; i < 10; i++) {
-            entries.add(new Entry(i, (float) (Math.random() * 100)));
+
+
+    }
+    private void plotGraph(List<Double> values, String label) {
+        List<Entry> entries = new ArrayList<>();
+        for (int i = 0; i < values.size(); i++) {
+            entries.add(new Entry(i, values.get(i).floatValue()));
         }
 
-        LineDataSet dataSet = new LineDataSet(entries, metric);
+        LineDataSet dataSet = new LineDataSet(entries, label);
         dataSet.setColor(getResources().getColor(R.color.green));
         dataSet.setValueTextSize(12f);
         dataSet.setLineWidth(2f);
 
         LineData lineData = new LineData(dataSet);
         lineChart.setData(lineData);
-        lineChart.invalidate(); // refresh
+        lineChart.invalidate();
 
-        // Customize X-Axis
         XAxis xAxis = lineChart.getXAxis();
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
     }
+
+    private void plotGraphInt(List<Integer> values, String label) {
+        List<Entry> entries = new ArrayList<>();
+        for (int i = 0; i < values.size(); i++) {
+            entries.add(new Entry(i, values.get(i)));
+        }
+
+        LineDataSet dataSet = new LineDataSet(entries, label);
+        dataSet.setColor(getResources().getColor(R.color.green));
+        dataSet.setValueTextSize(12f);
+        dataSet.setLineWidth(2f);
+
+        LineData lineData = new LineData(dataSet);
+        lineChart.setData(lineData);
+        lineChart.invalidate();
+
+        XAxis xAxis = lineChart.getXAxis();
+        xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
+    }
+
+
 }
