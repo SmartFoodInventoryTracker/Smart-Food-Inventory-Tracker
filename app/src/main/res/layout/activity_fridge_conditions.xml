@@ -25,7 +25,7 @@
             tools:layout_editor_absoluteX="16dp">
 
             <ImageView
-                android:id="@+id/backtofhistoryLogo"
+                android:id="@+id/fridgeLogo"
                 android:layout_width="25dp"
                 android:layout_height="25dp"
                 android:layout_gravity="center_vertical"
@@ -35,7 +35,7 @@
                 android:src="@drawable/ic_fridge" />
 
             <TextView
-                android:id="@+id/GraphTitle"
+                android:id="@+id/fridgeTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
