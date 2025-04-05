@@ -43,111 +43,25 @@ public class FridgeGraph2Activity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
-        metricSpinner = findViewById(R.id.metricSpinner2);
+      /*  metricSpinner = findViewById(R.id.metricSpinner2);
         lineChart = findViewById(R.id.lineChart_2);
-
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        databaseReference = FirebaseDatabase.getInstance()
+                .getReference("users").child(userId).child("fridge_condition");
+        List<FridgeHistoryItem> historyList = new ArrayList<>();
         metricSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
                 String selectedMetric = parent.getItemAtPosition(pos).toString();
-                loadMockGraph(selectedMetric);
+                //loadMockGraph(selectedMetric);
             }
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {}
         });
-        setUpToolbar();
-    }
-    private void setUpToolbar(){
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayShowTitleEnabled(false);
-
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setDisplayShowHomeEnabled(true);
-        }
-
-        toolbar.setNavigationOnClickListener(v -> finish());
-    }
-    private void loadMockGraph(String metric) {
-        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        databaseReference = FirebaseDatabase.getInstance()
-                .getReference("users").child(userId).child("inventory");
-        List<FridgeHistoryItem> historyList = new ArrayList<>();
-
-
-        databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                for (DataSnapshot itemSnapshot : snapshot.getChildren()) {
-                    String dateTime = itemSnapshot.child("datetime").getValue(String.class);
-                    Double temperature = itemSnapshot.child("temperature condition").getValue(Double.class);
-                    Double humidity = itemSnapshot.child("humidity condition").getValue(Double.class);
-                    Integer co = itemSnapshot.child("co condition").getValue(Integer.class);
-                    Integer lpg = itemSnapshot.child("lpg condition").getValue(Integer.class);
-                    Integer smoke = itemSnapshot.child("smoke condition").getValue(Integer.class);
-
-                    if (dateTime != null && temperature != null && humidity != null && co != null && lpg != null && smoke != null) {
-                        FridgeHistoryItem item = new FridgeHistoryItem(dateTime, temperature, humidity, co, lpg, smoke);
-                        historyList.add(item);
-                    }
-                }
-
-                // Use the historyList as needed, e.g., update UI or pass to an adapter
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                // Handle possible errors.
-                //Log.e("FirebaseError", "Error fetching data", error.toException());
-            }
-
-        });
-
-
-
-
-
-
-    }
-    private void plotGraph(List<Double> values, String label) {
-        List<Entry> entries = new ArrayList<>();
-        for (int i = 0; i < values.size(); i++) {
-            entries.add(new Entry(i, values.get(i).floatValue()));
-        }
-
-        LineDataSet dataSet = new LineDataSet(entries, label);
-        dataSet.setColor(getResources().getColor(R.color.green));
-        dataSet.setValueTextSize(12f);
-        dataSet.setLineWidth(2f);
-
-        LineData lineData = new LineData(dataSet);
-        lineChart.setData(lineData);
-        lineChart.invalidate();
-
-        XAxis xAxis = lineChart.getXAxis();
-        xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
+        //setUpToolbar();*/
     }
 
-    private void plotGraphInt(List<Integer> values, String label) {
-        List<Entry> entries = new ArrayList<>();
-        for (int i = 0; i < values.size(); i++) {
-            entries.add(new Entry(i, values.get(i)));
-        }
-
-        LineDataSet dataSet = new LineDataSet(entries, label);
-        dataSet.setColor(getResources().getColor(R.color.green));
-        dataSet.setValueTextSize(12f);
-        dataSet.setLineWidth(2f);
-
-        LineData lineData = new LineData(dataSet);
-        lineChart.setData(lineData);
-        lineChart.invalidate();
-
-        XAxis xAxis = lineChart.getXAxis();
-        xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
-    }
 
 
 }

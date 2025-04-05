@@ -59,7 +59,7 @@ public class FridgeHistoryActivity extends AppCompatActivity {
         btnDateRange.setOnClickListener(v -> openDatePicker());
 
         btnGraph.setOnClickListener(v -> {
-            Intent intent = new Intent(FridgeHistoryActivity.this, FridgeGraph2Activity.class);
+            Intent intent = new Intent(FridgeHistoryActivity.this, FridgeGraphActivity.class);
             startActivity(intent);
         });
 
@@ -75,7 +75,7 @@ public class FridgeHistoryActivity extends AppCompatActivity {
         recyclerView.setAdapter(adapter);
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         databaseReference = FirebaseDatabase.getInstance()
-                .getReference("users").child(userId).child("inventory");
+                .getReference("users").child(userId).child("fridge_condition");
     }
 
     private void generateMockData() {
@@ -83,45 +83,41 @@ public class FridgeHistoryActivity extends AppCompatActivity {
         DatabaseReference databaseReference = FirebaseDatabase.getInstance()
                 .getReference("users")
                 .child(userId)
-                .child("inventory");
-
-        List<FridgeHistoryItem> historyList = new ArrayList<>();
+                .child("fridge_condition");
 
         databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                for (DataSnapshot itemSnapshot : snapshot.getChildren()) {
-                    String dateTime = itemSnapshot.child("datetime").getValue(String.class);
-                    Double temperature = itemSnapshot.child("temperature condition").getValue(Double.class);
-                    Double humidity = itemSnapshot.child("humidity condition").getValue(Double.class);
-                    Integer co = itemSnapshot.child("co condition").getValue(Integer.class);
-                    Integer lpg = itemSnapshot.child("lpg condition").getValue(Integer.class);
-                    Integer smoke = itemSnapshot.child("smoke condition").getValue(Integer.class);
+                mockHistory.clear(); // Prevent duplication
 
-                    if (dateTime != null && temperature != null && humidity != null && co != null && lpg != null && smoke != null) {
-                        FridgeHistoryItem item = new FridgeHistoryItem(dateTime, temperature, humidity, co, lpg, smoke);
-                        historyList.add(item);
-                    }
+                for (DataSnapshot itemSnapshot : snapshot.getChildren()) {
+                    String dateTime = itemSnapshot.child("time").getValue(String.class);
+                    Double temp = itemSnapshot.child("temperature").getValue(Double.class);
+                    Double hum = itemSnapshot.child("humidity").getValue(Double.class);
+                    Integer co = itemSnapshot.child("co").getValue(Integer.class);
+                    Integer lpg = itemSnapshot.child("lpg").getValue(Integer.class);
+                    Integer smoke = itemSnapshot.child("smoke").getValue(Integer.class);
+                    Integer overallCond = itemSnapshot.child("overall condition").getValue(Integer.class);
+
+                    FridgeHistoryItem item = new FridgeHistoryItem(dateTime, temp, hum, co, lpg, smoke);
+                    mockHistory.add(item);
+
+                    // 🖨️ Debug print each value
+                    System.out.println("Item: " + item.dateTime + " | Temp: " + temp + " | Hum: " + hum +
+                            " | CO: " + co + " | LPG: " + lpg + " | NH4: " + smoke);
                 }
 
-                // Use the historyList as needed, e.g., update UI or pass to an adapter
+                // Now that mockHistory is ready, notify adapter
+                adapter.notifyDataSetChanged();
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                // Handle possible errors.
-                //Log.e("FirebaseError", "Error fetching data", error.toException());
+                Toast.makeText(FridgeHistoryActivity.this, "Failed to fetch data", Toast.LENGTH_SHORT).show();
             }
         });
-        mockHistory.clear(); // Prevent duplication
-        for (FridgeHistoryItem item: historyList
-             ) {
-            mockHistory.add(item);
-
-        }
-
-
     }
+
 
     private void openDatePicker() {
         final Calendar calendar = Calendar.getInstance();

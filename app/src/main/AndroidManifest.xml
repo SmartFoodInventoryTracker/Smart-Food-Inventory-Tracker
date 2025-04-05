@@ -19,80 +19,70 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.SmartFoodInventoryTracker"
         tools:targetApi="31">
-
+        <activity
+            android:name=".fridge_conditions.FridgeGraphActivity"
+            android:exported="false" />
         <activity
             android:name=".shopping_list.ShoppingListDetailActivity"
             android:exported="false"
             android:parentActivityName=".shopping_list.ShoppingListActivity" />
-
         <activity
             android:name=".settings.SettingsActivity"
             android:exported="false"
             android:parentActivityName=".dashboard.DashboardActivity" />
-
         <activity
             android:name=".notifications.NotificationCenterActivity"
             android:exported="false"
             android:parentActivityName=".dashboard.DashboardActivity" />
-
         <activity
             android:name=".dashboard.ProfileActivity"
             android:exported="false"
             android:parentActivityName=".dashboard.DashboardActivity" />
-
         <activity
             android:name=".fridge_conditions.FridgeConditionsActivity"
             android:exported="false"
             android:parentActivityName=".dashboard.DashboardActivity" />
-
         <activity
             android:name=".shopping_list.ShoppingListActivity"
             android:exported="false"
             android:parentActivityName=".dashboard.DashboardActivity" />
-
         <activity
             android:name=".inventory.InventoryActivity"
             android:exported="false"
             android:parentActivityName=".dashboard.DashboardActivity" />
-
         <activity
             android:name=".dashboard.DashboardActivity"
             android:exported="false"
             android:parentActivityName=".authentication.LoginActivity" />
-
         <activity
             android:name=".authentication.ForgotPasswordActivity"
             android:exported="false"
             android:parentActivityName=".authentication.LoginActivity" />
-
         <activity
             android:name=".authentication.SignupActivity"
             android:exported="false"
             android:parentActivityName=".authentication.OnboardingActivity" />
-
         <activity
             android:name=".authentication.LoginActivity"
             android:exported="false"
             android:parentActivityName=".authentication.OnboardingActivity" />
-
         <activity
             android:name=".MainActivity"
             android:exported="false" />
-
         <activity
             android:name=".inventory.BarcodeScannerActivity"
             android:exported="false"
             android:parentActivityName=".inventory.InventoryActivity" />
-
         <activity
             android:name=".authentication.OnboardingActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".fridge_conditions.FridgeHistoryActivity"/>
+        <activity android:name=".fridge_conditions.FridgeHistoryActivity" />
     </application>
 
 </manifest>

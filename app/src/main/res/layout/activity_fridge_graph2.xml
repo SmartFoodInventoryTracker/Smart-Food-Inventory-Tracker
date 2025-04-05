@@ -19,7 +19,8 @@
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.093" />
+        app:layout_constraintVertical_bias="0.093"
+        tools:visibility="gone" />
 
     <LinearLayout
         android:id="@+id/linearLayout"
@@ -34,7 +35,7 @@
 
         <!-- Line Chart -->
         <com.github.mikephil.charting.charts.LineChart
-            android:id="@+id/lineChart_2"
+            android:id="@+id/lineChart"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_marginTop="16dp"
