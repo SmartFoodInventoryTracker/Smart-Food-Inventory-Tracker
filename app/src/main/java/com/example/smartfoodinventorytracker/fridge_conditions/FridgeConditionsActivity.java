@@ -4,9 +4,11 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -14,6 +16,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.graphics.Insets;
@@ -31,10 +34,13 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import androidx.core.app.NavUtils;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.viewpager2.widget.ViewPager2;
 
 public class FridgeConditionsActivity extends AppCompatActivity {
 
@@ -53,11 +59,24 @@ public class FridgeConditionsActivity extends AppCompatActivity {
     // Cards (inflate from item_gas_card)
     private View cardCO, cardLPG, cardNH4;
 
+
     // Gas values
     private TextView coValue, lpgValue, nh4Value;
 
     // SpeedView gauges
     private SpeedView speedCO, speedLPG, speedNH4;
+
+    // Level Pagers
+    private ViewPager2 levelPagerCO, levelPagerLPG, levelPagerNH4;
+    private ViewPager2 levelPagerTemp, levelPagerHum;
+
+    private final android.os.Handler pagerHandler = new android.os.Handler();
+    private final int AUTO_SCROLL_DELAY = 3000; // 3 seconds
+
+    // Status
+    private TextView coStatus, lpgStatus, nh4Status;
+    private TextView tempStatus, humStatus;
+
 
     private List<TextView> arrowViews = new ArrayList<>();
 
@@ -108,6 +127,9 @@ public class FridgeConditionsActivity extends AppCompatActivity {
         humidityText = findViewById(R.id.humidityText);
         speedTemp = findViewById(R.id.speedViewTemp);
         speedHum = findViewById(R.id.speedViewHum);
+        tempStatus = findViewById(R.id.tempStatus);
+        humStatus = findViewById(R.id.humStatus);
+
 
         // 🔽 Layouts
         tempLayout = findViewById(R.id.tempCardLayout);
@@ -130,6 +152,16 @@ public class FridgeConditionsActivity extends AppCompatActivity {
         tempInfoTitle.setText("Temperature");
         tempInfoText.setText("Monitoring the internal temperature helps prevent food spoilage and ensures safe storage.");
 
+        // 🌡️ ViewPager for Temperature Levels
+        levelPagerTemp = findViewById(R.id.levelPagerTemp);
+        List<String> tempLevels = Arrays.asList(
+                "<font color='#4CAF50'><b>Good ✅</b>: &lt; 4°C</font>",
+                "<font color='#FFC107'><b>Moderate ⚠️</b>: 4–7.9°C</font>",
+                "<font color='#F44336'><b>Poor 🛑</b>: ≥ 8°C</font>"
+        );
+        levelPagerTemp.setAdapter(new ConditionLevelAdapter(tempLevels));
+        autoScrollPager(levelPagerTemp, tempLevels.size());
+
         tempInfoIcon.setOnClickListener(v -> {
             tempOverlay.setVisibility(View.VISIBLE);
             tempOverlay.setAlpha(0f);
@@ -151,6 +183,16 @@ public class FridgeConditionsActivity extends AppCompatActivity {
         // 💧 Humidity Info Setup
         humInfoTitle.setText("Humidity");
         humInfoText.setText("Humidity helps maintain moisture in fruits and vegetables. Too low or too high can lead to spoilage.");
+
+        // 💧 ViewPager for Humidity Levels
+        levelPagerHum = findViewById(R.id.levelPagerHum);
+        List<String> humLevels = Arrays.asList(
+                "<font color='#4CAF50'><b>Good ✅</b>: &lt; 40%</font>",
+                "<font color='#FFC107'><b>Moderate ⚠️</b>: 40–69%</font>",
+                "<font color='#F44336'><b>Poor 🛑</b>: ≥ 70%</font>"
+        );
+        levelPagerHum.setAdapter(new ConditionLevelAdapter(humLevels));
+        autoScrollPager(levelPagerHum, humLevels.size());
 
         humInfoIcon.setOnClickListener(v -> {
             humOverlay.setVisibility(View.VISIBLE);
@@ -177,6 +219,8 @@ public class FridgeConditionsActivity extends AppCompatActivity {
         // 🌫️ CO Card
         cardCO = findViewById(R.id.card_co);
         coValue = cardCO.findViewById(R.id.gasValue);
+        coStatus = cardCO.findViewById(R.id.gasStatus);
+
         speedCO = cardCO.findViewById(R.id.gasGauge);
         ImageView coIcon = cardCO.findViewById(R.id.gasIcon);
         TextView coLabel = cardCO.findViewById(R.id.gasLabel);
@@ -202,6 +246,16 @@ public class FridgeConditionsActivity extends AppCompatActivity {
             speedCO.setAlpha(0.2f);
         });
 
+        levelPagerCO = cardCO.findViewById(R.id.levelPager);
+        List<String> coLevels = Arrays.asList(
+                "<font color='#4CAF50'><b>Good ✅</b>: 0–99 ppm</font>",
+                "<font color='#FFC107'><b>Moderate ⚠️</b>: 100–299 ppm</font>",
+                "<font color='#F44336'><b>Poor 🛑</b>: 300+ ppm</font>"
+        );
+        levelPagerCO.setAdapter(new ConditionLevelAdapter(coLevels));
+        autoScrollPager(levelPagerCO, coLevels.size());
+
+
         coClose.setOnClickListener(v -> {
             coOverlay.animate().alpha(0f).translationY(20f).setDuration(150).withEndAction(() -> {
                 coOverlay.setVisibility(View.GONE);
@@ -215,6 +269,7 @@ public class FridgeConditionsActivity extends AppCompatActivity {
         // 🔥 LPG Card
         cardLPG = findViewById(R.id.card_lpg);
         lpgValue = cardLPG.findViewById(R.id.gasValue);
+        lpgStatus = cardLPG.findViewById(R.id.gasStatus);
         speedLPG = cardLPG.findViewById(R.id.gasGauge);
         ImageView lpgIcon = cardLPG.findViewById(R.id.gasIcon);
         TextView lpgLabel = cardLPG.findViewById(R.id.gasLabel);
@@ -240,6 +295,16 @@ public class FridgeConditionsActivity extends AppCompatActivity {
             speedLPG.setAlpha(0.2f);
         });
 
+        levelPagerLPG = cardLPG.findViewById(R.id.levelPager);
+        List<String> lpgLevels = Arrays.asList(
+                "<font color='#4CAF50'><b>Good ✅</b>: 0–99 ppm</font>",
+                "<font color='#FFC107'><b>Moderate ⚠️</b>: 100–299 ppm</font>",
+                "<font color='#F44336'><b>Poor 🛑</b>: 300+ ppm</font>"
+        );
+        levelPagerLPG.setAdapter(new ConditionLevelAdapter(lpgLevels));
+        autoScrollPager(levelPagerLPG, lpgLevels.size());
+
+
         lpgClose.setOnClickListener(v -> {
             lpgOverlay.animate().alpha(0f).translationY(20f).setDuration(150).withEndAction(() -> {
                 lpgOverlay.setVisibility(View.GONE);
@@ -253,6 +318,7 @@ public class FridgeConditionsActivity extends AppCompatActivity {
         // 🧪 NH₄ Card
         cardNH4 = findViewById(R.id.card_nh4);
         nh4Value = cardNH4.findViewById(R.id.gasValue);
+        nh4Status = cardNH4.findViewById(R.id.gasStatus);
         speedNH4 = cardNH4.findViewById(R.id.gasGauge);
         ImageView nh4Icon = cardNH4.findViewById(R.id.gasIcon);
         TextView nh4Label = cardNH4.findViewById(R.id.gasLabel);
@@ -278,6 +344,14 @@ public class FridgeConditionsActivity extends AppCompatActivity {
             speedNH4.setAlpha(0.2f);
         });
 
+        levelPagerNH4 = cardNH4.findViewById(R.id.levelPager);
+        List<String> nh4Levels = Arrays.asList(
+                "<font color='#4CAF50'><b>Good ✅</b>: 0–99 ppm</font>",
+                "<font color='#FFC107'><b>Moderate ⚠️</b>: 100–299 ppm</font>",
+                "<font color='#F44336'><b>Poor 🛑</b>: 300+ ppm</font>"
+        );
+        levelPagerNH4.setAdapter(new ConditionLevelAdapter(nh4Levels));
+
         nh4Close.setOnClickListener(v -> {
             nh4Overlay.animate().alpha(0f).translationY(20f).setDuration(150).withEndAction(() -> {
                 nh4Overlay.setVisibility(View.GONE);
@@ -286,6 +360,8 @@ public class FridgeConditionsActivity extends AppCompatActivity {
             nh4MainLayout.setAlpha(1f);
             speedNH4.setAlpha(1f);
         });
+        autoScrollPager(levelPagerNH4, nh4Levels.size());
+
 
         SharedPreferences prefs = getSharedPreferences("app_prefs", MODE_PRIVATE);
         boolean tooltipShown = false;
@@ -325,6 +401,63 @@ public class FridgeConditionsActivity extends AppCompatActivity {
         });
 
     }
+
+    private void autoScrollPager(ViewPager2 pager, int pageCount) {
+        final int delayMillis = 3000; // or whatever value you choose
+
+        final Handler handler = new Handler();
+        final Runnable[] scrollRunnable = new Runnable[1];
+
+        scrollRunnable[0] = () -> {
+            int next = (pager.getCurrentItem() + 1) % pageCount;
+            pager.setCurrentItem(next, true);
+            handler.postDelayed(scrollRunnable[0], delayMillis);
+        };
+
+        handler.postDelayed(scrollRunnable[0], delayMillis);
+    }
+
+
+
+    public class LevelPagerAdapter extends RecyclerView.Adapter<LevelPagerAdapter.LevelViewHolder> {
+        private final List<String> messages;
+
+        public LevelPagerAdapter(List<String> messages) {
+            this.messages = messages;
+        }
+
+        @NonNull
+        @Override
+        public LevelViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            TextView text = new TextView(parent.getContext());
+            text.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+            text.setTextSize(13);
+            text.setPadding(32, 32, 32, 32);
+            text.setGravity(Gravity.CENTER);
+            text.setTextColor(Color.DKGRAY);
+            return new LevelViewHolder(text);
+        }
+
+        @Override
+        public void onBindViewHolder(@NonNull LevelViewHolder holder, int position) {
+            holder.textView.setText(messages.get(position));
+        }
+
+        @Override
+        public int getItemCount() {
+            return messages.size();
+        }
+
+        class LevelViewHolder extends RecyclerView.ViewHolder {
+            TextView textView;
+
+            LevelViewHolder(@NonNull View itemView) {
+                super(itemView);
+                this.textView = (TextView) itemView;
+            }
+        }
+    }
+
 
     private void setUpOverallBar() {
         for (int i = 0; i < totalBlocks; i++) {
@@ -383,6 +516,21 @@ public class FridgeConditionsActivity extends AppCompatActivity {
                     lpgValue.setText(lpg != null ? lpg + " ppm" : "-- ppm");
                     nh4Value.setText(smoke != null ? smoke + " ppm" : "-- ppm");
 
+                    tempStatus.setText(getStatusLabel(tempCond));
+                    tempStatus.setTextColor(getStatusColor(tempCond));
+
+                    humStatus.setText(getStatusLabel(humCond));
+                    humStatus.setTextColor(getStatusColor(humCond));
+
+                    coStatus.setText(getStatusLabel(coCond));
+                    coStatus.setTextColor(getStatusColor(coCond));
+
+                    lpgStatus.setText(getStatusLabel(lpgCond));
+                    lpgStatus.setTextColor(getStatusColor(lpgCond));
+
+                    nh4Status.setText(getStatusLabel(smokeCond));
+                    nh4Status.setTextColor(getStatusColor(smokeCond));
+
                     setGauge(tempCond, "t");
                     setGauge(humCond, "h");
                     setGauge(coCond, "c");
@@ -390,7 +538,11 @@ public class FridgeConditionsActivity extends AppCompatActivity {
                     setGauge(smokeCond, "s");
                     setGauge(overallCond, "ov");
                 }
+
+
             }
+
+
 
             @Override
             public void onCancelled(DatabaseError error) {
@@ -415,6 +567,19 @@ public class FridgeConditionsActivity extends AppCompatActivity {
                 break;
         }
     }
-}
 
-//
+    private String getStatusLabel(Integer cond) {
+        if (cond == null) return "Unknown";
+        if (cond <= 3) return "Good";
+        else if (cond <= 6) return "Moderate";
+        else return "Poor";
+    }
+
+    private int getStatusColor(Integer cond) {
+        if (cond == null) return Color.GRAY;
+        if (cond <= 3) return Color.parseColor("#4CAF50");      // Green
+        else if (cond <= 6) return Color.parseColor("#FFC107"); // Orange
+        else return Color.parseColor("#F44336");                // Red
+    }
+
+}
