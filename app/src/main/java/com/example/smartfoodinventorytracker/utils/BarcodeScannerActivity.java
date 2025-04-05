@@ -1,4 +1,4 @@
-package com.example.smartfoodinventorytracker.inventory;
+package com.example.smartfoodinventorytracker.utils;
 
 import android.content.Intent;
 import android.os.Bundle;

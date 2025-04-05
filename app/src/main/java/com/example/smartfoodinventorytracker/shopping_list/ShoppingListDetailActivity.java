@@ -9,6 +9,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
@@ -19,8 +20,14 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
 import com.example.smartfoodinventorytracker.R;
 import com.example.smartfoodinventorytracker.inventory.Product;
+import com.example.smartfoodinventorytracker.utils.BarcodeScannerActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
@@ -29,11 +36,15 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.ValueEventListener;
 import com.example.smartfoodinventorytracker.shopping_list.AddShoppingProductDialogFragment.AddShoppingProductListener;
 import com.example.smartfoodinventorytracker.shopping_list.AddShoppingManualProductDialogFragment.ManualShoppingProductListener;
+
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
 import androidx.core.app.NavUtils;
 
 public class ShoppingListDetailActivity extends AppCompatActivity implements
@@ -42,6 +53,8 @@ public class ShoppingListDetailActivity extends AppCompatActivity implements
     // Define string constants for mode titles.
     private static final String EDIT_MODE_TITLE = "✍️ Edit Mode";
     private static final String SHOPPING_MODE_TITLE = "🛍️ Shopping Mode";
+
+    private static final int MAX_QUANTITY = 50;  // Or whichever limit you prefer
 
     private RecyclerView recyclerView;
     private TextView emptyMessage;
@@ -54,12 +67,18 @@ public class ShoppingListDetailActivity extends AppCompatActivity implements
     // Bottom container buttons.
     private Button addItemBtn, secondaryBtn;
 
+    // Volley request queue for API calls.
+    private RequestQueue requestQueue;
+
     @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_shopping_list_detail);
         EdgeToEdge.enable(this);
+
+        // Initialize Volley queue.
+        requestQueue = Volley.newRequestQueue(this);
 
         // Apply system insets for proper padding.
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
@@ -176,25 +195,20 @@ public class ShoppingListDetailActivity extends AppCompatActivity implements
                                         boolean merged = false;
                                         for (Product inventoryProduct : existingInventory.values()) {
                                             if (productsMatch(inventoryProduct, shoppingProduct)) {
-                                                // Merge quantity and update date added.
                                                 int combinedQty = inventoryProduct.getQuantity() + shoppingProduct.getQuantity();
                                                 if (combinedQty > 99) {
                                                     combinedQty = 99;
                                                     Toast.makeText(ShoppingListDetailActivity.this,
                                                             "Quantity capped at 99 for " + shoppingProduct.getName(), Toast.LENGTH_SHORT).show();
                                                 }
-
                                                 inventoryProduct.setQuantity(combinedQty);
                                                 inventoryProduct.setDateAdded(getCurrentDate());
-
                                                 inventoryRef.child(inventoryProduct.getBarcode()).setValue(inventoryProduct);
-
                                                 merged = true;
                                                 break;
                                             }
                                         }
                                         if (!merged) {
-                                            // Different product: assign new ID and insert as a new item.
                                             String newId = inventoryRef.push().getKey();
                                             shoppingProduct.setDateAdded(getCurrentDate());
                                             if (newId != null) {
@@ -203,7 +217,6 @@ public class ShoppingListDetailActivity extends AppCompatActivity implements
                                             }
                                         }
                                     }
-
                                     Toast.makeText(ShoppingListDetailActivity.this, "Purchase confirmed", Toast.LENGTH_SHORT).show();
                                     // Update lastUsed timestamp.
                                     DatabaseReference listMetaRef = FirebaseDatabase.getInstance()
@@ -243,7 +256,6 @@ public class ShoppingListDetailActivity extends AppCompatActivity implements
                                                 mergedMap.put(key, p);
                                             }
                                         }
-
                                         shoppingListRef.removeValue().addOnSuccessListener(unused -> {
                                             for (Product p : mergedMap.values()) {
                                                 shoppingListRef.child(p.getBarcode()).setValue(p);
@@ -274,7 +286,6 @@ public class ShoppingListDetailActivity extends AppCompatActivity implements
                                             })
                                             .setCancelable(false)
                                             .show();
-
                                 }
 
                                 @Override
@@ -425,7 +436,102 @@ public class ShoppingListDetailActivity extends AppCompatActivity implements
 
     @Override
     public void onScanBarcode() {
-        Toast.makeText(this, "Barcode scanning not implemented for shopping list.", Toast.LENGTH_SHORT).show();
+        // Launch the BarcodeScannerActivity when the user opts to scan a barcode
+        Intent intent = new Intent(this, BarcodeScannerActivity.class);
+        startActivityForResult(intent, 1);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 1 && resultCode == RESULT_OK && data != null && data.hasExtra("scannedBarcode")) {
+            String barcode = data.getStringExtra("scannedBarcode");
+            fetchProductDataForShoppingList(barcode);
+        } else {
+            Toast.makeText(this, "No barcode scanned", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    // Fetch product details from the API based on the scanned barcode.
+    private void fetchProductDataForShoppingList(String barcode) {
+        String url = "https://world.openfoodfacts.org/api/v0/product/" + barcode + ".json";
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null,
+                response -> {
+                    try {
+                        if (response.has("product")) {
+                            JSONObject productJson = response.getJSONObject("product");
+                            String productName = productJson.optString("product_name", "Unknown Product");
+                            String brand = productJson.optString("brands", "Unknown Brand");
+                            saveShoppingProductToFirebase(barcode, productName, brand);
+                        } else {
+                            Toast.makeText(this, "Product not found", Toast.LENGTH_SHORT).show();
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                },
+                error -> Toast.makeText(this, "Error fetching product data", Toast.LENGTH_SHORT).show());
+        requestQueue.add(request);
+    }
+
+    // Save the new product into the shopping list node.
+    private void saveShoppingProductToFirebase(String barcode, String name, String brand) {
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        DatabaseReference shoppingRef = FirebaseDatabase.getInstance()
+                .getReference("users")
+                .child(userId)
+                .child("shopping-list")
+                .child(listKey)
+                .child("items");
+        // Default expiry value for barcode items added this way.
+        String expiry = "Not set";
+
+        // Create the candidate product.
+        Product candidate = new Product(barcode, name, brand);
+        candidate.setDateAdded(getCurrentDate());
+        candidate.setExpiryDate(expiry);
+        candidate.setQuantity(1);
+
+        // Check for duplicates based on mode.
+        if (!isShoppingMode) {
+            // Edit mode: if any product with the same barcode exists, prevent duplicate.
+            for (Product existing : productList) {
+                if (existing.getBarcode().equals(barcode)) {
+                    Toast.makeText(this, "Product already exists", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+            }
+        } else {
+            // Shopping mode: check for product with same barcode and same expiry.
+            for (Product existing : productList) {
+                if (existing.getBarcode().equals(barcode)) {
+                    // If the expiry dates are the same, consider it a duplicate.
+                    if (existing.getExpiryDate().trim().equalsIgnoreCase(candidate.getExpiryDate().trim())) {
+                        int newQty = existing.getQuantity() + candidate.getQuantity();
+                        if (newQty > MAX_QUANTITY) {
+                            newQty = MAX_QUANTITY;
+                            Toast.makeText(this, "Quantity capped at " + MAX_QUANTITY, Toast.LENGTH_SHORT).show();
+                        }
+                        existing.setQuantity(newQty);
+                        shoppingRef.child(existing.getBarcode()).setValue(existing)
+                                .addOnSuccessListener(aVoid -> Toast.makeText(this, "Product quantity updated", Toast.LENGTH_SHORT).show())
+                                .addOnFailureListener(e -> Toast.makeText(this, "Failed to update product", Toast.LENGTH_SHORT).show());
+                        return; // Duplicate handled – do not add a new item.
+                    }
+                    // If expiry dates are different, we allow a new entry.
+                }
+            }
+        }
+
+        // No duplicate found (or allowed duplicate in shopping mode), so add the candidate.
+        shoppingRef.child(barcode).setValue(candidate)
+                .addOnSuccessListener(aVoid -> {
+                    Toast.makeText(this, "Product added to shopping list", Toast.LENGTH_SHORT).show();
+                    productList.add(candidate);
+                    adapter.notifyItemInserted(productList.size() - 1);
+                })
+                .addOnFailureListener(e ->
+                        Toast.makeText(this, "Failed to add product", Toast.LENGTH_SHORT).show());
     }
 
     @Override

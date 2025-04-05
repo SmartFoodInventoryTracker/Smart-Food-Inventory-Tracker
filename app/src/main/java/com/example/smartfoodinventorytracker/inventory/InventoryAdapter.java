@@ -135,7 +135,7 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.View
         holder.productImage.setImageResource(iconResId);
 
 
-        holder.itemView.setOnLongClickListener(v -> {
+        holder.itemView.setOnClickListener(v -> {
             Context viewContext = v.getContext();
 
             while (viewContext instanceof android.content.ContextWrapper && !(viewContext instanceof FragmentActivity)) {
@@ -175,7 +175,6 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.View
                 dialog.show(fm, "ProductDetailsDialog");
             }
 
-            return true;
         });
 
     }

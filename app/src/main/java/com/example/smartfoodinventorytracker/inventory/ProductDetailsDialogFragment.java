@@ -235,9 +235,6 @@ public class ProductDetailsDialogFragment extends DialogFragment {
             });
         });
 
-        // Cancel = just close
-        btnCancel.setOnClickListener(v -> dismiss());
-
         // Delete product
         btnDelete.setOnClickListener(v -> {
             new AlertDialog.Builder(requireContext())
