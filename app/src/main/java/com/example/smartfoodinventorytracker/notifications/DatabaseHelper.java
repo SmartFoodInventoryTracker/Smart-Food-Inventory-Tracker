@@ -348,83 +348,69 @@ public class DatabaseHelper {
                 LocalDate today = LocalDate.now();
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d/M/yyyy");
 
-                // Create groups for each category:
-                Map<String, List<String>> grouped = new HashMap<>();
-                grouped.put("expired", new ArrayList<>());  // daysLeft < 0
-                grouped.put("week", new ArrayList<>());       // 0 ≤ daysLeft ≤ 7
-                grouped.put("2weeks", new ArrayList<>());     // 7 < daysLeft ≤ 14
-
+                Map<Long, List<String>> grouped = new HashMap<>();
                 Context context = notificationHelper.getContext();
                 SharedPreferences prefs = context.getSharedPreferences("user_settings", Context.MODE_PRIVATE);
                 SharedPreferences sent = context.getSharedPreferences("notif_times", Context.MODE_PRIVATE);
 
                 boolean enabled = prefs.getBoolean("expiry_alerts", true);
-                int expiredCooldown = prefs.getInt("expired_cooldown", 4); // minutes for expired items
-                int weekCooldown = prefs.getInt("week_cooldown", 2);         // days for week notifications
-                int twoWeeksCooldown = prefs.getInt("twoweeks_cooldown", 3);   // days for two-week notifications
+                int expiredM = prefs.getInt("expired_every_minutes", 4);
+                int week1D = prefs.getInt("week1_every_days", 2);
+                int week2D = prefs.getInt("week2_every_days", 3);
                 long now = System.currentTimeMillis();
 
                 if (!enabled) return;
 
-                // Group products based on days remaining
                 for (DataSnapshot child : snapshot.getChildren()) {
                     Product product = child.getValue(Product.class);
-                    if (product == null || product.getExpiryDate() == null || product.getExpiryDate().equals("Not set"))
-                        continue;
+                    if (product == null || product.getExpiryDate() == null || product.getExpiryDate().equals("Not set")) continue;
+
                     try {
                         LocalDate expiry = LocalDate.parse(product.getExpiryDate(), formatter);
                         long daysLeft = ChronoUnit.DAYS.between(today, expiry);
-                        if (daysLeft > 14) continue; // ignore products expiring in more than 2 weeks
-                        String itemEntry = product.getName() + " (" + daysLeft + " " + (Math.abs(daysLeft) == 1 ? "day" : "days") + ")";
-                        if (daysLeft < 0) {
-                            grouped.get("expired").add(itemEntry);
-                        } else if (daysLeft <= 7) {
-                            grouped.get("week").add(itemEntry);
-                        } else {
-                            grouped.get("2weeks").add(itemEntry);
-                        }
+                        if (daysLeft > 14) continue;
+
+                        grouped.computeIfAbsent(daysLeft, k -> new ArrayList<>()).add(product.getName());
                     } catch (Exception e) {
                         Log.e("ExpiryCheck", "Error parsing: " + product.getName(), e);
                     }
                 }
 
-                // Send one notification per group if conditions are met
-                for (Map.Entry<String, List<String>> entry : grouped.entrySet()) {
-                    String group = entry.getKey();
+                for (Map.Entry<Long, List<String>> entry : grouped.entrySet()) {
+                    long daysLeft = entry.getKey();
                     List<String> items = entry.getValue();
-                    if (items.isEmpty()) continue;
-                    String groupKey = "group_" + group;
+                    String groupKey = "group_" + daysLeft;
                     long lastSent = sent.getLong(groupKey, 0);
-                    boolean shouldNotify = false;
-                    String messagePrefix = "";
 
-                    if (group.equals("expired")) {
-                        if (now - lastSent >= expiredCooldown * 60 * 1000L)
-                            shouldNotify = true;
-                        messagePrefix = "❌ Expired: ";
-                    } else if (group.equals("week")) {
-                        if (TimeUnit.MILLISECONDS.toDays(now - lastSent) >= weekCooldown)
-                            shouldNotify = true;
-                        messagePrefix = "📅 Expires within a week: ";
-                    } else if (group.equals("2weeks")) {
-                        if (TimeUnit.MILLISECONDS.toDays(now - lastSent) >= twoWeeksCooldown)
-                            shouldNotify = true;
-                        messagePrefix = "⏰ Expires within two weeks: ";
+                    boolean shouldNotify = false;
+
+                    if (daysLeft <= 0 && (now - lastSent >= expiredM * 60 * 1000L)) {
+                        shouldNotify = true;
+                    } else if (daysLeft <= 7 && (TimeUnit.MILLISECONDS.toDays(now - lastSent) >= week1D)) {
+                        shouldNotify = true;
+                    } else if (daysLeft <= 14 && (TimeUnit.MILLISECONDS.toDays(now - lastSent) >= week2D)) {
+                        shouldNotify = true;
                     }
 
                     if (shouldNotify) {
                         String message;
-                        if (items.size() > 5) {
-                            message = messagePrefix + items.size() + " items" ;
+                        if (daysLeft < 0) {
+                            message = "❌ Expired: " + String.join(", ", items);
+                        } else if (daysLeft == 0) {
+                            message = "📅 Expires today: " + String.join(", ", items);
+                        } else if (daysLeft == 1) {
+                            message = "⏰ Expires tomorrow: " + String.join(", ", items);
                         } else {
-                            message = messagePrefix + String.join(", ", items);
+                            message = "🕒 Expires in " + daysLeft + " days: " + String.join(", ", items);
                         }
+
                         notificationHelper.sendNotification(
                                 NotificationHelper.EXPIRY_ALERT_TITLE,
                                 message,
                                 com.example.smartfoodinventorytracker.inventory.InventoryActivity.class,
-                                "" // no extra data
+                                "" // no search
                         );
+
                         sent.edit().putLong(groupKey, now).apply();
                     }
                 }
