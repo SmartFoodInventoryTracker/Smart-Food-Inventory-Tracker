@@ -32,17 +32,20 @@
                 android:textSize="18sp"
                 android:textStyle="bold"
                 android:textColor="@android:color/black"
-                android:layout_alignParentStart="true" />
+                android:layout_alignParentStart="true"
+                android:layout_centerVertical="true" />
 
             <ImageView
-                android:id="@+id/deleteIcon"
+                android:id="@+id/editIcon"
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:layout_alignParentEnd="true"
-                android:contentDescription="Delete list"
-                android:src="@drawable/ic_delete"
-                card_view:tint="@android:color/darker_gray" />
+                android:contentDescription="Edit list"
+                android:src="@android:drawable/ic_menu_edit"
+                card_view:tint="@color/gray" />
         </RelativeLayout>
+
+
 
         <!-- Spacing between the top row and the item count -->
         <View

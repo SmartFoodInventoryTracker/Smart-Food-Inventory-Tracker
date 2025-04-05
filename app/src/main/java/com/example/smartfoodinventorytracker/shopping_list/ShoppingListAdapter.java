@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -41,14 +42,16 @@ public class ShoppingListAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     // Item ViewHolder
     public static class ItemViewHolder extends RecyclerView.ViewHolder {
         TextView listName, itemCount;
-        ImageView deleteIcon;
+        ImageView editIcon;
+
         public ItemViewHolder(View itemView) {
             super(itemView);
             listName = itemView.findViewById(R.id.listName);
             itemCount = itemView.findViewById(R.id.itemCount);
-            deleteIcon = itemView.findViewById(R.id.deleteIcon);
+            editIcon = itemView.findViewById(R.id.editIcon); // ✅ Add this line
         }
     }
+
 
     @Override
     public int getItemViewType(int position) {
@@ -79,22 +82,50 @@ public class ShoppingListAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             itemHolder.listName.setText(shoppingList.name);
             itemHolder.itemCount.setText(shoppingList.itemCount + (shoppingList.itemCount == 1 ? " item" : " items"));
 
-            // Delete icon click listener
-            itemHolder.deleteIcon.setOnClickListener(v -> {
-                if (shoppingList.name.equalsIgnoreCase("last_used")) {
-                    Toast.makeText(context, "You can't delete the last used list.", Toast.LENGTH_SHORT).show();
-                    return;
-                }
+            itemHolder.editIcon.setOnClickListener(v -> {
+                View dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_edit_list, null);
+                EditText input = dialogView.findViewById(R.id.editListName);
+                input.setText(shoppingList.name);
+
                 new AlertDialog.Builder(context)
-                        .setTitle("Delete List")
-                        .setMessage("Are you sure you want to delete \"" + shoppingList.name + "\"?")
-                        .setPositiveButton("Delete", (dialog, which) -> {
+                        .setTitle("Edit List")
+                        .setView(dialogView)
+                        .setPositiveButton("Rename", (dialog, which) -> {
+                            String newName = input.getText().toString().trim();
+
+                            if (newName.isEmpty()) {
+                                Toast.makeText(context, "List name cannot be empty", Toast.LENGTH_SHORT).show();
+                                return;
+                            }
+
+                            // Optional: Prevent renaming to an existing name
+                            boolean duplicate = false;
+                            for (Object obj : mixedDataList) {
+                                if (obj instanceof ShoppingList) {
+                                    ShoppingList list = (ShoppingList) obj;
+                                    if (list.name.equalsIgnoreCase(newName) && !list.key.equals(shoppingList.key)) {
+                                        duplicate = true;
+                                        break;
+                                    }
+                                }
+                            }
+
+                            if (duplicate) {
+                                Toast.makeText(context, "List name already exists", Toast.LENGTH_SHORT).show();
+                            } else {
+                                updateListName(shoppingList.key, newName, position);
+                            }
+                        })
+                        .setNeutralButton("Delete", (dialog, which) -> {
+                            if (shoppingList.name.equalsIgnoreCase("last_used")) {
+                                Toast.makeText(context, "You can't delete the last used list.", Toast.LENGTH_SHORT).show();
+                                return;
+                            }
+
                             String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
                             DatabaseReference ref = FirebaseDatabase.getInstance()
-                                    .getReference("users")
-                                    .child(userId)
-                                    .child("shopping-list")
-                                    .child(shoppingList.key);
+                                    .getReference("users").child(userId).child("shopping-list").child(shoppingList.key);
+
                             ref.removeValue().addOnSuccessListener(aVoid -> {
                                 Toast.makeText(context, "List deleted", Toast.LENGTH_SHORT).show();
                                 mixedDataList.remove(position);
@@ -115,6 +146,22 @@ public class ShoppingListAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             });
         }
     }
+
+    private void updateListName(String key, String newName, int position) {
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        DatabaseReference listRef = FirebaseDatabase.getInstance()
+                .getReference("users").child(userId).child("shopping-list").child(key);
+
+        listRef.child("name").setValue(newName)
+                .addOnSuccessListener(aVoid -> {
+                    ((ShoppingList) mixedDataList.get(position)).name = newName;
+                    notifyItemChanged(position);
+                    Toast.makeText(context, "List renamed", Toast.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e ->
+                        Toast.makeText(context, "Failed to rename list", Toast.LENGTH_SHORT).show());
+    }
+
 
     @Override
     public int getItemCount() {

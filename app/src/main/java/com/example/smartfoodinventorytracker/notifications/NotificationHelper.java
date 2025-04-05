@@ -97,7 +97,6 @@ public class NotificationHelper {
         WorkManager.getInstance(context).enqueue(workRequest);
     }
 
-
     public static class ExpiryWorker extends Worker {
         public ExpiryWorker(@NonNull Context context, @NonNull WorkerParameters workerParams) {
             super(context, workerParams);
@@ -117,7 +116,6 @@ public class NotificationHelper {
 
             return Result.success();
         }
-
     }
 
     public Context getContext() {
@@ -132,7 +130,6 @@ public class NotificationHelper {
             context.startService(serviceIntent);
         }
     }
-
 
     private void createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -170,7 +167,7 @@ public class NotificationHelper {
 
                 Intent intent = new Intent(context, targetActivity);
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                intent.putExtra("data", data);
+                // Removed putExtra("data", data) to avoid linking to a specific item.
                 PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_MUTABLE);
 
                 NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
@@ -188,7 +185,6 @@ public class NotificationHelper {
             }
         });
     }
-
 
     public interface NotificationCallback {
         void onCheckCompleted(boolean allowNotification);
@@ -209,7 +205,7 @@ public class NotificationHelper {
                         continue; // Ignore invalid notifications
                     }
 
-                    // ✅ Send the notification manually
+                    // ✅ Send the notification manually using FridgeConditionsActivity for fridge alerts
                     sendNotification(title, message, FridgeConditionsActivity.class, userId);
                 }
             }
@@ -220,8 +216,6 @@ public class NotificationHelper {
             }
         });
     }
-
-
 
     private void isNotificationAlreadySent(String title, String message, NotificationCallback callback) {
         long oneMinuteAgo = (System.currentTimeMillis() / 1000) - 60;
@@ -256,8 +250,6 @@ public class NotificationHelper {
                 });
     }
 
-
-
     // ✅ Save notification timestamp for fridge alerts
     private void saveSentNotification(String title, String message) {
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
@@ -277,8 +269,6 @@ public class NotificationHelper {
         editor.apply();
     }
 
-
-
     private void storeNotificationInFirebase(String title, String message) {
         String notificationId = databaseRef.push().getKey();
         Map<String, Object> notificationData = new HashMap<>();
@@ -290,7 +280,6 @@ public class NotificationHelper {
             databaseRef.child(notificationId).setValue(notificationData);
         }
     }
-
 
     public void sendConditionNotification(String userId, String type, Long value, Integer condition) {
         String unit;
@@ -326,11 +315,9 @@ public class NotificationHelper {
             userNotificationsRef.child(notificationId).setValue(notificationData);
         }
 
-        // ✅ Trigger the notification IMMEDIATELY
-        sendNotification(NotificationHelper.FRIDGE_ALERT_TITLE, message, FridgeConditionsActivity.class, userId);
+        // ✅ Trigger the notification immediately without linking to a specific item.
+        sendNotification(NotificationHelper.FRIDGE_ALERT_TITLE, message, FridgeConditionsActivity.class, "");
     }
-
-
 
     public void sendNotificationLocalAndFirebase(String userId, String title, String message, Class<?> targetActivity) {
         // ✅ Store the notification in Firebase (same way as inventory product notifications)
@@ -346,10 +333,9 @@ public class NotificationHelper {
             userNotificationsRef.child(notificationId).setValue(notificationData);
         }
 
-        // ✅ Send system notification immediately like inventory product notifications
-        sendNotification(title, message, targetActivity, userId);
+        // ✅ Send system notification immediately without extra data.
+        sendNotification(title, message, targetActivity, "");
     }
-
 
     public void sendExpiryNotification(String productName, long daysLeft) {
         String message;
@@ -364,7 +350,7 @@ public class NotificationHelper {
             message = productName + " expires in " + daysLeft + " days! Consume it soon.";
         }
 
-        // ✅ Use EXPIRY_ALERT_TITLE instead of hardcoded string
-        sendNotification(EXPIRY_ALERT_TITLE, message, InventoryActivity.class, productName);
+        // ✅ Use EXPIRY_ALERT_TITLE and send without linking to a specific item.
+        sendNotification(EXPIRY_ALERT_TITLE, message, InventoryActivity.class, "");
     }
 }

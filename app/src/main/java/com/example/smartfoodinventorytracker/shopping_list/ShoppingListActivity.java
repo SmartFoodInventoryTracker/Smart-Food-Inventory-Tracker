@@ -256,8 +256,11 @@ public class ShoppingListActivity extends AppCompatActivity {
                     mixedList.add(mostRecent);
                 }
 
-                mixedList.add("Custom Shopping Lists");
-                mixedList.addAll(customLists);
+                if (!customLists.isEmpty()) {
+                    mixedList.add("Custom Shopping Lists");
+                    mixedList.addAll(customLists);
+                }
+
 
                 RecyclerView recyclerView = findViewById(R.id.shoppingListsRecyclerView);
                 recyclerView.setLayoutManager(new LinearLayoutManager(ShoppingListActivity.this));

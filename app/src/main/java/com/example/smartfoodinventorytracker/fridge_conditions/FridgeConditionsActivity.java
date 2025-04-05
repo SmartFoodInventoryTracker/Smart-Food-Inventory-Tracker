@@ -44,7 +44,6 @@ import androidx.viewpager2.widget.ViewPager2;
 
 public class FridgeConditionsActivity extends AppCompatActivity {
 
-    private String userId;
     private TextView coText, lpgText, nh4Text;
     private TextView tempText, humidityText;
     private SpeedView speedTemp, speedHum;
@@ -97,18 +96,11 @@ public class FridgeConditionsActivity extends AppCompatActivity {
             return insets;
         });
 
-        // ✅ Get userId from Intent or fallback to current user
-        userId = getIntent().getStringExtra("USER_ID");
-        if (userId == null) {
-            userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        }
-
         setUpToolbar();
         initViews();
         setUpOverallBar();
         fetchDataFromFirebase();
     }
-
 
     private void setUpToolbar(){
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -200,7 +192,6 @@ public class FridgeConditionsActivity extends AppCompatActivity {
         speedCO = cardCO.findViewById(R.id.gasGauge);
         ImageView coIcon = cardCO.findViewById(R.id.gasIcon);
         TextView coLabel = cardCO.findViewById(R.id.gasLabel);
-        TextView coStatus = cardCO.findViewById(R.id.gasStatus);
         coIcon.setImageResource(R.drawable.ic_co);
         coLabel.setText("CO :");
 
@@ -249,7 +240,6 @@ public class FridgeConditionsActivity extends AppCompatActivity {
         speedLPG = cardLPG.findViewById(R.id.gasGauge);
         ImageView lpgIcon = cardLPG.findViewById(R.id.gasIcon);
         TextView lpgLabel = cardLPG.findViewById(R.id.gasLabel);
-        TextView lpgStatus = cardLPG.findViewById(R.id.gasStatus);
         lpgIcon.setImageResource(R.drawable.ic_lpg);
         lpgLabel.setText("LPG :");
 
@@ -298,7 +288,6 @@ public class FridgeConditionsActivity extends AppCompatActivity {
         speedNH4 = cardNH4.findViewById(R.id.gasGauge);
         ImageView nh4Icon = cardNH4.findViewById(R.id.gasIcon);
         TextView nh4Label = cardNH4.findViewById(R.id.gasLabel);
-        TextView nh4Status = cardNH4.findViewById(R.id.gasStatus);
         nh4Icon.setImageResource(R.drawable.ic_smoke);
         nh4Label.setText("NH₄ :");
 
@@ -462,8 +451,9 @@ public class FridgeConditionsActivity extends AppCompatActivity {
     }
 
     private void fetchDataFromFirebase() {
-        this.databaseRef = FirebaseDatabase.getInstance().getReference("users").child(userId).child("fridge_condition");
-
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        databaseRef = FirebaseDatabase.getInstance()
+                .getReference("users").child(userId).child("fridge_condition");
         databaseRef.orderByKey().limitToLast(1).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot snapshot) {
@@ -492,48 +482,13 @@ public class FridgeConditionsActivity extends AppCompatActivity {
                     lpgValue.setText(lpg != null ? lpg + " ppm" : "-- ppm");
                     nh4Value.setText(smoke != null ? smoke + " ppm" : "-- ppm");
 
-                    // Update gas status labels
-                    TextView coStatus = cardCO.findViewById(R.id.gasStatus);
-                    TextView lpgStatus = cardLPG.findViewById(R.id.gasStatus);
-                    TextView nh4Status = cardNH4.findViewById(R.id.gasStatus);
-
-                    coStatus.setText(getStatusLabel(coCond));
-                    coStatus.setTextColor(getStatusColor(coCond));
-
-                    lpgStatus.setText(getStatusLabel(lpgCond));
-                    lpgStatus.setTextColor(getStatusColor(lpgCond));
-
-                    nh4Status.setText(getStatusLabel(smokeCond));
-                    nh4Status.setTextColor(getStatusColor(smokeCond));
-
-
                     setGauge(tempCond, "t");
                     setGauge(humCond, "h");
                     setGauge(coCond, "c");
                     setGauge(lpgCond, "l");
                     setGauge(smokeCond, "s");
                     setGauge(overallCond, "ov");
-
-                    triggerNotification("Temperature", temp, tempCond);
-                    triggerNotification("Humidity", hum, humCond);
-                    triggerNotification("CO Level", co, coCond);
-                    triggerNotification("LPG Level", lpg, lpgCond);
-                    triggerNotification("Smoke Level", smoke, smokeCond);
                 }
-            }
-
-            private String getStatusLabel(Integer cond) {
-                if (cond == null) return "Unknown";
-                if (cond <= 3) return "Good";
-                else if (cond <= 6) return "Moderate";
-                else return "Poor";
-            }
-
-            private int getStatusColor(Integer cond) {
-                if (cond == null) return Color.GRAY;
-                if (cond <= 3) return Color.parseColor("#4CAF50");      // Green
-                else if (cond <= 6) return Color.parseColor("#FFC107"); // Amber
-                else return Color.parseColor("#F44336");                // Red
             }
 
             @Override
@@ -557,19 +512,6 @@ public class FridgeConditionsActivity extends AppCompatActivity {
                 int index = Math.min(14, Math.max(0, val * 14 / 10));
                 setArrowPosition(index);
                 break;
-        }
-    }
-
-    private void triggerNotification(String type, Number newValue, Integer condition) {
-        if (newValue == null || condition == null) return;
-
-        String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        NotificationHelper helper = new NotificationHelper(getApplicationContext(), false, uid);
-
-        Number prev = lastStoredValues.get(type);
-        if (prev == null || !prev.equals(newValue)) {
-            helper.sendConditionNotification(uid, type, newValue.longValue(), condition);
-            lastStoredValues.put(type, newValue);
         }
     }
 }

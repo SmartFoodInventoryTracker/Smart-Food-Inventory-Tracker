@@ -58,6 +58,7 @@ public class InventoryActivity extends AppCompatActivity
         implements AddProductDialogFragment.AddProductDialogListener,
         AddManualProductDialogFragment.ManualProductListener {
     private RecyclerView inventoryRecyclerView;
+    private boolean isManualAddition = false;
     private DatabaseReference databaseReference;
     private InventoryAdapter inventoryAdapter;
     private List<Product> productList = new ArrayList<>();
@@ -191,12 +192,6 @@ public class InventoryActivity extends AppCompatActivity
 
             popup.show();
         });
-
-        // ✅ Auto-search from notification
-        String productNameToSearch = getIntent().getStringExtra("data");
-        if (productNameToSearch != null && !productNameToSearch.isEmpty()) {
-            searchView.setQuery(productNameToSearch, true); // Triggers search + updates UI
-        }
 
         // Fetch inventory data from Firebase
         fetchInventoryData();
@@ -449,12 +444,14 @@ public class InventoryActivity extends AppCompatActivity
 
     @Override
     public void onAddManually() {
+        // Set the flag so we know this is a manual addition.
+        isManualAddition = true;
         AddManualProductDialogFragment manualDialog = new AddManualProductDialogFragment();
         manualDialog.setUserId(FirebaseAuth.getInstance().getCurrentUser().getUid());
-        manualDialog.setManualProductListener(this); // If you're using the listener callback
+        manualDialog.setManualProductListener(this);
         manualDialog.show(getSupportFragmentManager(), "ManualProductDialog");
-
     }
+
 
     @Override
     public void onScanBarcode() {
@@ -626,13 +623,6 @@ public class InventoryActivity extends AppCompatActivity
 
                 UpdatingSorting();
 
-                // ✅ Apply search after data is loaded
-                String productNameToSearch = getIntent().getStringExtra("data");
-                if (productNameToSearch != null && !productNameToSearch.isEmpty()) {
-                    SearchView searchView = findViewById(R.id.searchView);
-                    searchView.setQuery(productNameToSearch, true); // Triggers both display + filter
-                }
-
             }
 
             @Override
@@ -683,7 +673,6 @@ public class InventoryActivity extends AppCompatActivity
             }
 
             if (!merged) {
-                // Add as new product
                 String newId = inventoryRef.push().getKey();
                 if (newId != null) {
                     newProduct.barcode = newId;
@@ -691,27 +680,33 @@ public class InventoryActivity extends AppCompatActivity
                     inventoryRef.child(newId).setValue(newProduct)
                             .addOnSuccessListener(aVoid -> {
                                 Toast.makeText(this, "Product added", Toast.LENGTH_SHORT).show();
-                                // 👉 Open edit dialog so user can set expiry
-                                ProductDetailsDialogFragment dialog = ProductDetailsDialogFragment.newInstance(newProduct);
-                                dialog.setUserId(userId);
-                                dialog.setProductDialogListener(new ProductDetailsDialogFragment.ProductDialogListener() {
-                                    @Override
-                                    public void onProductUpdated(Product updatedProduct) {
-                                        // Optional: You can update your UI or adapter here
-                                    }
-
-                                    @Override
-                                    public void onProductDeleted(String barcode) {
-                                        // Optional: Handle if the user deletes the product immediately
-                                    }
-                                });
-                                dialog.show(getSupportFragmentManager(), "ProductDetailsDialog");
+                                // Only open the edit dialog if this wasn't a manual addition.
+                                if (!isManualAddition) {
+                                    ProductDetailsDialogFragment dialog = ProductDetailsDialogFragment.newInstance(newProduct);
+                                    dialog.setUserId(userId);
+                                    dialog.setProductDialogListener(new ProductDetailsDialogFragment.ProductDialogListener() {
+                                        @Override
+                                        public void onProductUpdated(Product updatedProduct) {
+                                            // Optional: update UI
+                                        }
+                                        @Override
+                                        public void onProductDeleted(String barcode) {
+                                            // Optional: handle delete
+                                        }
+                                    });
+                                    dialog.show(getSupportFragmentManager(), "ProductDetailsDialog");
+                                }
+                                // Reset the flag after processing.
+                                isManualAddition = false;
+                                Intent intent = getIntent();
+                                intent.putExtra("data", newProduct.getName());
+                                intent.putExtra("sortNewest", true);
                             })
                             .addOnFailureListener(e ->
                                     Toast.makeText(this, "Failed to add product", Toast.LENGTH_SHORT).show());
-
                 }
             }
+
         });
     }
 
