@@ -4,9 +4,11 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -14,6 +16,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.graphics.Insets;
@@ -31,10 +34,13 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import androidx.core.app.NavUtils;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.viewpager2.widget.ViewPager2;
 
 public class FridgeConditionsActivity extends AppCompatActivity {
 
@@ -53,11 +59,19 @@ public class FridgeConditionsActivity extends AppCompatActivity {
     // Cards (inflate from item_gas_card)
     private View cardCO, cardLPG, cardNH4;
 
+
     // Gas values
     private TextView coValue, lpgValue, nh4Value;
 
     // SpeedView gauges
     private SpeedView speedCO, speedLPG, speedNH4;
+
+    private ViewPager2 levelPagerCO, levelPagerLPG, levelPagerNH4;
+    private ViewPager2 levelPagerTemp, levelPagerHum;
+
+    private final android.os.Handler pagerHandler = new android.os.Handler();
+    private final int AUTO_SCROLL_DELAY = 3000; // 3 seconds
+
 
     private List<TextView> arrowViews = new ArrayList<>();
 
@@ -130,6 +144,16 @@ public class FridgeConditionsActivity extends AppCompatActivity {
         tempInfoTitle.setText("Temperature");
         tempInfoText.setText("Monitoring the internal temperature helps prevent food spoilage and ensures safe storage.");
 
+        // 🌡️ ViewPager for Temperature Levels
+        levelPagerTemp = findViewById(R.id.levelPagerTemp);
+        List<String> tempLevels = Arrays.asList(
+                "Good ✅: Ideal storage temperature.",
+                "Moderate ⚠️: Slightly out of optimal range.",
+                "Poor 🛑: Temperature too high/low — food may spoil."
+        );
+        levelPagerTemp.setAdapter(new ConditionLevelAdapter(tempLevels));
+        autoScrollPager(levelPagerTemp, tempLevels.size());
+
         tempInfoIcon.setOnClickListener(v -> {
             tempOverlay.setVisibility(View.VISIBLE);
             tempOverlay.setAlpha(0f);
@@ -151,6 +175,16 @@ public class FridgeConditionsActivity extends AppCompatActivity {
         // 💧 Humidity Info Setup
         humInfoTitle.setText("Humidity");
         humInfoText.setText("Humidity helps maintain moisture in fruits and vegetables. Too low or too high can lead to spoilage.");
+
+        // 💧 ViewPager for Humidity Levels
+        levelPagerHum = findViewById(R.id.levelPagerHum);
+        List<String> humLevels = Arrays.asList(
+                "Good ✅: Perfect humidity for freshness.",
+                "Moderate ⚠️: Slight imbalance in humidity.",
+                "Poor 🛑: Too dry or too moist — risk of spoilage."
+        );
+        levelPagerHum.setAdapter(new ConditionLevelAdapter(humLevels));
+        autoScrollPager(levelPagerHum, humLevels.size());
 
         humInfoIcon.setOnClickListener(v -> {
             humOverlay.setVisibility(View.VISIBLE);
@@ -202,6 +236,16 @@ public class FridgeConditionsActivity extends AppCompatActivity {
             speedCO.setAlpha(0.2f);
         });
 
+        levelPagerCO = cardCO.findViewById(R.id.levelPager);
+        List<String> coLevels = Arrays.asList(
+                "Good ✅: CO levels are safe.",
+                "Moderate ⚠️: CO levels are slightly elevated.",
+                "Poor 🛑: CO levels are high — may indicate spoilage."
+        );
+        levelPagerCO.setAdapter(new ConditionLevelAdapter(coLevels));
+        autoScrollPager(levelPagerCO, coLevels.size());
+
+
         coClose.setOnClickListener(v -> {
             coOverlay.animate().alpha(0f).translationY(20f).setDuration(150).withEndAction(() -> {
                 coOverlay.setVisibility(View.GONE);
@@ -239,6 +283,16 @@ public class FridgeConditionsActivity extends AppCompatActivity {
             lpgMainLayout.setAlpha(0.3f);
             speedLPG.setAlpha(0.2f);
         });
+
+        levelPagerLPG = cardLPG.findViewById(R.id.levelPager);
+        List<String> lpgLevels = Arrays.asList(
+                "Good ✅: No LPG detected — normal fridge conditions.",
+                "Moderate ⚠️: Small traces of LPG detected.",
+                "Poor 🛑: High LPG levels — possible leak or contamination."
+        );
+        levelPagerLPG.setAdapter(new ConditionLevelAdapter(lpgLevels));
+        autoScrollPager(levelPagerLPG, lpgLevels.size());
+
 
         lpgClose.setOnClickListener(v -> {
             lpgOverlay.animate().alpha(0f).translationY(20f).setDuration(150).withEndAction(() -> {
@@ -278,6 +332,14 @@ public class FridgeConditionsActivity extends AppCompatActivity {
             speedNH4.setAlpha(0.2f);
         });
 
+        levelPagerNH4 = cardNH4.findViewById(R.id.levelPager);
+        List<String> nh4Levels = Arrays.asList(
+                "Good ✅: NH₄ levels are low — safe storage.",
+                "Moderate ⚠️: Slight spoilage detected.",
+                "Poor 🛑: High NH₄ levels — food may be rotting."
+        );
+        levelPagerNH4.setAdapter(new ConditionLevelAdapter(nh4Levels));
+
         nh4Close.setOnClickListener(v -> {
             nh4Overlay.animate().alpha(0f).translationY(20f).setDuration(150).withEndAction(() -> {
                 nh4Overlay.setVisibility(View.GONE);
@@ -286,6 +348,8 @@ public class FridgeConditionsActivity extends AppCompatActivity {
             nh4MainLayout.setAlpha(1f);
             speedNH4.setAlpha(1f);
         });
+        autoScrollPager(levelPagerNH4, nh4Levels.size());
+
 
         SharedPreferences prefs = getSharedPreferences("app_prefs", MODE_PRIVATE);
         boolean tooltipShown = false;
@@ -325,6 +389,63 @@ public class FridgeConditionsActivity extends AppCompatActivity {
         });
 
     }
+
+    private void autoScrollPager(ViewPager2 pager, int pageCount) {
+        final int delayMillis = 3000; // or whatever value you choose
+
+        final Handler handler = new Handler();
+        final Runnable[] scrollRunnable = new Runnable[1];
+
+        scrollRunnable[0] = () -> {
+            int next = (pager.getCurrentItem() + 1) % pageCount;
+            pager.setCurrentItem(next, true);
+            handler.postDelayed(scrollRunnable[0], delayMillis);
+        };
+
+        handler.postDelayed(scrollRunnable[0], delayMillis);
+    }
+
+
+
+    public class LevelPagerAdapter extends RecyclerView.Adapter<LevelPagerAdapter.LevelViewHolder> {
+        private final List<String> messages;
+
+        public LevelPagerAdapter(List<String> messages) {
+            this.messages = messages;
+        }
+
+        @NonNull
+        @Override
+        public LevelViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            TextView text = new TextView(parent.getContext());
+            text.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+            text.setTextSize(13);
+            text.setPadding(32, 32, 32, 32);
+            text.setGravity(Gravity.CENTER);
+            text.setTextColor(Color.DKGRAY);
+            return new LevelViewHolder(text);
+        }
+
+        @Override
+        public void onBindViewHolder(@NonNull LevelViewHolder holder, int position) {
+            holder.textView.setText(messages.get(position));
+        }
+
+        @Override
+        public int getItemCount() {
+            return messages.size();
+        }
+
+        class LevelViewHolder extends RecyclerView.ViewHolder {
+            TextView textView;
+
+            LevelViewHolder(@NonNull View itemView) {
+                super(itemView);
+                this.textView = (TextView) itemView;
+            }
+        }
+    }
+
 
     private void setUpOverallBar() {
         for (int i = 0; i < totalBlocks; i++) {

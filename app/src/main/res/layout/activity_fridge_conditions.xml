@@ -138,18 +138,19 @@
                                 android:id="@+id/speedViewTemp"
                                 android:layout_width="100dp"
                                 android:layout_height="100dp"
-                                app:sv_withTremble="false"
-                                app:sv_unit=""
-                                app:sv_centerCircleRadius="10dp"
-                                app:sv_unitTextSize="0sp"
-                                app:sv_speedTextSize="0sp"
                                 android:layout_marginTop="1dp"
+                                app:sv_backgroundCircleColor="@android:color/transparent"
+                                app:sv_centerCircleRadius="10dp"
+                                app:sv_endDegree="390"
+                                app:sv_indicatorWidth="12dp"
+                                app:sv_speedTextSize="0sp"
+                                app:sv_speedometerWidth="10dp"
+                                app:sv_startDegree="150"
                                 app:sv_textSize="0sp"
                                 app:sv_tickNumber="0"
-                                app:sv_speedometerWidth="10dp"
-                                app:sv_backgroundCircleColor="@android:color/transparent"
-                                app:sv_startDegree="150"
-                                app:sv_endDegree="390" />
+                                app:sv_unit=""
+                                app:sv_unitTextSize="0sp"
+                                app:sv_withTremble="false" />
 
                             <TextView
                                 android:id="@+id/tempText"
@@ -160,51 +161,72 @@
                                 android:layout_marginTop="1dp" />
                         </LinearLayout>
 
-                        <!-- Temp Overlay -->
+                        <!-- Temperature Overlay -->
                         <LinearLayout
                             android:id="@+id/infoOverlayTemp"
                             android:layout_width="match_parent"
-                            android:layout_height="match_parent"
+                            android:layout_height="wrap_content"
                             android:orientation="vertical"
-                            android:gravity="center"
+                            android:gravity="center_horizontal"
                             android:background="@drawable/overlay_soft_bg"
                             android:visibility="gone"
-                            android:padding="16dp"
+                            android:padding="12dp"
                             android:elevation="6dp"
                             android:clickable="true"
-                            android:focusable="true">
+                            android:focusable="true"
+                            android:clipChildren="false"
+                            android:clipToPadding="false">
 
-                            <TextView
-                                android:id="@+id/infoTitleTemp"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Temperature"
-                                android:textStyle="bold"
-                                android:textSize="14sp"
-                                android:textColor="#333333"
-                                android:layout_marginBottom="4dp"
-                                android:textAlignment="center" />
+                            <RelativeLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content">
+
+                                <TextView
+                                    android:id="@+id/infoTitleTemp"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Temperature"
+                                    android:textStyle="bold"
+                                    android:textSize="14sp"
+                                    android:textColor="#333333"
+                                    android:layout_centerHorizontal="true" />
+
+                                <ImageButton
+                                    android:id="@+id/closeInfoTemp"
+                                    android:layout_width="24dp"
+                                    android:layout_height="24dp"
+                                    android:layout_alignParentEnd="true"
+                                    android:background="@drawable/circle_button_bg"
+                                    android:src="@drawable/ic_close"
+                                    android:contentDescription="Close Info"
+                                    app:tint="@android:color/white" />
+                            </RelativeLayout>
 
                             <TextView
                                 android:id="@+id/infoTextTemp"
-                                android:layout_width="wrap_content"
+                                android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:text="Info about temperature"
+                                android:text="Monitoring the internal temperature helps prevent food spoilage and ensures safe storage."
                                 android:textSize="13sp"
                                 android:lineSpacingExtra="2dp"
                                 android:textColor="#333333"
                                 android:textAlignment="center"
                                 android:gravity="center"
-                                android:layout_marginBottom="10dp" />
+                                android:layout_marginTop="6dp"
+                                android:layout_marginBottom="4dp" />
 
-                            <ImageButton
-                                android:id="@+id/closeInfoTemp"
-                                android:layout_width="28dp"
-                                android:layout_height="28dp"
-                                android:background="@drawable/circle_button_bg"
-                                android:src="@drawable/ic_close"
-                                android:contentDescription="Close Info"
-                                app:tint="@android:color/white" />
+                            <androidx.viewpager2.widget.ViewPager2
+                                android:id="@+id/levelPagerTemp"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:minHeight="0dp"
+                                android:layout_marginTop="0dp"
+                                android:layout_marginBottom="0dp"
+                                android:overScrollMode="never"
+                                android:clipToPadding="false"
+                                android:clipChildren="false"
+                                android:importantForAccessibility="no"
+                                android:visibility="visible" />
                         </LinearLayout>
                     </FrameLayout>
                 </androidx.cardview.widget.CardView>
@@ -286,47 +308,68 @@
                         <LinearLayout
                             android:id="@+id/infoOverlayHum"
                             android:layout_width="match_parent"
-                            android:layout_height="match_parent"
+                            android:layout_height="wrap_content"
                             android:orientation="vertical"
-                            android:gravity="center"
+                            android:gravity="center_horizontal"
                             android:background="@drawable/overlay_soft_bg"
                             android:visibility="gone"
-                            android:padding="16dp"
+                            android:padding="12dp"
                             android:elevation="6dp"
                             android:clickable="true"
-                            android:focusable="true">
+                            android:focusable="true"
+                            android:clipChildren="false"
+                            android:clipToPadding="false">
 
-                            <TextView
-                                android:id="@+id/infoTitleHum"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Humidity"
-                                android:textStyle="bold"
-                                android:textSize="14sp"
-                                android:textColor="#333333"
-                                android:layout_marginBottom="4dp"
-                                android:textAlignment="center" />
+                            <RelativeLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content">
+
+                                <TextView
+                                    android:id="@+id/infoTitleHum"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Humidity"
+                                    android:textStyle="bold"
+                                    android:textSize="14sp"
+                                    android:textColor="#333333"
+                                    android:layout_centerHorizontal="true" />
+
+                                <ImageButton
+                                    android:id="@+id/closeInfoHum"
+                                    android:layout_width="24dp"
+                                    android:layout_height="24dp"
+                                    android:layout_alignParentEnd="true"
+                                    android:background="@drawable/circle_button_bg"
+                                    android:src="@drawable/ic_close"
+                                    android:contentDescription="Close Info"
+                                    app:tint="@android:color/white" />
+                            </RelativeLayout>
 
                             <TextView
                                 android:id="@+id/infoTextHum"
-                                android:layout_width="wrap_content"
+                                android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:text="Info about humidity"
+                                android:text="Humidity helps maintain moisture in fruits and vegetables. Too low or too high can lead to spoilage."
                                 android:textSize="13sp"
                                 android:lineSpacingExtra="2dp"
                                 android:textColor="#333333"
                                 android:textAlignment="center"
                                 android:gravity="center"
-                                android:layout_marginBottom="10dp" />
+                                android:layout_marginTop="6dp"
+                                android:layout_marginBottom="4dp" />
 
-                            <ImageButton
-                                android:id="@+id/closeInfoHum"
-                                android:layout_width="28dp"
-                                android:layout_height="28dp"
-                                android:background="@drawable/circle_button_bg"
-                                android:src="@drawable/ic_close"
-                                android:contentDescription="Close Info"
-                                app:tint="@android:color/white" />
+                            <androidx.viewpager2.widget.ViewPager2
+                                android:id="@+id/levelPagerHum"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:minHeight="0dp"
+                                android:layout_marginTop="0dp"
+                                android:layout_marginBottom="0dp"
+                                android:overScrollMode="never"
+                                android:clipToPadding="false"
+                                android:clipChildren="false"
+                                android:importantForAccessibility="no"
+                                android:visibility="visible" />
                         </LinearLayout>
                     </FrameLayout>
                 </androidx.cardview.widget.CardView>

@@ -153,51 +153,74 @@
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
-    <!-- Info Overlay -->
     <LinearLayout
         android:id="@+id/infoOverlay"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:gravity="center"
         android:background="@drawable/overlay_soft_bg"
         android:visibility="gone"
-        android:padding="16dp"
+        android:padding="12dp"
         android:elevation="6dp"
         android:clickable="true"
         android:focusable="true"
-        android:contentDescription="Gas Information Overlay">
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        android:layout_gravity="center_horizontal">
 
-        <TextView
-            android:id="@+id/infoTitle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Gas Title"
-            android:textStyle="bold"
-            android:textSize="14sp"
-            android:textColor="#333333"
-            android:layout_marginBottom="4dp"
-            android:textAlignment="center" />
+        <!-- Title + Close Button -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
 
+            <TextView
+                android:id="@+id/infoTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Gas Title"
+                android:textStyle="bold"
+                android:textSize="14sp"
+                android:textColor="#333333"
+                android:layout_centerHorizontal="true" />
+
+            <ImageButton
+                android:id="@+id/closeInfo"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_alignParentEnd="true"
+                android:background="@drawable/circle_button_bg"
+                android:src="@drawable/ic_close"
+                android:contentDescription="Close Info"
+                app:tint="@android:color/white" />
+        </RelativeLayout>
+
+        <!-- Description -->
         <TextView
             android:id="@+id/infoText"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Gas information description..."
             android:textSize="13sp"
             android:lineSpacingExtra="2dp"
             android:textColor="#333333"
-            android:textAlignment="center"
             android:gravity="center"
-            android:layout_marginBottom="10dp" />
+            android:textAlignment="center"
+            android:layout_marginTop="6dp"
+            android:layout_marginBottom="4dp" />
 
-        <ImageButton
-            android:id="@+id/closeInfo"
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:background="@drawable/circle_button_bg"
-            android:src="@drawable/ic_close"
-            android:contentDescription="Close Info"
-            app:tint="@android:color/white" />
+        <!-- 🔄 ViewPager2 for Levels -->
+        <androidx.viewpager2.widget.ViewPager2
+            android:id="@+id/levelPager"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="0dp"
+            android:layout_marginTop="0dp"
+            android:layout_marginBottom="0dp"
+            android:overScrollMode="never"
+            android:clipToPadding="false"
+            android:clipChildren="false"
+            android:importantForAccessibility="no"
+            android:visibility="visible" />
+
     </LinearLayout>
 </FrameLayout>
