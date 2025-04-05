@@ -16,6 +16,7 @@ import androidx.core.view.WindowInsetsCompat;
 
 import android.util.Log;
 import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -24,19 +25,16 @@ import android.widget.TextView;
 
 import androidx.appcompat.widget.SwitchCompat;
 
-import com.example.smartfoodinventorytracker.Bluetooth;
+import com.example.smartfoodinventorytracker.utils.Bluetooth;
 import com.example.smartfoodinventorytracker.R;
 import com.google.firebase.auth.FirebaseAuth;
 
 import java.io.IOException;
 
-
 public class SettingsActivity extends AppCompatActivity {
 
     private SwitchCompat switchFridge, switchExpiry;
     private Bluetooth btHelper;
-    private Button save;
-    private EditText ssidField, passwordField;
     private TextView inputExpiredHours, inputWeek1Days, inputWeek2Days;
     private SharedPreferences prefs;
     private static final String PREFS_NAME = "user_settings";
@@ -45,55 +43,50 @@ public class SettingsActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
-
         setContentView(R.layout.activity_settings);
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
-
         findViewById(R.id.toolbar).setOnClickListener(v -> finish());
 
         prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         setUpBluetooth(this);
         setUpUi();
 
-
-        /// Load saved values using a unified key "expired_every_minutes"
+        // Load saved toggle settings
         switchFridge.setChecked(prefs.getBoolean("fridge_alerts", true));
         switchExpiry.setChecked(prefs.getBoolean("expiry_alerts", true));
-        inputExpiredHours.setText(String.valueOf(prefs.getInt("expired_every_minutes", 4)));
-        inputWeek1Days.setText(String.valueOf(prefs.getInt("week1_every_days", 2)));
-        inputWeek2Days.setText(String.valueOf(prefs.getInt("week2_every_days", 3)));
 
-        int expiredM = prefs.getInt("expired_every_minutes", 4);
-        int week1D = prefs.getInt("week1_every_days", 2);
-        int week2D = prefs.getInt("week2_every_days", 3);
+        // Load and display expired interval (default 4 Minutes)
+        int expiredVal = prefs.getInt("expired_interval_value", 4);
+        String expiredUnit = prefs.getString("expired_interval_unit", "minute(s)");
+        inputExpiredHours.setText(expiredVal + " " + expiredUnit);
 
-// Change the number picker to allow 1 to 60 minutes for expiry alerts
+        int week1Val = prefs.getInt("week1_interval_value", 2);
+        String week1Unit = prefs.getString("week1_interval_unit", "day(s)");
+        inputWeek1Days.setText(week1Val + " " + week1Unit);
+
+        int week2Val = prefs.getInt("week2_interval_value", 3);
+        String week2Unit = prefs.getString("week2_interval_unit", "day(s)");
+        inputWeek2Days.setText(week2Val + " " + week2Unit);
+
+
+        // Set up click listeners using the generic picker method
         inputExpiredHours.setOnClickListener(v ->
-                showNumberPicker("🔔 Frequency in minutes", 1, 60, expiredM, val -> {
-                    inputExpiredHours.setText(String.valueOf(val));
-                    prefs.edit().putInt("expired_every_minutes", val).apply();
-                })
+                showIntervalDialog("Choose frequency",
+                        "expired_interval_value", "expired_interval_unit", 1, 60, 4, inputExpiredHours)
         );
-
         inputWeek1Days.setOnClickListener(v ->
-                showNumberPicker("🔔 Frequency in Days", 1, 7, week1D, val -> {
-                    inputWeek1Days.setText(String.valueOf(val));
-                    prefs.edit().putInt("week1_every_days", val).apply();
-                })
+                showIntervalDialog("Choose frequency",
+                        "week1_interval_value", "week1_interval_unit", 1, 60, 2, inputWeek1Days)
         );
-
         inputWeek2Days.setOnClickListener(v ->
-                showNumberPicker("🔔 Frequency in Days", 1, 7, week2D, val -> {
-                    inputWeek2Days.setText(String.valueOf(val));
-                    prefs.edit().putInt("week2_every_days", val).apply();
-                })
+                showIntervalDialog("Choose frequency",
+                        "week2_interval_value", "week2_interval_unit", 1, 60, 3, inputWeek2Days)
         );
 
-        // Save on toggle
         switchFridge.setOnCheckedChangeListener((btn, isChecked) ->
                 prefs.edit().putBoolean("fridge_alerts", isChecked).apply());
 
@@ -103,48 +96,124 @@ public class SettingsActivity extends AppCompatActivity {
         setUpToolbar();
     }
 
-    private void setUpBluetooth(Context cont){
+    private void setUpBluetooth(Context cont) {
         btHelper = new Bluetooth(cont);
     }
 
-
-    private void setUpUi()
-    {
+    private void setUpUi() {
         switchFridge = findViewById(R.id.switch_fridge);
         switchExpiry = findViewById(R.id.switch_expiry);
         inputExpiredHours = findViewById(R.id.input_expired_hours);
         inputWeek1Days = findViewById(R.id.input_week1_days);
         inputWeek2Days = findViewById(R.id.input_week2_days);
-        ssidField=findViewById(R.id.ssid);
-        passwordField=findViewById(R.id.password);
-        save = findViewById(R.id.buttonsave_t);
-        requestBluetoothIfNeeded();
-        save.setOnClickListener(view->{
-          /*  String ssid = ssidField.getText().toString();
-            String password = passwordField.getText().toString();
-            String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();*/
-        /*    if((!ssid.isEmpty())&&(!password.isEmpty())) {
-                try {
-                    if (btHelper !=aaa
-                     null) {
-                        Log.d("Bluetooth","Supposed to be sending the data");
-                        btHelper.transmitCredentials(ssid + "," + password + "," + userId);
-                    } else {
 
+        requestBluetoothIfNeeded();
+        findViewById(R.id.buttonConfigureWifi).setOnClickListener(v -> showWifiDialog());
+    }
+
+    private void showWifiDialog() {
+        LinearLayout dialogView = (LinearLayout) getLayoutInflater().inflate(R.layout.dialog_wifi_config, null);
+        EditText ssidInput = dialogView.findViewById(R.id.dialog_ssid);
+        EditText passInput = dialogView.findViewById(R.id.dialog_password);
+        Button saveButton = dialogView.findViewById(R.id.dialog_save);
+
+        androidx.appcompat.app.AlertDialog dialog = new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setView(dialogView)
+                .create();
+
+        saveButton.setOnClickListener(v -> {
+            String ssid = ssidInput.getText().toString();
+            String password = passInput.getText().toString();
+            String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+            if (!ssid.isEmpty() && !password.isEmpty()) {
+                try {
+                    if (btHelper != null) {
+                        Log.d("Bluetooth", "Sending WiFi credentials via Bluetooth");
+                        btHelper.transmitCredentials(ssid + "," + password + "," + userId);
+                        dialog.dismiss();
                     }
                 } catch (IOException e) {
-                    throw new RuntimeException(e);
+                    e.printStackTrace();
                 }
+            }
+        });
+        dialog.show();
+    }
 
+    private void showIntervalDialog(String title, String valueKey, String unitKey, int defaultVal, int defaultMax, int fallbackValue, TextView targetView) {
+        // Inflate the custom layout from XML
+        LayoutInflater inflater = LayoutInflater.from(this);
+        View layout = inflater.inflate(R.layout.dialog_settings_interval, null);
 
-            }*/
+        // Set up the custom title
+        TextView titleView = layout.findViewById(R.id.dialog_title);
+        titleView.setText(title);
 
+        final String[] units = {"minute(s)", "hour(s)", "day(s)"};
+        final SharedPreferences.Editor editor = prefs.edit();
+
+        // Get the saved value and unit from SharedPreferences
+        int savedValue = prefs.getInt(valueKey, fallbackValue);
+        String savedUnit = prefs.getString(unitKey, "minute(s)");
+        int unitIndex = java.util.Arrays.asList(units).indexOf(savedUnit);
+
+        // Set up the value NumberPicker
+        final android.widget.NumberPicker valuePicker = layout.findViewById(R.id.np_value);
+        valuePicker.setMinValue(1);
+        // Set max value based on the selected unit
+        if (savedUnit.equalsIgnoreCase("hour(s)")) {
+            valuePicker.setMaxValue(24);
+        } else if (savedUnit.equalsIgnoreCase("day(s)")) {
+            valuePicker.setMaxValue(7);
+        } else {
+            valuePicker.setMaxValue(60);
+        }
+
+        valuePicker.setValue(savedValue);
+
+        // Set up the unit NumberPicker
+        final android.widget.NumberPicker unitPicker = layout.findViewById(R.id.np_unit);
+        unitPicker.setDisplayedValues(units);
+        unitPicker.setMinValue(0);
+        unitPicker.setMaxValue(units.length - 1);
+        unitPicker.setValue(unitIndex);
+
+        // Update the valuePicker max value when unit changes
+        unitPicker.setOnValueChangedListener((picker, oldVal, newVal) -> {
+            String selectedUnit = units[newVal];
+            if (selectedUnit.equalsIgnoreCase("hour(s)")) {
+                valuePicker.setMaxValue(24);
+            } else if (selectedUnit.equalsIgnoreCase("day(s)")) {
+                valuePicker.setMaxValue(7);
+            } else {
+                valuePicker.setMaxValue(60);
+            }
         });
 
 
+        // Build and show the AlertDialog using the custom layout
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setView(layout)
+                .setPositiveButton("Save", (dialog, which) -> {
+                    int value = valuePicker.getValue();
+                    String unit = units[unitPicker.getValue()];
+                    targetView.setText(value + " " + unit.toLowerCase());
+                    editor.putInt(valueKey, value);
+                    editor.putString(unitKey, unit);
+                    editor.apply();
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
     }
 
-
+    private void requestBluetoothIfNeeded() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT)
+                    != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{Manifest.permission.BLUETOOTH_CONNECT}, 200);
+            }
+        }
+    }
 
     private void setUpToolbar() {
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -155,51 +224,4 @@ public class SettingsActivity extends AppCompatActivity {
         }
         toolbar.setNavigationOnClickListener(v -> finish());
     }
-
-    interface NumberPickedCallback {
-        void onNumberPicked(int value);
-    }
-
-    private void showNumberPicker(String title, int min, int max, int current, NumberPickedCallback callback) {
-        // Wrap the NumberPicker in a LinearLayout to control layout
-        LinearLayout container = new LinearLayout(this);
-        container.setPadding(48, 24, 48, 0); // Add spacing around
-        container.setOrientation(LinearLayout.VERTICAL);
-        container.setGravity(Gravity.CENTER_HORIZONTAL);
-
-        final android.widget.NumberPicker picker = new android.widget.NumberPicker(this);
-        picker.setMinValue(min);
-        picker.setMaxValue(max);
-        picker.setValue(current);
-
-        container.addView(picker);
-
-        new androidx.appcompat.app.AlertDialog.Builder(this)
-                .setTitle(title)
-                .setView(container)
-                .setPositiveButton("OK", (dialog, which) -> callback.onNumberPicked(picker.getValue()))
-                .setNegativeButton("Cancel", null)
-                .show();
-    }
-
-
-
-    private int parseNumber(String text, int defaultVal) {
-        try {
-            return Integer.parseInt(text);
-        } catch (NumberFormatException e) {
-            return defaultVal;
-        }
-    }
-
-    private void requestBluetoothIfNeeded() {
-        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            if (checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT)
-                    != PackageManager.PERMISSION_GRANTED) {
-
-                requestPermissions(new String[]{Manifest.permission.BLUETOOTH_CONNECT}, 200);
-            }
-        }
-    }
-
 }
