@@ -2,6 +2,7 @@ package com.example.smartfoodinventorytracker.notifications;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Looper;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -22,6 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import android.os.Handler;
 
 public class DatabaseHelper {
 
@@ -158,6 +160,120 @@ public class DatabaseHelper {
         });
     }
 
+    public static void listenToFridgeConditions(String userId, NotificationHelper helper) {
+        long COOLDOWN_MILLIS = 10 * 60 * 1000L; // 10 minutes
+        String COOLDOWN_KEY = "last_fridge_alert";
+
+        DatabaseReference fridgeRef = FirebaseDatabase.getInstance()
+                .getReference("users")
+                .child(userId)
+                .child("fridge_condition");
+
+        Handler handler = new Handler(Looper.getMainLooper());
+        final Runnable[] pendingNotification = new Runnable[1];
+        Context context = helper.getContext();
+        SharedPreferences fridgePrefs = context.getSharedPreferences("fridge_status", Context.MODE_PRIVATE);
+
+
+        fridgeRef.orderByKey().limitToLast(1).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                for (DataSnapshot snap : snapshot.getChildren()) {
+                    Map<String, Integer> conditionMap = new HashMap<>();
+                    conditionMap.put("Temperature", snap.child("temperature condition").getValue(Integer.class));
+                    conditionMap.put("Humidity", snap.child("humidity condition").getValue(Integer.class));
+                    conditionMap.put("CO Level", snap.child("co condition").getValue(Integer.class));
+                    conditionMap.put("LPG Level", snap.child("lpg condition").getValue(Integer.class));
+                    conditionMap.put("Smoke Level", snap.child("smoke condition").getValue(Integer.class));
+                    conditionMap.put("Overall", snap.child("overall condition").getValue(Integer.class));
+
+                    Map<String, String> currentStatuses = new HashMap<>();
+                    boolean statusChanged = false;
+
+                    for (Map.Entry<String, Integer> entry : conditionMap.entrySet()) {
+                        String key = entry.getKey();
+                        Integer cond = entry.getValue();
+                        String newStatus = getStatusLabel(cond);
+
+                        currentStatuses.put(key, newStatus);
+
+                        String last = fridgePrefs.getString(key, null);
+                        if (last == null || !last.equals(newStatus)) {
+                            statusChanged = true;
+                        }
+
+                    }
+
+                    if (statusChanged) {
+                        if (pendingNotification[0] != null) {
+                            handler.removeCallbacks(pendingNotification[0]);
+                        }
+
+                        pendingNotification[0] = () -> {
+                            boolean hasAlert = currentStatuses.values().stream()
+                                    .anyMatch(status -> status.equals("Moderate") || status.equals("Poor"));
+
+                            if (!hasAlert) {
+                                Log.d("FridgeMonitor", "✅ All statuses are Good — skipping notification.");
+                                return;
+                            }
+
+                            StringBuilder message = new StringBuilder("Some abnormal condition was detected:");
+                            for (Map.Entry<String, String> entry : currentStatuses.entrySet()) {
+                                String emoji = getEmojiForStatus(entry.getValue());
+                                message.append("\n- ").append(entry.getKey()).append(": ").append(emoji).append(" ").append(entry.getValue());
+                                fridgePrefs.edit().putString(entry.getKey(), entry.getValue()).apply();
+                            }
+
+                            helper.sendNotification(
+                                    NotificationHelper.FRIDGE_ALERT_TITLE,
+                                    message.toString(),
+                                    com.example.smartfoodinventorytracker.fridge_conditions.FridgeConditionsActivity.class,
+                                    ""
+                            );
+
+                            // ✅ Save cooldown timestamp
+                            fridgePrefs.edit().putLong(COOLDOWN_KEY, System.currentTimeMillis()).apply();
+                        };
+
+
+                        long now = System.currentTimeMillis();
+                        long lastSent = fridgePrefs.getLong(COOLDOWN_KEY, 0);
+
+                        if (now - lastSent < COOLDOWN_MILLIS) {
+                            Log.d("FridgeMonitor", "🕐 Cooldown active — skipping notification");
+                            return;
+                        }
+
+
+                        handler.postDelayed(pendingNotification[0], 5000);
+
+                    }
+                }
+            }
+
+            private String getStatusLabel(Integer cond) {
+                if (cond == null) return "Unknown";
+                if (cond <= 3) return "Good";
+                else if (cond <= 6) return "Moderate";
+                else return "Poor";
+            }
+
+            private String getEmojiForStatus(String status) {
+                switch (status) {
+                    case "Good": return "✅";
+                    case "Moderate": return "⚠️";
+                    case "Poor": return "🔴";
+                    default: return "❔";
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.e("FridgeMonitor", "Failed to monitor fridge conditions", error.toException());
+            }
+        });
+    }
 
 
     // Provide a way to listen for notification changes
