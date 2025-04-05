@@ -50,7 +50,7 @@ public class FridgeConditionsActivity extends AppCompatActivity {
 
     // SpeedView gauges
     private SpeedView speedCO, speedLPG, speedNH4;
-
+    private DatabaseReference databaseReference;
     private List<TextView> arrowViews = new ArrayList<>();
 
     private final int[] gradientColors = {
@@ -62,7 +62,7 @@ public class FridgeConditionsActivity extends AppCompatActivity {
     private final int totalBlocks = 15;
 
     private static final Map<String, Number> lastStoredValues = new HashMap<>();
-    private DatabaseReference databaseRef;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,6 +70,8 @@ public class FridgeConditionsActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_fridge_conditions);
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        databaseReference = FirebaseDatabase.getInstance()
+                .getReference("users").child(userId).child("inventory");
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -287,13 +289,17 @@ public class FridgeConditionsActivity extends AppCompatActivity {
 
     private void saveDataCondition()
     {
-        databaseRef = FirebaseDatabase.getInstance().getReference().child("inventory");
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        databaseReference = FirebaseDatabase.getInstance()
+                .getReference("users").child(userId).child("inventory");
 
     }
     private void fetchDataFromFirebase() {
-        databaseRef = FirebaseDatabase.getInstance().getReference().child("inventory");
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        databaseReference = FirebaseDatabase.getInstance()
+                .getReference("users").child(userId).child("inventory");
 
-        databaseRef.orderByKey().limitToLast(1).addValueEventListener(new ValueEventListener() {
+        databaseReference.orderByKey().limitToLast(1).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot snapshot) {
                 if (!snapshot.exists()) {
