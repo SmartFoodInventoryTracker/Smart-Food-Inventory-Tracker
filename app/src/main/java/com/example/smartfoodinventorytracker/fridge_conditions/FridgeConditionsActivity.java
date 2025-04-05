@@ -414,12 +414,6 @@ public class FridgeConditionsActivity extends AppCompatActivity {
                     setGauge(lpgCond, "l");
                     setGauge(smokeCond, "s");
                     setGauge(overallCond, "ov");
-
-                    triggerNotification("Temperature", temp, tempCond);
-                    triggerNotification("Humidity", hum, humCond);
-                    triggerNotification("CO Level", co, coCond);
-                    triggerNotification("LPG Level", lpg, lpgCond);
-                    triggerNotification("Smoke Level", smoke, smokeCond);
                 }
             }
 
@@ -458,19 +452,6 @@ public class FridgeConditionsActivity extends AppCompatActivity {
                 int index = Math.min(14, Math.max(0, val * 14 / 10));
                 setArrowPosition(index);
                 break;
-        }
-    }
-
-    private void triggerNotification(String type, Number newValue, Integer condition) {
-        if (newValue == null || condition == null) return;
-
-        String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        NotificationHelper helper = new NotificationHelper(getApplicationContext(), false, uid);
-
-        Number prev = lastStoredValues.get(type);
-        if (prev == null || !prev.equals(newValue)) {
-            helper.sendConditionNotification(uid, type, newValue.longValue(), condition);
-            lastStoredValues.put(type, newValue);
         }
     }
 }
