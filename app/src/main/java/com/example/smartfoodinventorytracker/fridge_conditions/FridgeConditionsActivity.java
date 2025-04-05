@@ -66,11 +66,16 @@ public class FridgeConditionsActivity extends AppCompatActivity {
     // SpeedView gauges
     private SpeedView speedCO, speedLPG, speedNH4;
 
+    // Level Pagers
     private ViewPager2 levelPagerCO, levelPagerLPG, levelPagerNH4;
     private ViewPager2 levelPagerTemp, levelPagerHum;
 
     private final android.os.Handler pagerHandler = new android.os.Handler();
     private final int AUTO_SCROLL_DELAY = 3000; // 3 seconds
+
+    // Status
+    private TextView coStatus, lpgStatus, nh4Status;
+    private TextView tempStatus, humStatus;
 
 
     private List<TextView> arrowViews = new ArrayList<>();
@@ -122,6 +127,9 @@ public class FridgeConditionsActivity extends AppCompatActivity {
         humidityText = findViewById(R.id.humidityText);
         speedTemp = findViewById(R.id.speedViewTemp);
         speedHum = findViewById(R.id.speedViewHum);
+        tempStatus = findViewById(R.id.tempStatus);
+        humStatus = findViewById(R.id.humStatus);
+
 
         // 🔽 Layouts
         tempLayout = findViewById(R.id.tempCardLayout);
@@ -211,6 +219,8 @@ public class FridgeConditionsActivity extends AppCompatActivity {
         // 🌫️ CO Card
         cardCO = findViewById(R.id.card_co);
         coValue = cardCO.findViewById(R.id.gasValue);
+        coStatus = cardCO.findViewById(R.id.gasStatus);
+
         speedCO = cardCO.findViewById(R.id.gasGauge);
         ImageView coIcon = cardCO.findViewById(R.id.gasIcon);
         TextView coLabel = cardCO.findViewById(R.id.gasLabel);
@@ -259,6 +269,7 @@ public class FridgeConditionsActivity extends AppCompatActivity {
         // 🔥 LPG Card
         cardLPG = findViewById(R.id.card_lpg);
         lpgValue = cardLPG.findViewById(R.id.gasValue);
+        lpgStatus = cardLPG.findViewById(R.id.gasStatus);
         speedLPG = cardLPG.findViewById(R.id.gasGauge);
         ImageView lpgIcon = cardLPG.findViewById(R.id.gasIcon);
         TextView lpgLabel = cardLPG.findViewById(R.id.gasLabel);
@@ -307,6 +318,7 @@ public class FridgeConditionsActivity extends AppCompatActivity {
         // 🧪 NH₄ Card
         cardNH4 = findViewById(R.id.card_nh4);
         nh4Value = cardNH4.findViewById(R.id.gasValue);
+        nh4Status = cardNH4.findViewById(R.id.gasStatus);
         speedNH4 = cardNH4.findViewById(R.id.gasGauge);
         ImageView nh4Icon = cardNH4.findViewById(R.id.gasIcon);
         TextView nh4Label = cardNH4.findViewById(R.id.gasLabel);
@@ -504,6 +516,21 @@ public class FridgeConditionsActivity extends AppCompatActivity {
                     lpgValue.setText(lpg != null ? lpg + " ppm" : "-- ppm");
                     nh4Value.setText(smoke != null ? smoke + " ppm" : "-- ppm");
 
+                    tempStatus.setText(getStatusLabel(tempCond));
+                    tempStatus.setTextColor(getStatusColor(tempCond));
+
+                    humStatus.setText(getStatusLabel(humCond));
+                    humStatus.setTextColor(getStatusColor(humCond));
+
+                    coStatus.setText(getStatusLabel(coCond));
+                    coStatus.setTextColor(getStatusColor(coCond));
+
+                    lpgStatus.setText(getStatusLabel(lpgCond));
+                    lpgStatus.setTextColor(getStatusColor(lpgCond));
+
+                    nh4Status.setText(getStatusLabel(smokeCond));
+                    nh4Status.setTextColor(getStatusColor(smokeCond));
+
                     setGauge(tempCond, "t");
                     setGauge(humCond, "h");
                     setGauge(coCond, "c");
@@ -511,7 +538,11 @@ public class FridgeConditionsActivity extends AppCompatActivity {
                     setGauge(smokeCond, "s");
                     setGauge(overallCond, "ov");
                 }
+
+
             }
+
+
 
             @Override
             public void onCancelled(DatabaseError error) {
@@ -536,6 +567,19 @@ public class FridgeConditionsActivity extends AppCompatActivity {
                 break;
         }
     }
-}
 
-//
+    private String getStatusLabel(Integer cond) {
+        if (cond == null) return "Unknown";
+        if (cond <= 3) return "Good";
+        else if (cond <= 6) return "Moderate";
+        else return "Poor";
+    }
+
+    private int getStatusColor(Integer cond) {
+        if (cond == null) return Color.GRAY;
+        if (cond <= 3) return Color.parseColor("#4CAF50");      // Green
+        else if (cond <= 6) return Color.parseColor("#FFC107"); // Orange
+        else return Color.parseColor("#F44336");                // Red
+    }
+
+}
