@@ -142,7 +142,6 @@
                         android:padding="6dp"
                         android:elevation="10dp" />
 
-<<<<<<< HEAD
                     <ImageView
                         android:layout_width="12dp"
                         android:layout_height="6dp"
@@ -152,80 +151,6 @@
                 </LinearLayout>
             </FrameLayout>
         </LinearLayout>
-=======
-                <com.github.anastr.speedviewlib.SpeedView
-                    android:id="@+id/gasGauge"
-                    android:layout_width="100dp"
-                    android:layout_height="100dp"
-                    android:layout_marginLeft="20dp"
-                    app:sv_backgroundCircleColor="@android:color/transparent"
-                    app:sv_centerCircleRadius="10dp"
-                    app:sv_endDegree="390"
-                    app:sv_speedTextSize="0sp"
-                    app:sv_speedometerWidth="10dp"
-                    app:sv_startDegree="150"
-                    app:sv_textSize="0sp"
-                    app:sv_tickNumber="0"
-                    app:sv_unit=""
-                    app:sv_unitTextSize="0sp"
-                    app:sv_withTremble="false" />
-
-                <ImageView
-                    android:id="@+id/infoIcon"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:layout_marginStart="8dp"
-                    android:contentDescription="Info Icon"
-                    android:src="@drawable/ic_info"
-                    app:tint="@android:color/darker_gray" />
-            </LinearLayout>
-
-            <!-- Floating tooltip bubble with tail -->
-            <LinearLayout
-                android:id="@+id/infoHelperTooltip"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_gravity="end|top"
-                android:layout_marginEnd="12dp"
-                android:layout_marginTop="4dp"
-                android:gravity="center_horizontal"
-                android:visibility="gone"
-                android:shadowColor="#44000000"
-                android:shadowDx="0"
-                android:shadowDy="1"
-                android:shadowRadius="2"
-                android:elevation="6dp">
-
-                <!-- Bubble -->
-                <TextView
-                    android:id="@+id/tooltipText"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/tooltip_bg"
-                    android:text="Tap for info"
-                    android:textColor="#333333"
-                    android:textStyle="bold"
-                    android:textSize="13sp"
-                    android:padding="6dp"
-                    android:elevation="6dp"
-                    android:shadowColor="#55000000"
-                    android:shadowDx="1"
-                    android:shadowDy="1"
-                    android:shadowRadius="2" />
-
-                <!-- Triangle tail image -->
-                <ImageView
-                    android:layout_width="12dp"
-                    android:layout_height="6dp"
-                    android:src="@drawable/tooltip_tail"
-                    android:layout_marginTop="-1dp"
-                    android:contentDescription="Tooltip tail" />
-
-            </LinearLayout>
-
-        </FrameLayout>
->>>>>>> parent of 2c9fec9 (test)
     </androidx.cardview.widget.CardView>
 
     <!-- Info Overlay -->
