@@ -174,7 +174,6 @@ public class DatabaseHelper {
         Context context = helper.getContext();
         SharedPreferences fridgePrefs = context.getSharedPreferences("fridge_status", Context.MODE_PRIVATE);
 
-
         fridgeRef.orderByKey().limitToLast(1).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -201,7 +200,6 @@ public class DatabaseHelper {
                         if (last == null || !last.equals(newStatus)) {
                             statusChanged = true;
                         }
-
                     }
 
                     if (statusChanged) {
@@ -232,7 +230,6 @@ public class DatabaseHelper {
                                 fridgePrefs.edit().putString(entry.getKey(), status).apply();
                             }
 
-
                             helper.sendNotification(
                                     NotificationHelper.FRIDGE_ALERT_TITLE,
                                     message.toString(),
@@ -244,7 +241,6 @@ public class DatabaseHelper {
                             fridgePrefs.edit().putLong(COOLDOWN_KEY, System.currentTimeMillis()).apply();
                         };
 
-
                         long now = System.currentTimeMillis();
                         long lastSent = fridgePrefs.getLong(COOLDOWN_KEY, 0);
 
@@ -253,9 +249,7 @@ public class DatabaseHelper {
                             return;
                         }
 
-
                         handler.postDelayed(pendingNotification[0], 5000);
-
                     }
                 }
             }
@@ -282,7 +276,6 @@ public class DatabaseHelper {
             }
         });
     }
-
 
     // Provide a way to listen for notification changes
     public static void listenForNotificationUpdates(String userId, Runnable callback) {
@@ -348,83 +341,80 @@ public class DatabaseHelper {
                 LocalDate today = LocalDate.now();
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d/M/yyyy");
 
-                // Create groups for each category:
-                Map<String, List<String>> grouped = new HashMap<>();
-                grouped.put("expired", new ArrayList<>());  // daysLeft < 0
-                grouped.put("week", new ArrayList<>());       // 0 ≤ daysLeft ≤ 7
-                grouped.put("2weeks", new ArrayList<>());     // 7 < daysLeft ≤ 14
-
+                Map<Long, List<String>> grouped = new HashMap<>();
                 Context context = notificationHelper.getContext();
                 SharedPreferences prefs = context.getSharedPreferences("user_settings", Context.MODE_PRIVATE);
                 SharedPreferences sent = context.getSharedPreferences("notif_times", Context.MODE_PRIVATE);
 
                 boolean enabled = prefs.getBoolean("expiry_alerts", true);
-                int expiredCooldown = prefs.getInt("expired_cooldown", 4); // minutes for expired items
-                int weekCooldown = prefs.getInt("week_cooldown", 2);         // days for week notifications
-                int twoWeeksCooldown = prefs.getInt("twoweeks_cooldown", 3);   // days for two-week notifications
+
+                // Use new keys from settings for the notification cooldowns:
+                int expiredValue = prefs.getInt("expired_interval_value", 4);
+                String expiredUnit = prefs.getString("expired_interval_unit", "minute(s)");
+                long expiredDelay = convertIntervalToMillis(expiredValue, expiredUnit);
+
+                int week1Value = prefs.getInt("week1_interval_value", 2);
+                String week1Unit = prefs.getString("week1_interval_unit", "day(s)");
+                long week1Delay = convertIntervalToMillis(week1Value, week1Unit);
+
+                int week2Value = prefs.getInt("week2_interval_value", 3);
+                String week2Unit = prefs.getString("week2_interval_unit", "day(s)");
+                long week2Delay = convertIntervalToMillis(week2Value, week2Unit);
+
                 long now = System.currentTimeMillis();
 
                 if (!enabled) return;
 
-                // Group products based on days remaining
                 for (DataSnapshot child : snapshot.getChildren()) {
                     Product product = child.getValue(Product.class);
-                    if (product == null || product.getExpiryDate() == null || product.getExpiryDate().equals("Not set"))
-                        continue;
+                    if (product == null || product.getExpiryDate() == null || product.getExpiryDate().equals("Not set")) continue;
+
                     try {
                         LocalDate expiry = LocalDate.parse(product.getExpiryDate(), formatter);
                         long daysLeft = ChronoUnit.DAYS.between(today, expiry);
-                        if (daysLeft > 14) continue; // ignore products expiring in more than 2 weeks
-                        String itemEntry = product.getName() + " (" + daysLeft + " " + (Math.abs(daysLeft) == 1 ? "day" : "days") + ")";
-                        if (daysLeft < 0) {
-                            grouped.get("expired").add(itemEntry);
-                        } else if (daysLeft <= 7) {
-                            grouped.get("week").add(itemEntry);
-                        } else {
-                            grouped.get("2weeks").add(itemEntry);
-                        }
+                        if (daysLeft > 14) continue;
+
+                        grouped.computeIfAbsent(daysLeft, k -> new ArrayList<>()).add(product.getName());
                     } catch (Exception e) {
                         Log.e("ExpiryCheck", "Error parsing: " + product.getName(), e);
                     }
                 }
 
-                // Send one notification per group if conditions are met
-                for (Map.Entry<String, List<String>> entry : grouped.entrySet()) {
-                    String group = entry.getKey();
+                for (Map.Entry<Long, List<String>> entry : grouped.entrySet()) {
+                    long daysLeft = entry.getKey();
                     List<String> items = entry.getValue();
-                    if (items.isEmpty()) continue;
-                    String groupKey = "group_" + group;
+                    String groupKey = "group_" + daysLeft;
                     long lastSent = sent.getLong(groupKey, 0);
-                    boolean shouldNotify = false;
-                    String messagePrefix = "";
 
-                    if (group.equals("expired")) {
-                        if (now - lastSent >= expiredCooldown * 60 * 1000L)
-                            shouldNotify = true;
-                        messagePrefix = "❌ Expired: ";
-                    } else if (group.equals("week")) {
-                        if (TimeUnit.MILLISECONDS.toDays(now - lastSent) >= weekCooldown)
-                            shouldNotify = true;
-                        messagePrefix = "📅 Expires within a week: ";
-                    } else if (group.equals("2weeks")) {
-                        if (TimeUnit.MILLISECONDS.toDays(now - lastSent) >= twoWeeksCooldown)
-                            shouldNotify = true;
-                        messagePrefix = "⏰ Expires within two weeks: ";
+                    boolean shouldNotify = false;
+
+                    if (daysLeft <= 0 && (now - lastSent >= expiredDelay)) {
+                        shouldNotify = true;
+                    } else if (daysLeft <= 7 && (now - lastSent >= week1Delay)) {
+                        shouldNotify = true;
+                    } else if (daysLeft <= 14 && (now - lastSent >= week2Delay)) {
+                        shouldNotify = true;
                     }
 
                     if (shouldNotify) {
                         String message;
-                        if (items.size() > 5) {
-                            message = messagePrefix + items.size() + " items" ;
+                        if (daysLeft < 0) {
+                            message = "❌ Expired: " + String.join(", ", items);
+                        } else if (daysLeft == 0) {
+                            message = "📅 Expires today: " + String.join(", ", items);
+                        } else if (daysLeft == 1) {
+                            message = "⏰ Expires tomorrow: " + String.join(", ", items);
                         } else {
-                            message = messagePrefix + String.join(", ", items);
+                            message = "🕒 Expires in " + daysLeft + " days: " + String.join(", ", items);
                         }
+
                         notificationHelper.sendNotification(
                                 NotificationHelper.EXPIRY_ALERT_TITLE,
                                 message,
                                 com.example.smartfoodinventorytracker.inventory.InventoryActivity.class,
                                 "" // no extra data
                         );
+
                         sent.edit().putLong(groupKey, now).apply();
                     }
                 }
@@ -463,5 +453,14 @@ public class DatabaseHelper {
                 });
     }
 
-
+    // Helper method to convert interval values to milliseconds based on the selected unit.
+    private static long convertIntervalToMillis(int value, String unit) {
+        if (unit.equalsIgnoreCase("hour(s)")) {
+            return value * 60 * 60 * 1000L;
+        } else if (unit.equalsIgnoreCase("day(s)")) {
+            return value * 24 * 60 * 60 * 1000L;
+        } else { // default to minute(s)
+            return value * 60 * 1000L;
+        }
+    }
 }
