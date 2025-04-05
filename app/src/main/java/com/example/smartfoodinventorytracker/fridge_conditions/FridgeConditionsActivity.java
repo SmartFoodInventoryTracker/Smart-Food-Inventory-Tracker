@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -379,18 +380,20 @@ public class FridgeConditionsActivity extends AppCompatActivity {
     }
 
     private void autoScrollPager(ViewPager2 pager, int pageCount) {
-        pager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
-            @Override
-            public void onPageSelected(int position) {
-                super.onPageSelected(position);
-                pagerHandler.removeCallbacksAndMessages(null); // clear previous
-                pagerHandler.postDelayed(() -> {
-                    int next = (position + 1) % pageCount;
-                    pager.setCurrentItem(next, true);
-                }, AUTO_SCROLL_DELAY);
-            }
-        });
+        final int delayMillis = 3000; // or whatever value you choose
+
+        final Handler handler = new Handler();
+        final Runnable[] scrollRunnable = new Runnable[1];
+
+        scrollRunnable[0] = () -> {
+            int next = (pager.getCurrentItem() + 1) % pageCount;
+            pager.setCurrentItem(next, true);
+            handler.postDelayed(scrollRunnable[0], delayMillis);
+        };
+
+        handler.postDelayed(scrollRunnable[0], delayMillis);
     }
+
 
 
     public class LevelPagerAdapter extends RecyclerView.Adapter<LevelPagerAdapter.LevelViewHolder> {
