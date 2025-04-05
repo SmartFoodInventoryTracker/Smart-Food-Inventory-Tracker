@@ -9,6 +9,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:cardCornerRadius="12dp"
+        android:scaleX="0.95"
+        android:scaleY="0.95"
         app:cardElevation="4dp">
 
         <LinearLayout
@@ -64,6 +66,8 @@
                                 android:id="@+id/infoIcon"
                                 android:layout_width="20dp"
                                 android:layout_height="20dp"
+                                android:scaleX="1.2"
+                                android:scaleY="1.2"
                                 android:layout_marginStart="4dp"
                                 android:contentDescription="Info Icon"
                                 android:src="@drawable/ic_info"
@@ -110,18 +114,21 @@
                         app:sv_withTremble="false" />
                 </LinearLayout>
 
-                <!-- 🧷 Tooltip bubble -->
+                <!-- 🗯 Tooltip (now outside the card and free to float!) -->
                 <LinearLayout
                     android:id="@+id/infoHelperTooltip"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:layout_gravity="end|top"
-                    android:layout_marginEnd="12dp"
-                    android:layout_marginTop="4dp"
+                    android:layout_gravity="start|top"
+                    android:layout_marginStart="64dp"
+                    android:layout_marginTop="-12dp"
                     android:gravity="center_horizontal"
                     android:visibility="gone"
-                    android:elevation="6dp">
+                    android:elevation="10dp"
+                    android:translationZ="10dp"
+                    android:clipChildren="false"
+                    android:clipToPadding="false">
 
                     <TextView
                         android:id="@+id/tooltipText"
@@ -133,7 +140,7 @@
                         android:textStyle="bold"
                         android:textSize="13sp"
                         android:padding="6dp"
-                        android:elevation="6dp" />
+                        android:elevation="10dp" />
 
                     <ImageView
                         android:layout_width="12dp"
