@@ -59,6 +59,7 @@ public class FridgeConditionsActivity extends AppCompatActivity {
     // Cards (inflate from item_gas_card)
     private View cardCO, cardLPG, cardNH4;
 
+
     // Gas values
     private TextView coValue, lpgValue, nh4Value;
 
@@ -66,6 +67,7 @@ public class FridgeConditionsActivity extends AppCompatActivity {
     private SpeedView speedCO, speedLPG, speedNH4;
 
     private ViewPager2 levelPagerCO, levelPagerLPG, levelPagerNH4;
+    private ViewPager2 levelPagerTemp, levelPagerHum;
 
     private final android.os.Handler pagerHandler = new android.os.Handler();
     private final int AUTO_SCROLL_DELAY = 3000; // 3 seconds
@@ -142,6 +144,16 @@ public class FridgeConditionsActivity extends AppCompatActivity {
         tempInfoTitle.setText("Temperature");
         tempInfoText.setText("Monitoring the internal temperature helps prevent food spoilage and ensures safe storage.");
 
+        // 🌡️ ViewPager for Temperature Levels
+        levelPagerTemp = findViewById(R.id.levelPagerTemp);
+        List<String> tempLevels = Arrays.asList(
+                "Good ✅: Ideal storage temperature.",
+                "Moderate ⚠️: Slightly out of optimal range.",
+                "Poor 🛑: Temperature too high/low — food may spoil."
+        );
+        levelPagerTemp.setAdapter(new ConditionLevelAdapter(tempLevels));
+        autoScrollPager(levelPagerTemp, tempLevels.size());
+
         tempInfoIcon.setOnClickListener(v -> {
             tempOverlay.setVisibility(View.VISIBLE);
             tempOverlay.setAlpha(0f);
@@ -163,6 +175,16 @@ public class FridgeConditionsActivity extends AppCompatActivity {
         // 💧 Humidity Info Setup
         humInfoTitle.setText("Humidity");
         humInfoText.setText("Humidity helps maintain moisture in fruits and vegetables. Too low or too high can lead to spoilage.");
+
+        // 💧 ViewPager for Humidity Levels
+        levelPagerHum = findViewById(R.id.levelPagerHum);
+        List<String> humLevels = Arrays.asList(
+                "Good ✅: Perfect humidity for freshness.",
+                "Moderate ⚠️: Slight imbalance in humidity.",
+                "Poor 🛑: Too dry or too moist — risk of spoilage."
+        );
+        levelPagerHum.setAdapter(new ConditionLevelAdapter(humLevels));
+        autoScrollPager(levelPagerHum, humLevels.size());
 
         humInfoIcon.setOnClickListener(v -> {
             humOverlay.setVisibility(View.VISIBLE);

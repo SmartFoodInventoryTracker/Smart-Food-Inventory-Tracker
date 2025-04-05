@@ -34,7 +34,6 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import androidx.cardview.widget.CardView;
 import androidx.work.WorkManager;
 
-
 public class DashboardActivity extends AppCompatActivity {
 
     private DrawerLayout drawerLayout;
@@ -207,7 +206,7 @@ public class DashboardActivity extends AppCompatActivity {
         if (cachedName != null && !cachedName.isEmpty()) {
             greetingText.setText("👋 " + greeting + ", " + cachedName);
         } else {
-            greetingText.setText("👋 " + greeting + ", loading...");
+            greetingText.setText("👋 " + greeting + ", User");
         }
 
         // ✅ Then load fresh data from Firestore
