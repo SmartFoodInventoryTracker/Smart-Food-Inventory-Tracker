@@ -16,7 +16,6 @@ import androidx.core.view.WindowInsetsCompat;
 
 import android.util.Log;
 import android.view.Gravity;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -24,7 +23,7 @@ import android.widget.TextView;
 
 import androidx.appcompat.widget.SwitchCompat;
 
-import com.example.smartfoodinventorytracker.Bluetooth;
+import com.example.smartfoodinventorytracker.utils.Bluetooth;
 import com.example.smartfoodinventorytracker.R;
 import com.google.firebase.auth.FirebaseAuth;
 
@@ -35,8 +34,6 @@ public class SettingsActivity extends AppCompatActivity {
 
     private SwitchCompat switchFridge, switchExpiry;
     private Bluetooth btHelper;
-    private Button save;
-    private EditText ssidField, passwordField;
     private TextView inputExpiredHours, inputWeek1Days, inputWeek2Days;
     private SharedPreferences prefs;
     private static final String PREFS_NAME = "user_settings";
@@ -107,6 +104,19 @@ public class SettingsActivity extends AppCompatActivity {
         btHelper = new Bluetooth(cont);
     }
 
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode == 200) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Log.d("Bluetooth", "Permission granted");
+            } else {
+                Log.d("Bluetooth", "Permission denied");
+            }
+        }
+    }
+
 
     private void setUpUi()
     {
@@ -115,32 +125,43 @@ public class SettingsActivity extends AppCompatActivity {
         inputExpiredHours = findViewById(R.id.input_expired_hours);
         inputWeek1Days = findViewById(R.id.input_week1_days);
         inputWeek2Days = findViewById(R.id.input_week2_days);
-        ssidField=findViewById(R.id.ssid);
-        passwordField=findViewById(R.id.password);
-        save = findViewById(R.id.buttonSave);
+
         requestBluetoothIfNeeded();
-        save.setOnClickListener(view->{
-            String ssid = ssidField.getText().toString();
-            String password = passwordField.getText().toString();
+
+        findViewById(R.id.buttonConfigureWifi).setOnClickListener(v -> showWifiDialog());
+
+    }
+
+    private void showWifiDialog() {
+        LinearLayout dialogView = (LinearLayout) getLayoutInflater().inflate(R.layout.dialog_wifi_config, null);
+
+        EditText ssidInput = dialogView.findViewById(R.id.dialog_ssid);
+        EditText passInput = dialogView.findViewById(R.id.dialog_password);
+        Button saveButton = dialogView.findViewById(R.id.dialog_save);
+
+        androidx.appcompat.app.AlertDialog dialog = new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setView(dialogView)
+                .create();
+
+        saveButton.setOnClickListener(v -> {
+            String ssid = ssidInput.getText().toString();
+            String password = passInput.getText().toString();
             String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-            if((!ssid.isEmpty())&&(!password.isEmpty())) {
+
+            if (!ssid.isEmpty() && !password.isEmpty()) {
                 try {
                     if (btHelper != null) {
-                        Log.d("Bluetooth","Supposed to be sending the data");
+                        Log.d("Bluetooth", "Sending WiFi credentials via Bluetooth");
                         btHelper.transmitCredentials(ssid + "," + password + "," + userId);
-                    } else {
-
+                        dialog.dismiss();
                     }
                 } catch (IOException e) {
-                    throw new RuntimeException(e);
+                    e.printStackTrace();
                 }
-
-
             }
-
         });
 
-
+        dialog.show();
     }
 
 
