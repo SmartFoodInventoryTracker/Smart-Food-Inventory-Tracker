@@ -6,12 +6,20 @@ import android.os.Bundle;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.smartfoodinventorytracker.R;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -24,7 +32,7 @@ public class FridgeHistoryActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private FridgeHistoryAdapter adapter;
     private final List<FridgeHistoryItem> mockHistory = new ArrayList<>();
-
+    private DatabaseReference databaseReference;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -51,7 +59,7 @@ public class FridgeHistoryActivity extends AppCompatActivity {
         btnDateRange.setOnClickListener(v -> openDatePicker());
 
         btnGraph.setOnClickListener(v -> {
-            Intent intent = new Intent(this, FridgeGraphActivity.class);
+            Intent intent = new Intent(FridgeHistoryActivity.this, FridgeGraphActivity.class);
             startActivity(intent);
         });
 
@@ -65,14 +73,51 @@ public class FridgeHistoryActivity extends AppCompatActivity {
         generateMockData();
         adapter = new FridgeHistoryAdapter(mockHistory);
         recyclerView.setAdapter(adapter);
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        databaseReference = FirebaseDatabase.getInstance()
+                .getReference("users").child(userId).child("fridge_condition");
     }
 
     private void generateMockData() {
-        mockHistory.clear(); // Prevent duplication
-        mockHistory.add(new FridgeHistoryItem("2025-04-02 14:30", 5.6, 60, 15, 22, 18));
-        mockHistory.add(new FridgeHistoryItem("2025-04-01 13:10", 6.2, 58, 10, 18, 12));
-        mockHistory.add(new FridgeHistoryItem("2025-03-31 16:45", 4.9, 62, 13, 20, 14));
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance()
+                .getReference("users")
+                .child(userId)
+                .child("fridge_condition");
+
+        databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                mockHistory.clear(); // Prevent duplication
+
+                for (DataSnapshot itemSnapshot : snapshot.getChildren()) {
+                    String dateTime = itemSnapshot.child("time").getValue(String.class);
+                    Double temp = itemSnapshot.child("temperature").getValue(Double.class);
+                    Double hum = itemSnapshot.child("humidity").getValue(Double.class);
+                    Integer co = itemSnapshot.child("co").getValue(Integer.class);
+                    Integer lpg = itemSnapshot.child("lpg").getValue(Integer.class);
+                    Integer smoke = itemSnapshot.child("smoke").getValue(Integer.class);
+                    Integer overallCond = itemSnapshot.child("overall condition").getValue(Integer.class);
+
+                    FridgeHistoryItem item = new FridgeHistoryItem(dateTime, temp, hum, co, lpg, smoke);
+                    mockHistory.add(item);
+
+                    // 🖨️ Debug print each value
+                    System.out.println("Item: " + item.dateTime + " | Temp: " + temp + " | Hum: " + hum +
+                            " | CO: " + co + " | LPG: " + lpg + " | NH4: " + smoke);
+                }
+
+                // Now that mockHistory is ready, notify adapter
+                adapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(FridgeHistoryActivity.this, "Failed to fetch data", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
+
 
     private void openDatePicker() {
         final Calendar calendar = Calendar.getInstance();
