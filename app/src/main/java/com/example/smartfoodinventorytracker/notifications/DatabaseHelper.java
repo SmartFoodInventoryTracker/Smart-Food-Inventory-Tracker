@@ -220,10 +220,18 @@ public class DatabaseHelper {
 
                             StringBuilder message = new StringBuilder("Some abnormal condition was detected:");
                             for (Map.Entry<String, String> entry : currentStatuses.entrySet()) {
-                                String emoji = getEmojiForStatus(entry.getValue());
-                                message.append("\n- ").append(entry.getKey()).append(": ").append(emoji).append(" ").append(entry.getValue());
-                                fridgePrefs.edit().putString(entry.getKey(), entry.getValue()).apply();
+                                String status = entry.getValue();
+
+                                // Only include Moderate or Poor in the message
+                                if (status.equals("Moderate") || status.equals("Poor")) {
+                                    String emoji = getEmojiForStatus(status);
+                                    message.append("\n- ").append(entry.getKey()).append(": ").append(emoji).append(" ").append(status);
+                                }
+
+                                // Still save all updated statuses to avoid repeated alerts
+                                fridgePrefs.edit().putString(entry.getKey(), status).apply();
                             }
+
 
                             helper.sendNotification(
                                     NotificationHelper.FRIDGE_ALERT_TITLE,
