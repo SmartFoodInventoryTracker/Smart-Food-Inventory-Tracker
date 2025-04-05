@@ -24,9 +24,12 @@ public class FridgeMonitoringService extends Service {
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         NotificationHelper notificationHelper = new NotificationHelper(getApplicationContext(), false, userId);
 
-        // ✅ Ensure fridge notifications are triggered
-        notificationHelper.triggerPendingFridgeNotifications();
+        DatabaseHelper.listenToFridgeConditions(userId, notificationHelper); // ✅ This line is key
+
+        notificationHelper.triggerPendingFridgeNotifications(); // Optional catch-up
     }
+
+
 
 
     @Override

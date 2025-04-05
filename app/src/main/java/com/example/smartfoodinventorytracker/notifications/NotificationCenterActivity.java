@@ -17,6 +17,7 @@ import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.graphics.Insets;
@@ -161,8 +162,26 @@ public class NotificationCenterActivity extends AppCompatActivity {
             Collections.sort(notifications, (a, b) -> Long.compare(b.getTimestamp(), a.getTimestamp()));
             notificationList.addAll(notifications);
             adapter.notifyDataSetChanged();
+
+            // Show empty message if there are no notifications
+            TextView emptyMessage = findViewById(R.id.emptyNotificationMessage);
+            RecyclerView recyclerView = findViewById(R.id.notificationRecyclerView);
+            if (notificationList.isEmpty()) {
+                emptyMessage.setVisibility(View.VISIBLE);
+                recyclerView.setVisibility(View.GONE);
+            } else {
+                emptyMessage.setVisibility(View.GONE);
+                recyclerView.setVisibility(View.VISIBLE);
+            }
         });
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        DatabaseHelper.listenForNotificationUpdates(userId, this::loadNotifications);
+    }
+
 
     private void setUpToolbar() {
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -219,12 +238,31 @@ public class NotificationCenterActivity extends AppCompatActivity {
                     intent = new Intent(v.getContext(), FridgeConditionsActivity.class);
                 } else if (notification.getTitle().contains("Food Expiry") || notification.getTitle().contains("Inventory")) {
                     intent = new Intent(v.getContext(), InventoryActivity.class);
-                    intent.putExtra("data", notification.getMessage().split(" ")[0]); // Example: get product name
                 } else {
                     intent = new Intent(v.getContext(), NotificationCenterActivity.class); // Default fallback
                 }
                 v.getContext().startActivity(intent);
             });
+
+            holder.itemView.setOnLongClickListener(v -> {
+                new AlertDialog.Builder(v.getContext())
+                        .setTitle("Delete Notification")
+                        .setMessage("Are you sure you want to delete this notification?")
+                        .setPositiveButton("Yes", (dialog, which) -> {
+                            // Delete the notification from Firebase
+                            DatabaseHelper.deleteNotification(notification, userId, () -> {
+                                Toast.makeText(v.getContext(), "Notification deleted", Toast.LENGTH_SHORT).show();
+                                int pos = holder.getAdapterPosition();
+                                notificationList.remove(pos);
+                                notifyItemRemoved(pos);
+                            });
+                        })
+                        .setNegativeButton("Cancel", null)
+                        .show();
+                return true;
+            });
+
+
         }
 
 
