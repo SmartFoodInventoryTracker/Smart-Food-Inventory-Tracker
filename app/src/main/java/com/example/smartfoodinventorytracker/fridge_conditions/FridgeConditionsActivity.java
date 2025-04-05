@@ -8,6 +8,7 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.FrameLayout;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -41,6 +42,13 @@ public class FridgeConditionsActivity extends AppCompatActivity {
     private TextView tempText, humidityText;
     private SpeedView speedTemp, speedHum;
     private LinearLayout colorBar, arrowRow;
+
+    // 🔧 Temp & Humidity Overlay elements
+    private LinearLayout tempOverlay, humOverlay;
+    private ImageView tempClose, humClose, tempInfoIcon, humInfoIcon;
+    private TextView tempInfoTitle, tempInfoText, humInfoTitle, humInfoText;
+    private View tempLayout, humLayout;
+
 
     // Cards (inflate from item_gas_card)
     private View cardCO, cardLPG, cardNH4;
@@ -94,14 +102,73 @@ public class FridgeConditionsActivity extends AppCompatActivity {
 
         toolbar.setNavigationOnClickListener(v -> NavUtils.navigateUpFromSameTask(this));
     }
-
-
     private void initViews() {
         // 🌡️ Temp & Humidity
         tempText = findViewById(R.id.tempText);
         humidityText = findViewById(R.id.humidityText);
         speedTemp = findViewById(R.id.speedViewTemp);
         speedHum = findViewById(R.id.speedViewHum);
+
+        // 🔽 Layouts
+        tempLayout = findViewById(R.id.tempCardLayout);
+        humLayout = findViewById(R.id.humCardLayout);
+
+        // 🧊 Overlays
+        tempOverlay = findViewById(R.id.infoOverlayTemp);
+        tempClose = findViewById(R.id.closeInfoTemp);
+        tempInfoTitle = findViewById(R.id.infoTitleTemp);
+        tempInfoText = findViewById(R.id.infoTextTemp);
+        tempInfoIcon = findViewById(R.id.infoIconTemp);
+
+        humOverlay = findViewById(R.id.infoOverlayHum);
+        humClose = findViewById(R.id.closeInfoHum);
+        humInfoTitle = findViewById(R.id.infoTitleHum);
+        humInfoText = findViewById(R.id.infoTextHum);
+        humInfoIcon = findViewById(R.id.infoIconHum);
+
+        // 🌡️ Temperature Info Setup
+        tempInfoTitle.setText("Temperature");
+        tempInfoText.setText("Monitoring the internal temperature helps prevent food spoilage and ensures safe storage.");
+
+        tempInfoIcon.setOnClickListener(v -> {
+            tempOverlay.setVisibility(View.VISIBLE);
+            tempOverlay.setAlpha(0f);
+            tempOverlay.setTranslationY(20f);
+            tempOverlay.animate().alpha(1f).translationY(0f).setDuration(200).start();
+            tempLayout.setAlpha(0.3f);
+            speedTemp.setAlpha(0.2f);
+        });
+
+        tempClose.setOnClickListener(v -> {
+            tempOverlay.animate().alpha(0f).translationY(20f).setDuration(150).withEndAction(() -> {
+                tempOverlay.setVisibility(View.GONE);
+                tempOverlay.setAlpha(1f);
+            }).start();
+            tempLayout.setAlpha(1f);
+            speedTemp.setAlpha(1f);
+        });
+
+        // 💧 Humidity Info Setup
+        humInfoTitle.setText("Humidity");
+        humInfoText.setText("Humidity helps maintain moisture in fruits and vegetables. Too low or too high can lead to spoilage.");
+
+        humInfoIcon.setOnClickListener(v -> {
+            humOverlay.setVisibility(View.VISIBLE);
+            humOverlay.setAlpha(0f);
+            humOverlay.setTranslationY(20f);
+            humOverlay.animate().alpha(1f).translationY(0f).setDuration(200).start();
+            humLayout.setAlpha(0.3f);
+            speedHum.setAlpha(0.2f);
+        });
+
+        humClose.setOnClickListener(v -> {
+            humOverlay.animate().alpha(0f).translationY(20f).setDuration(150).withEndAction(() -> {
+                humOverlay.setVisibility(View.GONE);
+                humOverlay.setAlpha(1f);
+            }).start();
+            humLayout.setAlpha(1f);
+            speedHum.setAlpha(1f);
+        });
 
         // 📊 Overall bar
         colorBar = findViewById(R.id.colorBar);
