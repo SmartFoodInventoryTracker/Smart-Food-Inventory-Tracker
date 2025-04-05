@@ -117,15 +117,16 @@ public class SettingsActivity extends AppCompatActivity {
         inputWeek2Days = findViewById(R.id.input_week2_days);
         ssidField=findViewById(R.id.ssid);
         passwordField=findViewById(R.id.password);
-        save = findViewById(R.id.buttonSave);
+        save = findViewById(R.id.buttonsave_t);
         requestBluetoothIfNeeded();
         save.setOnClickListener(view->{
-            String ssid = ssidField.getText().toString();
+          /*  String ssid = ssidField.getText().toString();
             String password = passwordField.getText().toString();
-            String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-            if((!ssid.isEmpty())&&(!password.isEmpty())) {
+            String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();*/
+        /*    if((!ssid.isEmpty())&&(!password.isEmpty())) {
                 try {
-                    if (btHelper != null) {
+                    if (btHelper !=aaa
+                     null) {
                         Log.d("Bluetooth","Supposed to be sending the data");
                         btHelper.transmitCredentials(ssid + "," + password + "," + userId);
                     } else {
@@ -136,7 +137,7 @@ public class SettingsActivity extends AppCompatActivity {
                 }
 
 
-            }
+            }*/
 
         });
 
