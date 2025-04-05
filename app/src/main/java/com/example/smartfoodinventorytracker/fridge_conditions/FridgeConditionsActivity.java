@@ -66,11 +66,16 @@ public class FridgeConditionsActivity extends AppCompatActivity {
     // SpeedView gauges
     private SpeedView speedCO, speedLPG, speedNH4;
 
+    // Level Pagers
     private ViewPager2 levelPagerCO, levelPagerLPG, levelPagerNH4;
     private ViewPager2 levelPagerTemp, levelPagerHum;
 
     private final android.os.Handler pagerHandler = new android.os.Handler();
     private final int AUTO_SCROLL_DELAY = 3000; // 3 seconds
+
+    // Status
+    private TextView coStatus, lpgStatus, nh4Status;
+    private TextView tempStatus, humStatus;
 
 
     private List<TextView> arrowViews = new ArrayList<>();
@@ -122,6 +127,9 @@ public class FridgeConditionsActivity extends AppCompatActivity {
         humidityText = findViewById(R.id.humidityText);
         speedTemp = findViewById(R.id.speedViewTemp);
         speedHum = findViewById(R.id.speedViewHum);
+        tempStatus = findViewById(R.id.tempStatus);
+        humStatus = findViewById(R.id.humStatus);
+
 
         // 🔽 Layouts
         tempLayout = findViewById(R.id.tempCardLayout);
@@ -147,9 +155,9 @@ public class FridgeConditionsActivity extends AppCompatActivity {
         // 🌡️ ViewPager for Temperature Levels
         levelPagerTemp = findViewById(R.id.levelPagerTemp);
         List<String> tempLevels = Arrays.asList(
-                "Good ✅: Ideal storage temperature.",
-                "Moderate ⚠️: Slightly out of optimal range.",
-                "Poor 🛑: Temperature too high/low — food may spoil."
+                "<font color='#4CAF50'><b>Good ✅</b>: &lt; 4°C</font>",
+                "<font color='#FFC107'><b>Moderate ⚠️</b>: 4–7.9°C</font>",
+                "<font color='#F44336'><b>Poor 🛑</b>: ≥ 8°C</font>"
         );
         levelPagerTemp.setAdapter(new ConditionLevelAdapter(tempLevels));
         autoScrollPager(levelPagerTemp, tempLevels.size());
@@ -179,9 +187,9 @@ public class FridgeConditionsActivity extends AppCompatActivity {
         // 💧 ViewPager for Humidity Levels
         levelPagerHum = findViewById(R.id.levelPagerHum);
         List<String> humLevels = Arrays.asList(
-                "Good ✅: Perfect humidity for freshness.",
-                "Moderate ⚠️: Slight imbalance in humidity.",
-                "Poor 🛑: Too dry or too moist — risk of spoilage."
+                "<font color='#4CAF50'><b>Good ✅</b>: &lt; 40%</font>",
+                "<font color='#FFC107'><b>Moderate ⚠️</b>: 40–69%</font>",
+                "<font color='#F44336'><b>Poor 🛑</b>: ≥ 70%</font>"
         );
         levelPagerHum.setAdapter(new ConditionLevelAdapter(humLevels));
         autoScrollPager(levelPagerHum, humLevels.size());
@@ -211,6 +219,8 @@ public class FridgeConditionsActivity extends AppCompatActivity {
         // 🌫️ CO Card
         cardCO = findViewById(R.id.card_co);
         coValue = cardCO.findViewById(R.id.gasValue);
+        coStatus = cardCO.findViewById(R.id.gasStatus);
+
         speedCO = cardCO.findViewById(R.id.gasGauge);
         ImageView coIcon = cardCO.findViewById(R.id.gasIcon);
         TextView coLabel = cardCO.findViewById(R.id.gasLabel);
@@ -238,9 +248,9 @@ public class FridgeConditionsActivity extends AppCompatActivity {
 
         levelPagerCO = cardCO.findViewById(R.id.levelPager);
         List<String> coLevels = Arrays.asList(
-                "Good ✅: CO levels are safe.",
-                "Moderate ⚠️: CO levels are slightly elevated.",
-                "Poor 🛑: CO levels are high — may indicate spoilage."
+                "<font color='#4CAF50'><b>Good ✅</b>: 0–99 ppm</font>",
+                "<font color='#FFC107'><b>Moderate ⚠️</b>: 100–299 ppm</font>",
+                "<font color='#F44336'><b>Poor 🛑</b>: 300+ ppm</font>"
         );
         levelPagerCO.setAdapter(new ConditionLevelAdapter(coLevels));
         autoScrollPager(levelPagerCO, coLevels.size());
@@ -259,6 +269,7 @@ public class FridgeConditionsActivity extends AppCompatActivity {
         // 🔥 LPG Card
         cardLPG = findViewById(R.id.card_lpg);
         lpgValue = cardLPG.findViewById(R.id.gasValue);
+        lpgStatus = cardLPG.findViewById(R.id.gasStatus);
         speedLPG = cardLPG.findViewById(R.id.gasGauge);
         ImageView lpgIcon = cardLPG.findViewById(R.id.gasIcon);
         TextView lpgLabel = cardLPG.findViewById(R.id.gasLabel);
@@ -286,9 +297,9 @@ public class FridgeConditionsActivity extends AppCompatActivity {
 
         levelPagerLPG = cardLPG.findViewById(R.id.levelPager);
         List<String> lpgLevels = Arrays.asList(
-                "Good ✅: No LPG detected — normal fridge conditions.",
-                "Moderate ⚠️: Small traces of LPG detected.",
-                "Poor 🛑: High LPG levels — possible leak or contamination."
+                "<font color='#4CAF50'><b>Good ✅</b>: 0–99 ppm</font>",
+                "<font color='#FFC107'><b>Moderate ⚠️</b>: 100–299 ppm</font>",
+                "<font color='#F44336'><b>Poor 🛑</b>: 300+ ppm</font>"
         );
         levelPagerLPG.setAdapter(new ConditionLevelAdapter(lpgLevels));
         autoScrollPager(levelPagerLPG, lpgLevels.size());
@@ -307,6 +318,7 @@ public class FridgeConditionsActivity extends AppCompatActivity {
         // 🧪 NH₄ Card
         cardNH4 = findViewById(R.id.card_nh4);
         nh4Value = cardNH4.findViewById(R.id.gasValue);
+        nh4Status = cardNH4.findViewById(R.id.gasStatus);
         speedNH4 = cardNH4.findViewById(R.id.gasGauge);
         ImageView nh4Icon = cardNH4.findViewById(R.id.gasIcon);
         TextView nh4Label = cardNH4.findViewById(R.id.gasLabel);
@@ -334,9 +346,9 @@ public class FridgeConditionsActivity extends AppCompatActivity {
 
         levelPagerNH4 = cardNH4.findViewById(R.id.levelPager);
         List<String> nh4Levels = Arrays.asList(
-                "Good ✅: NH₄ levels are low — safe storage.",
-                "Moderate ⚠️: Slight spoilage detected.",
-                "Poor 🛑: High NH₄ levels — food may be rotting."
+                "<font color='#4CAF50'><b>Good ✅</b>: 0–99 ppm</font>",
+                "<font color='#FFC107'><b>Moderate ⚠️</b>: 100–299 ppm</font>",
+                "<font color='#F44336'><b>Poor 🛑</b>: 300+ ppm</font>"
         );
         levelPagerNH4.setAdapter(new ConditionLevelAdapter(nh4Levels));
 
@@ -504,6 +516,21 @@ public class FridgeConditionsActivity extends AppCompatActivity {
                     lpgValue.setText(lpg != null ? lpg + " ppm" : "-- ppm");
                     nh4Value.setText(smoke != null ? smoke + " ppm" : "-- ppm");
 
+                    tempStatus.setText(getStatusLabel(tempCond));
+                    tempStatus.setTextColor(getStatusColor(tempCond));
+
+                    humStatus.setText(getStatusLabel(humCond));
+                    humStatus.setTextColor(getStatusColor(humCond));
+
+                    coStatus.setText(getStatusLabel(coCond));
+                    coStatus.setTextColor(getStatusColor(coCond));
+
+                    lpgStatus.setText(getStatusLabel(lpgCond));
+                    lpgStatus.setTextColor(getStatusColor(lpgCond));
+
+                    nh4Status.setText(getStatusLabel(smokeCond));
+                    nh4Status.setTextColor(getStatusColor(smokeCond));
+
                     setGauge(tempCond, "t");
                     setGauge(humCond, "h");
                     setGauge(coCond, "c");
@@ -511,7 +538,11 @@ public class FridgeConditionsActivity extends AppCompatActivity {
                     setGauge(smokeCond, "s");
                     setGauge(overallCond, "ov");
                 }
+
+
             }
+
+
 
             @Override
             public void onCancelled(DatabaseError error) {
@@ -536,6 +567,19 @@ public class FridgeConditionsActivity extends AppCompatActivity {
                 break;
         }
     }
-}
 
-//
+    private String getStatusLabel(Integer cond) {
+        if (cond == null) return "Unknown";
+        if (cond <= 3) return "Good";
+        else if (cond <= 6) return "Moderate";
+        else return "Poor";
+    }
+
+    private int getStatusColor(Integer cond) {
+        if (cond == null) return Color.GRAY;
+        if (cond <= 3) return Color.parseColor("#4CAF50");      // Green
+        else if (cond <= 6) return Color.parseColor("#FFC107"); // Orange
+        else return Color.parseColor("#F44336");                // Red
+    }
+
+}

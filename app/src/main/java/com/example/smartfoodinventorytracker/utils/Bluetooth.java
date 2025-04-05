@@ -1,6 +1,4 @@
-package com.example.smartfoodinventorytracker;
-
-import static java.sql.Types.NULL;
+package com.example.smartfoodinventorytracker.utils;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -13,12 +11,7 @@ import androidx.core.app.ActivityCompat;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
 import java.util.UUID;
-
-import javax.annotation.Nullable;
 
 public class Bluetooth {
 

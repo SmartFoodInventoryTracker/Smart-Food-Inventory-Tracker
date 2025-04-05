@@ -81,11 +81,11 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:scaleX="0.95"
-                android:scaleY="0.95"
+                android:scaleX="0.92"
+                android:scaleY="0.92"
                 android:orientation="horizontal"
                 android:weightSum="2"
-                android:layout_marginBottom="16dp">
+                android:layout_marginBottom="5dp">
 
                 <!-- Temperature Card -->
                 <androidx.cardview.widget.CardView
@@ -159,16 +159,27 @@
                                 android:text="-- °C"
                                 android:textSize="14sp"
                                 android:layout_marginTop="1dp" />
+
+                            <TextView
+                                android:id="@+id/tempStatus"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Status"
+                                android:textSize="14sp"
+                                android:textStyle="bold"
+                                android:textColor="#4CAF50"
+                                android:layout_marginTop="2dp" />
+
                         </LinearLayout>
 
                         <!-- Temperature Overlay -->
                         <LinearLayout
                             android:id="@+id/infoOverlayTemp"
                             android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
+                            android:layout_height="match_parent"
+                            android:background="#F9FFFFFF"
                             android:orientation="vertical"
                             android:gravity="center_horizontal"
-                            android:background="@drawable/overlay_soft_bg"
                             android:visibility="gone"
                             android:padding="12dp"
                             android:elevation="6dp"
@@ -176,6 +187,7 @@
                             android:focusable="true"
                             android:clipChildren="false"
                             android:clipToPadding="false">
+
 
                             <RelativeLayout
                                 android:layout_width="match_parent"
@@ -302,16 +314,27 @@
                                 android:text="-- %"
                                 android:textSize="14sp"
                                 android:layout_marginTop="1dp" />
+
+                            <TextView
+                                android:id="@+id/humStatus"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Status"
+                                android:textSize="14sp"
+                                android:textStyle="bold"
+                                android:textColor="#4CAF50"
+                                android:layout_marginTop="2dp" />
+
                         </LinearLayout>
 
                         <!-- Humidity Overlay -->
                         <LinearLayout
                             android:id="@+id/infoOverlayHum"
                             android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
+                            android:layout_height="match_parent"
+                            android:background="#F9FFFFFF"
                             android:orientation="vertical"
                             android:gravity="center_horizontal"
-                            android:background="@drawable/overlay_soft_bg"
                             android:visibility="gone"
                             android:padding="12dp"
                             android:elevation="6dp"

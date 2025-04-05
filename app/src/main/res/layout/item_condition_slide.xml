@@ -9,4 +9,4 @@
     android:textColor="#333"
     android:maxLines="2"
     android:ellipsize="end"
-    android:padding="6dp" />
+    android:padding="8dp" />
