@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:background="@drawable/dialog_background"
+    android:gravity="center_horizontal">
+
+    <!-- Dialog Title -->
+    <TextView
+        android:id="@+id/dialog_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="WiFi Credentials"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="20dp" />
+
+    <!-- SSID Input -->
+    <EditText
+        android:id="@+id/dialog_ssid"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="WiFi SSID"
+        android:inputType="text"
+        android:background="@drawable/edittext_background"
+        android:padding="10dp"
+        android:layout_marginBottom="12dp" />
+
+    <!-- Password Input -->
+    <EditText
+        android:id="@+id/dialog_password"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Password"
+        android:inputType="textPassword"
+        android:background="@drawable/edittext_background"
+        android:padding="10dp"
+        android:layout_marginBottom="12dp" />
+
+    <!-- Save Button -->
+    <Button
+        android:id="@+id/dialog_save"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Save"
+        android:backgroundTint="@color/blue"
+        android:textColor="@android:color/white" />
+</LinearLayout>

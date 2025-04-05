@@ -4,14 +4,17 @@
     <selectionStates>
       <SelectionState runConfigName="app">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2025-04-04T14:19:34.984041500Z">
+        <DropdownSelection timestamp="2025-04-05T16:32:44.269494100Z">
           <Target type="DEFAULT_BOOT">
             <handle>
-              <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\joyal\.android\avd\Pixel_4a_API_33.avd" />
+              <DeviceId pluginId="PhysicalDevice" identifier="serial=08181JEC209542" />
             </handle>
           </Target>
         </DropdownSelection>
         <DialogSelection />
+      </SelectionState>
+      <SelectionState runConfigName="All Tests">
+        <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
     </selectionStates>
   </component>

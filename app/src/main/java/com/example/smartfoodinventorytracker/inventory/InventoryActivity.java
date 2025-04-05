@@ -335,10 +335,9 @@ public class InventoryActivity extends AppCompatActivity
 
         runOnUiThread(() -> {
             inventoryAdapter.updateList(productList);
-            fetchInventoryData(); // Ensure accurate data
+
         });
     }
-
 
     private void DateAddedSort(boolean ascended) {
         Product[] productArray = productList.toArray(new Product[0]);
@@ -348,14 +347,14 @@ public class InventoryActivity extends AppCompatActivity
         else
             MergeSort.sortadded(productArray, 0, productArray.length - 1, MergeSort.OrderType.DESCENDING);
 
-        // ✅ Update the list in Adapter correctly
         productList.clear();
         productList.addAll(Arrays.asList(productArray));
         runOnUiThread(() -> {
             inventoryAdapter.updateList(productList);
-            fetchInventoryData(); // Ensure accurate data
+
         });
     }
+
 
     private void setUpToolbar() {
         Toolbar toolbar = findViewById(R.id.toolbar);
