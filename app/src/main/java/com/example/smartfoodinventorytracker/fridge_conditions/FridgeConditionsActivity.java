@@ -147,9 +147,9 @@ public class FridgeConditionsActivity extends AppCompatActivity {
         // 🌡️ ViewPager for Temperature Levels
         levelPagerTemp = findViewById(R.id.levelPagerTemp);
         List<String> tempLevels = Arrays.asList(
-                "Good ✅: Ideal storage temperature.",
-                "Moderate ⚠️: Slightly out of optimal range.",
-                "Poor 🛑: Temperature too high/low — food may spoil."
+                "<font color='#4CAF50'><b>Good ✅</b>: &lt; 4°C</font>",
+                "<font color='#FFC107'><b>Moderate ⚠️</b>: 4–7.9°C</font>",
+                "<font color='#F44336'><b>Poor 🛑</b>: ≥ 8°C</font>"
         );
         levelPagerTemp.setAdapter(new ConditionLevelAdapter(tempLevels));
         autoScrollPager(levelPagerTemp, tempLevels.size());
@@ -179,9 +179,9 @@ public class FridgeConditionsActivity extends AppCompatActivity {
         // 💧 ViewPager for Humidity Levels
         levelPagerHum = findViewById(R.id.levelPagerHum);
         List<String> humLevels = Arrays.asList(
-                "Good ✅: Perfect humidity for freshness.",
-                "Moderate ⚠️: Slight imbalance in humidity.",
-                "Poor 🛑: Too dry or too moist — risk of spoilage."
+                "<font color='#4CAF50'><b>Good ✅</b>: &lt; 40%</font>",
+                "<font color='#FFC107'><b>Moderate ⚠️</b>: 40–69%</font>",
+                "<font color='#F44336'><b>Poor 🛑</b>: ≥ 70%</font>"
         );
         levelPagerHum.setAdapter(new ConditionLevelAdapter(humLevels));
         autoScrollPager(levelPagerHum, humLevels.size());
@@ -238,9 +238,9 @@ public class FridgeConditionsActivity extends AppCompatActivity {
 
         levelPagerCO = cardCO.findViewById(R.id.levelPager);
         List<String> coLevels = Arrays.asList(
-                "Good ✅: CO levels are safe.",
-                "Moderate ⚠️: CO levels are slightly elevated.",
-                "Poor 🛑: CO levels are high — may indicate spoilage."
+                "<font color='#4CAF50'><b>Good ✅</b>: 0–99 ppm</font>",
+                "<font color='#FFC107'><b>Moderate ⚠️</b>: 100–299 ppm</font>",
+                "<font color='#F44336'><b>Poor 🛑</b>: 300+ ppm</font>"
         );
         levelPagerCO.setAdapter(new ConditionLevelAdapter(coLevels));
         autoScrollPager(levelPagerCO, coLevels.size());
@@ -286,9 +286,9 @@ public class FridgeConditionsActivity extends AppCompatActivity {
 
         levelPagerLPG = cardLPG.findViewById(R.id.levelPager);
         List<String> lpgLevels = Arrays.asList(
-                "Good ✅: No LPG detected — normal fridge conditions.",
-                "Moderate ⚠️: Small traces of LPG detected.",
-                "Poor 🛑: High LPG levels — possible leak or contamination."
+                "<font color='#4CAF50'><b>Good ✅</b>: 0–99 ppm</font>",
+                "<font color='#FFC107'><b>Moderate ⚠️</b>: 100–299 ppm</font>",
+                "<font color='#F44336'><b>Poor 🛑</b>: 300+ ppm</font>"
         );
         levelPagerLPG.setAdapter(new ConditionLevelAdapter(lpgLevels));
         autoScrollPager(levelPagerLPG, lpgLevels.size());
@@ -334,9 +334,9 @@ public class FridgeConditionsActivity extends AppCompatActivity {
 
         levelPagerNH4 = cardNH4.findViewById(R.id.levelPager);
         List<String> nh4Levels = Arrays.asList(
-                "Good ✅: NH₄ levels are low — safe storage.",
-                "Moderate ⚠️: Slight spoilage detected.",
-                "Poor 🛑: High NH₄ levels — food may be rotting."
+                "<font color='#4CAF50'><b>Good ✅</b>: 0–99 ppm</font>",
+                "<font color='#FFC107'><b>Moderate ⚠️</b>: 100–299 ppm</font>",
+                "<font color='#F44336'><b>Poor 🛑</b>: 300+ ppm</font>"
         );
         levelPagerNH4.setAdapter(new ConditionLevelAdapter(nh4Levels));
 

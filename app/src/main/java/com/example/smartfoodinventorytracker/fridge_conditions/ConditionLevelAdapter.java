@@ -6,7 +6,9 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.core.text.HtmlCompat;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.example.smartfoodinventorytracker.R;
 
 import java.util.List;
@@ -22,13 +24,15 @@ public class ConditionLevelAdapter extends RecyclerView.Adapter<ConditionLevelAd
     @NonNull
     @Override
     public LevelViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_condition_slide, parent, false);
+        View view = LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.item_condition_slide, parent, false);
         return new LevelViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull LevelViewHolder holder, int position) {
-        holder.levelText.setText(levelDescriptions.get(position));
+        String htmlText = levelDescriptions.get(position);
+        holder.levelText.setText(HtmlCompat.fromHtml(htmlText, HtmlCompat.FROM_HTML_MODE_LEGACY));
     }
 
     @Override
@@ -41,7 +45,7 @@ public class ConditionLevelAdapter extends RecyclerView.Adapter<ConditionLevelAd
 
         LevelViewHolder(@NonNull View itemView) {
             super(itemView);
-            levelText = itemView.findViewById(R.id.levelText);
+            levelText = itemView.findViewById(R.id.levelText); // This should match your XML TextView ID
         }
     }
 }
