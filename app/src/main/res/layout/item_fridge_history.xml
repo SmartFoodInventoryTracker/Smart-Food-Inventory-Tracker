@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:card_view="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="12dp"
     android:layout_marginHorizontal="12dp"
-    card_view:cardCornerRadius="12dp"
-    card_view:cardElevation="6dp">
+    android:background="@android:color/white"
+    card_view:cardCornerRadius="16dp"
+    card_view:cardElevation="4dp">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -32,21 +34,31 @@
             android:layout_marginBottom="10dp"
             android:background="#DDDDDD" />
 
+        <!-- Metric Rows (Icon + Text + Status) -->
+
         <!-- TEMP -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginBottom="2dp">
+            android:layout_marginBottom="6dp"
+            android:gravity="center_vertical">
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_marginEnd="8dp"
+                android:src="@drawable/ic_temperature"
+                card_view:tint="#666" />
 
             <TextView
                 android:id="@+id/tempText"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="🌡️ Temperature: -- °C"
+                android:text="Temperature: -- °C"
                 android:textSize="14sp"
-                android:textColor="#555555" />
+                android:textColor="#333333" />
 
             <TextView
                 android:id="@+id/tempStatus"
@@ -54,8 +66,8 @@
                 android:layout_height="wrap_content"
                 android:text="Status"
                 android:textSize="13sp"
-                android:textColor="#4CAF50"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                android:textColor="#4CAF50" />
         </LinearLayout>
 
         <!-- HUMIDITY -->
@@ -63,16 +75,24 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginBottom="2dp">
+            android:layout_marginBottom="6dp"
+            android:gravity="center_vertical">
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_marginEnd="8dp"
+                android:src="@drawable/ic_humidity"
+                card_view:tint="#666" />
 
             <TextView
                 android:id="@+id/humidityText"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="💧 Humidity: -- %"
+                android:text="Humidity: -- %"
                 android:textSize="14sp"
-                android:textColor="#555555" />
+                android:textColor="#333333" />
 
             <TextView
                 android:id="@+id/humidityStatus"
@@ -80,8 +100,8 @@
                 android:layout_height="wrap_content"
                 android:text="Status"
                 android:textSize="13sp"
-                android:textColor="#4CAF50"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                android:textColor="#4CAF50" />
         </LinearLayout>
 
         <!-- CO -->
@@ -89,16 +109,24 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginBottom="2dp">
+            android:layout_marginBottom="6dp"
+            android:gravity="center_vertical">
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_marginEnd="8dp"
+                android:src="@drawable/ic_co"
+                card_view:tint="#666" />
 
             <TextView
                 android:id="@+id/coText"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="🫁 CO: -- ppm"
+                android:text="CO: -- ppm"
                 android:textSize="14sp"
-                android:textColor="#555555" />
+                android:textColor="#333333" />
 
             <TextView
                 android:id="@+id/coStatus"
@@ -106,8 +134,8 @@
                 android:layout_height="wrap_content"
                 android:text="Status"
                 android:textSize="13sp"
-                android:textColor="#4CAF50"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                android:textColor="#4CAF50" />
         </LinearLayout>
 
         <!-- LPG -->
@@ -115,16 +143,24 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginBottom="2dp">
+            android:layout_marginBottom="6dp"
+            android:gravity="center_vertical">
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_marginEnd="8dp"
+                android:src="@drawable/ic_lpg"
+                card_view:tint="#666" />
 
             <TextView
                 android:id="@+id/lpgText"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="🔥 LPG: -- ppm"
+                android:text="LPG: -- ppm"
                 android:textSize="14sp"
-                android:textColor="#555555" />
+                android:textColor="#333333" />
 
             <TextView
                 android:id="@+id/lpgStatus"
@@ -132,24 +168,32 @@
                 android:layout_height="wrap_content"
                 android:text="Status"
                 android:textSize="13sp"
-                android:textColor="#4CAF50"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                android:textColor="#4CAF50" />
         </LinearLayout>
 
         <!-- NH₄ -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_marginEnd="8dp"
+                android:src="@drawable/ic_smoke"
+                card_view:tint="#666" />
 
             <TextView
                 android:id="@+id/smokeText"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="🧪 NH₄: -- ppm"
+                android:text="NH₄: -- ppm"
                 android:textSize="14sp"
-                android:textColor="#555555" />
+                android:textColor="#333333" />
 
             <TextView
                 android:id="@+id/smokeStatus"
@@ -157,9 +201,8 @@
                 android:layout_height="wrap_content"
                 android:text="Status"
                 android:textSize="13sp"
-                android:textColor="#4CAF50"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                android:textColor="#4CAF50" />
         </LinearLayout>
-
     </LinearLayout>
-</androidx.cardview.widget.CardView>
+</com.google.android.material.card.MaterialCardView>
