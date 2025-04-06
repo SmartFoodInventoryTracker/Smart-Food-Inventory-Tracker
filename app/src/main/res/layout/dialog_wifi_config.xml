@@ -39,6 +39,15 @@
         android:padding="10dp"
         android:layout_marginBottom="12dp" />
 
+    <TextView
+        android:id="@+id/dialog_status"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Status: Not connected"
+        android:textColor="@android:color/darker_gray"
+        android:padding="8dp"
+        android:gravity="center"/>
+
     <!-- Save Button -->
     <Button
         android:id="@+id/dialog_save"
