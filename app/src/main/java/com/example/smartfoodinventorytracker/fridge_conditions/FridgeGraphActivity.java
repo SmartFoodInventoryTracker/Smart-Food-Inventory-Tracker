@@ -1,15 +1,20 @@
 package com.example.smartfoodinventorytracker.fridge_conditions;
 
 
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Spinner;
 import android.widget.Toast;
+import androidx.appcompat.widget.Toolbar;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.NavUtils;
+import androidx.core.content.FileProvider;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -22,6 +27,7 @@ import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.formatter.IAxisValueFormatter;
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -29,6 +35,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.io.File;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -59,6 +66,7 @@ public class FridgeGraphActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_fridge_graph);
+
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
@@ -81,6 +89,7 @@ public class FridgeGraphActivity extends AppCompatActivity {
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {}
+
         });
 
         timespinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -94,7 +103,48 @@ public class FridgeGraphActivity extends AppCompatActivity {
             @Override
             public void onNothingSelected(AdapterView<?> parent) {}
         });
-        //setUpToolbar();
+
+        setUpToolbar();
+
+        FloatingActionButton exportButton = findViewById(R.id.btnExport);
+        exportButton.setOnClickListener(v -> {
+            try {
+                String fileName = "fridge_graph_" + System.currentTimeMillis() + ".png";
+                File imageFile = new File(getExternalFilesDir(null), fileName);
+
+                // Save chart to file
+                lineChart.saveToPath(fileName, imageFile.getParent());
+
+                Uri uri = FileProvider.getUriForFile(
+                        this,
+                        getPackageName() + ".provider",
+                        imageFile
+                );
+
+                Intent shareIntent = new Intent(Intent.ACTION_SEND);
+                shareIntent.setType("image/png");
+                shareIntent.putExtra(Intent.EXTRA_STREAM, uri);
+                shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                startActivity(Intent.createChooser(shareIntent, "Share Fridge Graph"));
+
+            } catch (Exception e) {
+                Toast.makeText(this, "Export failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+
+    }
+
+    private void setUpToolbar(){
+        Toolbar toolbar = findViewById(R.id.graphToolbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayShowTitleEnabled(false);
+
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setDisplayShowHomeEnabled(true);
+        }
+
+        toolbar.setNavigationOnClickListener(v -> NavUtils.navigateUpFromSameTask(this));
     }
 
     private void settime_scaled(String metric)
@@ -139,6 +189,7 @@ public class FridgeGraphActivity extends AppCompatActivity {
                     FridgeHistoryItem item = new FridgeHistoryItem(dateTime, temp, hum, co, lpg, smoke);
                     historyList.add(item);
                 }
+
 
                 List<FridgeHistoryItem> filteredValue = filterByTime(historyList,time_filter);
                 // Now that historyList is populated, extract the metric and plot the graph
@@ -262,52 +313,105 @@ public class FridgeGraphActivity extends AppCompatActivity {
         return filtered;
     }
 
-
-
-
-    private void plotGraph(List<Double> values,List<FridgeHistoryItem> item ,String label) {
-        List<Entry> entries = new ArrayList<>();
-
-        for (int i = 0; i < values.size(); i++) { //item.get(i).second
-
-            entries.add(new Entry(i, values.get(i).floatValue())); // Convert Double to float for chart
+    private void styleChartAppearance(LineDataSet dataSet, String label) {
+        int color;
+        switch (label) {
+            case "Temperature":
+                color = getResources().getColor(R.color.teal_700); break;
+            case "Humidity":
+                color = getResources().getColor(R.color.purple_500); break;
+            case "CO":
+                color = getResources().getColor(R.color.co_color); break;
+            case "LPG":
+                color = getResources().getColor(R.color.lpg_color); break;
+            case "NH₄":
+                color = getResources().getColor(R.color.nh4_color); break;
+            default:
+                color = getResources().getColor(R.color.graph_line); break;
         }
-        lineChart.clear();
-        //item.second -> x axis
-        LineDataSet dataSet = new LineDataSet(entries, label);
-        dataSet.setColor(getResources().getColor(R.color.green));
-        dataSet.setValueTextSize(12f);
+
+        dataSet.setColor(color);
+        dataSet.setCircleColor(color);
+        dataSet.setValueTextColor(getResources().getColor(R.color.text_secondary));
         dataSet.setLineWidth(2f);
-
-        LineData lineData = new LineData(dataSet);
-        lineChart.setData(lineData);
-        lineChart.invalidate();
-
-        XAxis xAxis = lineChart.getXAxis();
-        xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
-        //xAxis.setValueFormatter(new LineChartXAxisValueFormatter());
+        dataSet.setCircleRadius(5f);
+        dataSet.setCircleHoleRadius(2.5f);
+        dataSet.setDrawCircleHole(true);
+        dataSet.setDrawValues(false);
+        dataSet.setDrawHighlightIndicators(true);
+        dataSet.setHighLightColor(color);
+        dataSet.setMode(LineDataSet.Mode.CUBIC_BEZIER);
     }
 
-    private void plotGraphInt(List<Integer> values,List<FridgeHistoryItem> item, String label) {
+
+    private void configureChartBasics(LineChart chart, String label) {
+        chart.getDescription().setEnabled(false);
+        chart.setDrawGridBackground(false);
+        chart.setTouchEnabled(true);
+        chart.setDragEnabled(true);
+        chart.setScaleEnabled(true);
+        chart.setPinchZoom(true);
+        chart.animateX(700);
+        chart.getLegend().setEnabled(true);
+
+        XAxis xAxis = chart.getXAxis();
+        xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
+        xAxis.setTextColor(getResources().getColor(R.color.text_secondary));
+        xAxis.setDrawGridLines(false);
+
+        chart.getAxisLeft().setTextColor(getResources().getColor(R.color.text_secondary));
+        chart.getAxisRight().setEnabled(false);
+    }
+
+
+
+    private void plotGraph(List<Double> values, List<FridgeHistoryItem> items, String label) {
         List<Entry> entries = new ArrayList<>();
         for (int i = 0; i < values.size(); i++) {
-            entries.add(new Entry(i, values.get(i))); // Use Integer directly
+            entries.add(new Entry(i, values.get(i).floatValue()));
         }
+
         lineChart.clear();
-        //item.second -> x axis
         LineDataSet dataSet = new LineDataSet(entries, label);
-        dataSet.setColor(getResources().getColor(R.color.green));
-        dataSet.setValueTextSize(12f);
-        dataSet.setLineWidth(2f);
+        styleChartAppearance(dataSet, label);
 
         LineData lineData = new LineData(dataSet);
         lineChart.setData(lineData);
-        lineChart.invalidate();
+        configureChartBasics(lineChart, label);
 
-        XAxis xAxis = lineChart.getXAxis();
-        xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
-      //  xAxis.setValueFormatter(new LineChartXAxisValueFormatter());
+        // ✅ Attach custom marker tooltip (only once, and with chartView set!)
+        CustomMarkerView markerView = new CustomMarkerView(this, R.layout.layout_custom_marker, items);
+        markerView.setChartView(lineChart);
+        lineChart.setMarker(markerView);
+
+        lineChart.invalidate();
     }
+
+
+    private void plotGraphInt(List<Integer> values, List<FridgeHistoryItem> items, String label) {
+        List<Entry> entries = new ArrayList<>();
+        for (int i = 0; i < values.size(); i++) {
+            entries.add(new Entry(i, values.get(i)));
+        }
+
+        lineChart.clear();
+        LineDataSet dataSet = new LineDataSet(entries, label);
+        styleChartAppearance(dataSet, label);
+
+        LineData lineData = new LineData(dataSet);
+        lineChart.setData(lineData);
+        configureChartBasics(lineChart, label);
+
+        // ✅ Attach custom marker tooltip (no duplicate!)
+        CustomMarkerView markerView = new CustomMarkerView(this, R.layout.layout_custom_marker, items);
+        markerView.setChartView(lineChart);
+        lineChart.setMarker(markerView);
+
+        lineChart.invalidate();
+    }
+
+
+
     // Format the date based on the time filter
     private String formatDate(LocalDateTime dateTime) {
         switch (time_filter) {

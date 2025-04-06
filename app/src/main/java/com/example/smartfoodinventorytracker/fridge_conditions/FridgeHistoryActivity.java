@@ -7,13 +7,18 @@ import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.Toast;
 
+import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.smartfoodinventorytracker.R;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -28,6 +33,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
@@ -41,7 +47,14 @@ public class FridgeHistoryActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_fridge_history);
+
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.historyMain), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            return insets;
+        });
 
         // ✅ Set up the Toolbar
         Toolbar toolbar = findViewById(R.id.historyToolbar);
@@ -59,7 +72,7 @@ public class FridgeHistoryActivity extends AppCompatActivity {
         // ✅ Buttons
         Button btnDateRange = findViewById(R.id.btnDateRange);
         Button btnGraph = findViewById(R.id.btnGraph);
-        Button btnRefresh = findViewById(R.id.btnRefresh);
+        FloatingActionButton btnRefresh = findViewById(R.id.btnRefresh);
 
         btnDateRange.setOnClickListener(v -> openDatePicker());
 
@@ -209,24 +222,40 @@ public class FridgeHistoryActivity extends AppCompatActivity {
                     Integer co = itemSnapshot.child("co").getValue(Integer.class);
                     Integer lpg = itemSnapshot.child("lpg").getValue(Integer.class);
                     Integer smoke = itemSnapshot.child("smoke").getValue(Integer.class);
-                    Integer overallCond = itemSnapshot.child("overall condition").getValue(Integer.class);
-// Extract the "yyyy:mm:dd" part of both dates
-                    String firebaseDate = dateTime.substring(0, 10); // "yyyy:mm:dd"
-                    String currentDate = dateselected;  // "yyyy:mm:dd"
 
-// Compare the dates
-                    if (firebaseDate.equals(currentDate)) {
-                        FridgeHistoryItem item = new FridgeHistoryItem(dateTime, temp, hum, co, lpg, smoke);
-                        mockHistory.add(item);
+                    // ✅ Fetch condition fields
+                    Integer tempCond = itemSnapshot.child("temperature condition").getValue(Integer.class);
+                    Integer humCond = itemSnapshot.child("humidity condition").getValue(Integer.class);
+                    Integer coCond = itemSnapshot.child("co condition").getValue(Integer.class);
+                    Integer lpgCond = itemSnapshot.child("lpg condition").getValue(Integer.class);
+                    Integer smokeCond = itemSnapshot.child("smoke condition").getValue(Integer.class);
 
-                        // 🖨️ Debug print each value
-                        System.out.println("Item: " + item.dateTime + " | Temp: " + temp + " | Hum: " + hum +
-                                " | CO: " + co + " | LPG: " + lpg + " | NH4: " + smoke);
+                    if (dateTime != null && dateTime.length() >= 10) {
+                        String firebaseDate = dateTime.substring(0, 10);
+                        String currentDate = dateselected;
+
+                        if (firebaseDate.equals(currentDate)) {
+                            FridgeHistoryItem item = new FridgeHistoryItem(dateTime, temp, hum, co, lpg, smoke);
+
+                            // ✅ Assign conditions to the item
+                            item.tempCondition = tempCond != null ? tempCond : 0;
+                            item.humidityCondition = humCond != null ? humCond : 0;
+                            item.coCondition = coCond != null ? coCond : 0;
+                            item.lpgCondition = lpgCond != null ? lpgCond : 0;
+                            item.smokeCondition = smokeCond != null ? smokeCond : 0;
+
+                            mockHistory.add(item);
+
+                            // 🖨️ Debug log
+                            System.out.println("Item: " + item.dateTime + " | Temp: " + temp + " (" + tempCond + ")"
+                                    + " | Hum: " + hum + " (" + humCond + ")"
+                                    + " | CO: " + co + " (" + coCond + ")"
+                                    + " | LPG: " + lpg + " (" + lpgCond + ")"
+                                    + " | NH₄: " + smoke + " (" + smokeCond + ")");
+                        }
                     }
-
                 }
-
-                // Now that mockHistory is ready, notify adapter
+                Collections.reverse(mockHistory);
                 adapter.notifyDataSetChanged();
             }
 
@@ -236,6 +265,7 @@ public class FridgeHistoryActivity extends AppCompatActivity {
             }
         });
     }
+
 
 
     private void openDatePicker() {
