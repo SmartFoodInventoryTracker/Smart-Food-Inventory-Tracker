@@ -13,6 +13,7 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.NavUtils;
 import androidx.core.content.FileProvider;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -66,10 +67,6 @@ public class FridgeGraphActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_fridge_graph);
 
-        Toolbar toolbar = findViewById(R.id.graphToolbar);
-        setSupportActionBar(toolbar);
-        toolbar.setNavigationOnClickListener(v -> finish());
-
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
@@ -106,7 +103,8 @@ public class FridgeGraphActivity extends AppCompatActivity {
             @Override
             public void onNothingSelected(AdapterView<?> parent) {}
         });
-        //setUpToolbar();
+
+        setUpToolbar();
 
         FloatingActionButton exportButton = findViewById(R.id.btnExport);
         exportButton.setOnClickListener(v -> {
@@ -134,6 +132,19 @@ public class FridgeGraphActivity extends AppCompatActivity {
             }
         });
 
+    }
+
+    private void setUpToolbar(){
+        Toolbar toolbar = findViewById(R.id.graphToolbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayShowTitleEnabled(false);
+
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setDisplayShowHomeEnabled(true);
+        }
+
+        toolbar.setNavigationOnClickListener(v -> NavUtils.navigateUpFromSameTask(this));
     }
 
     private void settime_scaled(String metric)
@@ -324,6 +335,7 @@ public class FridgeGraphActivity extends AppCompatActivity {
         dataSet.setValueTextColor(getResources().getColor(R.color.text_secondary));
         dataSet.setLineWidth(2f);
         dataSet.setCircleRadius(5f);
+        dataSet.setCircleHoleRadius(2.5f);
         dataSet.setDrawCircleHole(true);
         dataSet.setDrawValues(false);
         dataSet.setDrawHighlightIndicators(true);

@@ -4,9 +4,9 @@
     xmlns:card_view="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    card_view:cardBackgroundColor="@color/white"
     android:layout_marginBottom="12dp"
     android:layout_marginHorizontal="12dp"
-    android:background="@android:color/white"
     card_view:cardCornerRadius="16dp"
     card_view:cardElevation="4dp">
 
@@ -22,9 +22,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="🕒 2025-04-01 12:00"
-            android:textStyle="bold"
+            android:textColor="#333333"
             android:textSize="15sp"
-            android:textColor="#333333" />
+            android:textStyle="bold" />
 
         <!-- Divider -->
         <View
@@ -40,9 +40,9 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
             android:layout_marginBottom="6dp"
-            android:gravity="center_vertical">
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
             <ImageView
                 android:layout_width="20dp"
@@ -57,26 +57,26 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="Temperature: -- °C"
-                android:textSize="14sp"
-                android:textColor="#333333" />
+                android:textColor="#333333"
+                android:textSize="14sp" />
 
             <TextView
                 android:id="@+id/tempStatus"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Status"
+                android:textColor="#4CAF50"
                 android:textSize="13sp"
-                android:textStyle="bold"
-                android:textColor="#4CAF50" />
+                android:textStyle="bold" />
         </LinearLayout>
 
         <!-- HUMIDITY -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
             android:layout_marginBottom="6dp"
-            android:gravity="center_vertical">
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
             <ImageView
                 android:layout_width="20dp"
@@ -91,26 +91,26 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="Humidity: -- %"
-                android:textSize="14sp"
-                android:textColor="#333333" />
+                android:textColor="#333333"
+                android:textSize="14sp" />
 
             <TextView
                 android:id="@+id/humidityStatus"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Status"
+                android:textColor="#4CAF50"
                 android:textSize="13sp"
-                android:textStyle="bold"
-                android:textColor="#4CAF50" />
+                android:textStyle="bold" />
         </LinearLayout>
 
         <!-- CO -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
             android:layout_marginBottom="6dp"
-            android:gravity="center_vertical">
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
             <ImageView
                 android:layout_width="20dp"
@@ -125,26 +125,26 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="CO: -- ppm"
-                android:textSize="14sp"
-                android:textColor="#333333" />
+                android:textColor="#333333"
+                android:textSize="14sp" />
 
             <TextView
                 android:id="@+id/coStatus"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Status"
+                android:textColor="#4CAF50"
                 android:textSize="13sp"
-                android:textStyle="bold"
-                android:textColor="#4CAF50" />
+                android:textStyle="bold" />
         </LinearLayout>
 
         <!-- LPG -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
             android:layout_marginBottom="6dp"
-            android:gravity="center_vertical">
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
             <ImageView
                 android:layout_width="20dp"
@@ -159,25 +159,25 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="LPG: -- ppm"
-                android:textSize="14sp"
-                android:textColor="#333333" />
+                android:textColor="#333333"
+                android:textSize="14sp" />
 
             <TextView
                 android:id="@+id/lpgStatus"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Status"
+                android:textColor="#4CAF50"
                 android:textSize="13sp"
-                android:textStyle="bold"
-                android:textColor="#4CAF50" />
+                android:textStyle="bold" />
         </LinearLayout>
 
         <!-- NH₄ -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
             <ImageView
                 android:layout_width="20dp"
@@ -192,17 +192,17 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="NH₄: -- ppm"
-                android:textSize="14sp"
-                android:textColor="#333333" />
+                android:textColor="#333333"
+                android:textSize="14sp" />
 
             <TextView
                 android:id="@+id/smokeStatus"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Status"
+                android:textColor="#4CAF50"
                 android:textSize="13sp"
-                android:textStyle="bold"
-                android:textColor="#4CAF50" />
+                android:textStyle="bold" />
         </LinearLayout>
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

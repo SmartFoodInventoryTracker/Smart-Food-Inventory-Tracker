@@ -5,21 +5,51 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white"
+    android:theme="@style/Base.Theme.SmartFoodInventoryTracker"
     tools:context=".fridge_conditions.FridgeGraphActivity">
 
     <!-- Top Toolbar -->
-    <com.google.android.material.appbar.MaterialToolbar
+    <androidx.appcompat.widget.Toolbar
         android:id="@+id/graphToolbar"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         android:background="?attr/colorPrimary"
-        android:title="📊 Fridge Graph"
-        android:titleTextColor="@android:color/white"
-        app:navigationIcon="@drawable/ic_back"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        android:paddingStart="0dp"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <LinearLayout
+            android:id="@+id/dashboardElements"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            tools:layout_editor_absoluteX="16dp">
+
+            <ImageView
+                android:id="@+id/backtofhistoryLogo"
+                android:layout_width="16dp"
+                android:layout_height="25dp"
+                android:layout_gravity="center_vertical"
+                android:layout_marginStart="0dp"
+                android:layout_weight="0.5"
+                android:src="@drawable/ic_fridge"
+                app:tint="@android:color/white" />
+
+            <TextView
+                android:id="@+id/GraphTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:layout_marginStart="12dp"
+                android:layout_weight="1"
+                android:text="Stats For Nerds"
+                android:textColor="@android:color/white"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+    </androidx.appcompat.widget.Toolbar>
+
 
     <!-- Top Controls: Spinners + Export Button -->
     <LinearLayout
@@ -36,34 +66,39 @@
         <Spinner
             android:id="@+id/metricSpinner"
             android:layout_width="0dp"
+            android:layout_height="48dp"
             android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:backgroundTint="@color/purple"
+            android:layout_marginRight="20dp"
+            android:background="@drawable/spinner_background"
             android:entries="@array/metrics_array"
-            android:minHeight="48dp"
-            android:popupBackground="@color/white" />
+            android:paddingHorizontal="12dp"
+            android:popupBackground="@android:color/white" />
+
 
         <Spinner
             android:id="@+id/time_spinner"
             android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_marginRight="20dp"
             android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:backgroundTint="@color/purple"
+            android:background="@drawable/spinner_background"
             android:entries="@array/time_array"
-            android:minHeight="48dp"
-            android:popupBackground="@color/white" />
+            android:paddingHorizontal="12dp"
+            android:popupBackground="@android:color/white" />
+
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/btnExport"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:scaleY="0.85"
+            android:scaleX="0.85"
             android:src="@drawable/ic_share"
             android:contentDescription="Export and Share"
-            android:layout_margin="16dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             android:tint="@android:color/white"
-            android:backgroundTint="@color/teal_700" />
+            android:backgroundTint="@color/white" />
     </LinearLayout>
 
     <!-- Line Chart -->
