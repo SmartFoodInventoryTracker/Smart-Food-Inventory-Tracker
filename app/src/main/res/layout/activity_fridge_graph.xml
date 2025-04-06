@@ -58,6 +58,7 @@
             android:popupBackground="@color/white" />
     </LinearLayout>
 
+
     <!-- Line Chart -->
     <com.github.mikephil.charting.charts.LineChart
         android:id="@+id/lineChart"

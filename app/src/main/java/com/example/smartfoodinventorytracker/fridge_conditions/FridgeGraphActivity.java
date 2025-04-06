@@ -270,18 +270,34 @@ public class FridgeGraphActivity extends AppCompatActivity {
     }
 
     private void styleChartAppearance(LineDataSet dataSet, String label) {
-        dataSet.setColor(getResources().getColor(R.color.graph_line)); // Your custom color
+        int color;
+        switch (label) {
+            case "Temperature":
+                color = getResources().getColor(R.color.teal_700); break;
+            case "Humidity":
+                color = getResources().getColor(R.color.purple_500); break;
+            case "CO":
+                color = getResources().getColor(R.color.co_color); break;
+            case "LPG":
+                color = getResources().getColor(R.color.lpg_color); break;
+            case "NH₄":
+                color = getResources().getColor(R.color.nh4_color); break;
+            default:
+                color = getResources().getColor(R.color.graph_line); break;
+        }
+
+        dataSet.setColor(color);
+        dataSet.setCircleColor(color);
         dataSet.setValueTextColor(getResources().getColor(R.color.text_secondary));
         dataSet.setLineWidth(2f);
         dataSet.setCircleRadius(5f);
-        dataSet.setCircleHoleRadius(2.5f);
         dataSet.setDrawCircleHole(true);
         dataSet.setDrawValues(false);
         dataSet.setDrawHighlightIndicators(true);
-        dataSet.setHighlightLineWidth(1.5f);
-        dataSet.setHighLightColor(getResources().getColor(R.color.accent)); // Tap highlight
-        dataSet.setMode(LineDataSet.Mode.CUBIC_BEZIER); // Smooth lines
+        dataSet.setHighLightColor(color);
+        dataSet.setMode(LineDataSet.Mode.CUBIC_BEZIER);
     }
+
 
     private void configureChartBasics(LineChart chart, String label) {
         chart.getDescription().setEnabled(false);
