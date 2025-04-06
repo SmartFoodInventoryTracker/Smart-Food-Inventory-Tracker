@@ -203,10 +203,10 @@ public class DashboardActivity extends AppCompatActivity {
         SharedPreferences prefs = getSharedPreferences("user_prefs", MODE_PRIVATE);
         String cachedName = prefs.getString("cached_name", null);
 
-        if (cachedName != null && !cachedName.isEmpty()) {
+        if (cachedName != null && !cachedName.trim().isEmpty()) {
             greetingText.setText("👋 " + greeting + ", " + cachedName);
         } else {
-            greetingText.setText("👋 " + greeting + ", User");
+            greetingText.setText("👋 " + greeting);
         }
 
         // ✅ Then load fresh data from Firestore
