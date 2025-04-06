@@ -22,6 +22,10 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.text.SimpleDateFormat;
+import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -33,6 +37,7 @@ public class FridgeHistoryActivity extends AppCompatActivity {
     private FridgeHistoryAdapter adapter;
     private final List<FridgeHistoryItem> mockHistory = new ArrayList<>();
     private DatabaseReference databaseReference;
+    private String dateselected;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -68,7 +73,12 @@ public class FridgeHistoryActivity extends AppCompatActivity {
             generateMockData(); // or pull from Firebase later
             adapter.notifyDataSetChanged();
         });
+        LocalDate currentDate = LocalDate.now();
 
+// Format it to "yyyy-MM-dd" format
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        String formattedDate = currentDate.format(formatter);
+        dateselected =formattedDate;
         // ✅ Load mock data
         generateMockData();
         adapter = new FridgeHistoryAdapter(mockHistory);
@@ -76,6 +86,108 @@ public class FridgeHistoryActivity extends AppCompatActivity {
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         databaseReference = FirebaseDatabase.getInstance()
                 .getReference("users").child(userId).child("fridge_condition");
+    }
+    private List<FridgeHistoryItem> filterByTime(List<FridgeHistoryItem> historyList, TIME timeFilter) {
+        List<FridgeHistoryItem> filtered = new ArrayList<>();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+        // Add the first item by default
+        FridgeHistoryItem lastAdded = historyList.get(0);
+        filtered.add(lastAdded);
+        LocalDateTime lastTime = LocalDateTime.parse(lastAdded.dateTime, formatter);
+
+        // Variables to accumulate the values
+        double accumulatedTemperature = lastAdded.temperature;
+        double accumulatedHumidity = lastAdded.humidity;
+        int accumulatedCo = lastAdded.co;
+        int accumulatedLpg = lastAdded.lpg;
+        int accumulatedSmoke = lastAdded.smoke;
+        int sampleCount = 1;  // Count of samples for averaging
+
+        for (int i = 1; i < historyList.size(); i++) {
+            FridgeHistoryItem currentItem = historyList.get(i);
+            LocalDateTime currentTime = LocalDateTime.parse(currentItem.dateTime, formatter);
+            Duration duration = Duration.between(lastTime, currentTime);
+            long seconds = duration.getSeconds();
+
+            boolean shouldAdd = false;
+
+            switch (timeFilter) {
+                case PER_DAY:
+                    shouldAdd = seconds >= 86400; // 24 hours
+                    break;
+                case PER_HOUR:
+                    shouldAdd = seconds >= 3600;  // 1 hour
+                    break;
+                case PER_MIN:
+                    shouldAdd = seconds >= 60;    // 1 minute
+                    break;
+                default:
+                    shouldAdd = true;
+                    break;
+            }
+
+            if (shouldAdd) {
+                // Calculate the average of all accumulated values
+                double avgTemperature = accumulatedTemperature / sampleCount;
+                double avgHumidity = accumulatedHumidity / sampleCount;
+                int avgCo = accumulatedCo / sampleCount;
+                int avgLpg = accumulatedLpg / sampleCount;
+                int avgSmoke = accumulatedSmoke / sampleCount;
+
+                // Create a new FridgeHistoryItem with averaged values
+                FridgeHistoryItem averagedItem = new FridgeHistoryItem(
+                        currentItem.dateTime,
+                        avgTemperature,
+                        avgHumidity,
+                        avgCo,
+                        avgLpg,
+                        avgSmoke
+                );
+                filtered.add(averagedItem);
+
+                // Reset accumulation for the next time period
+                accumulatedTemperature = currentItem.temperature;
+                accumulatedHumidity = currentItem.humidity;
+                accumulatedCo = currentItem.co;
+                accumulatedLpg = currentItem.lpg;
+                accumulatedSmoke = currentItem.smoke;
+                sampleCount = 1;
+                lastTime = currentTime;
+            } else {
+                // Accumulate values for the next sample
+                accumulatedTemperature += currentItem.temperature;
+                accumulatedHumidity += currentItem.humidity;
+                accumulatedCo += currentItem.co;
+                accumulatedLpg += currentItem.lpg;
+                accumulatedSmoke += currentItem.smoke;
+                sampleCount++;
+            }
+        }
+
+        // Handle the last batch of samples
+        if (sampleCount > 0) {
+            double avgTemperature = accumulatedTemperature / sampleCount;
+            double avgHumidity = accumulatedHumidity / sampleCount;
+            int avgCo = accumulatedCo / sampleCount;
+            int avgLpg = accumulatedLpg / sampleCount;
+            int avgSmoke = accumulatedSmoke / sampleCount;
+
+            FridgeHistoryItem lastAveragedItem = new FridgeHistoryItem(
+                    lastAdded.dateTime,
+                    avgTemperature,
+                    avgHumidity,
+                    avgCo,
+                    avgLpg,
+                    avgSmoke
+            );
+            filtered.add(lastAveragedItem);
+        }
+
+        if (timeFilter == TIME.ALL_TIME || historyList.isEmpty()) {
+            return historyList;
+        }
+        return filtered;
     }
 
     private void generateMockData() {
@@ -98,13 +210,20 @@ public class FridgeHistoryActivity extends AppCompatActivity {
                     Integer lpg = itemSnapshot.child("lpg").getValue(Integer.class);
                     Integer smoke = itemSnapshot.child("smoke").getValue(Integer.class);
                     Integer overallCond = itemSnapshot.child("overall condition").getValue(Integer.class);
+// Extract the "yyyy:mm:dd" part of both dates
+                    String firebaseDate = dateTime.substring(0, 10); // "yyyy:mm:dd"
+                    String currentDate = dateselected;  // "yyyy:mm:dd"
 
-                    FridgeHistoryItem item = new FridgeHistoryItem(dateTime, temp, hum, co, lpg, smoke);
-                    mockHistory.add(item);
+// Compare the dates
+                    if (firebaseDate.equals(currentDate)) {
+                        FridgeHistoryItem item = new FridgeHistoryItem(dateTime, temp, hum, co, lpg, smoke);
+                        mockHistory.add(item);
 
-                    // 🖨️ Debug print each value
-                    System.out.println("Item: " + item.dateTime + " | Temp: " + temp + " | Hum: " + hum +
-                            " | CO: " + co + " | LPG: " + lpg + " | NH4: " + smoke);
+                        // 🖨️ Debug print each value
+                        System.out.println("Item: " + item.dateTime + " | Temp: " + temp + " | Hum: " + hum +
+                                " | CO: " + co + " | LPG: " + lpg + " | NH4: " + smoke);
+                    }
+
                 }
 
                 // Now that mockHistory is ready, notify adapter
@@ -129,7 +248,9 @@ public class FridgeHistoryActivity extends AppCompatActivity {
                     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
                     String selectedDate = sdf.format(calendar.getTime());
                     Toast.makeText(this, "Selected: " + selectedDate, Toast.LENGTH_SHORT).show();
-
+                    generateMockData();
+                    adapter.notifyDataSetChanged();
+                    dateselected = selectedDate;
                     // 🔁 Filtering placeholder logic
                     // You could filter the list here using selectedDate
                 },
@@ -138,5 +259,6 @@ public class FridgeHistoryActivity extends AppCompatActivity {
                 calendar.get(Calendar.DAY_OF_MONTH)
         );
         datePickerDialog.show();
+
     }
 }

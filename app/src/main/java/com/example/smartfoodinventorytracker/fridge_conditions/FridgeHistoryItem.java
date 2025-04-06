@@ -5,6 +5,7 @@ import java.util.List;
 
 public class FridgeHistoryItem {
     public String dateTime;
+
     public double temperature;
     public double humidity;
     public Integer co;
@@ -46,5 +47,10 @@ public class FridgeHistoryItem {
         }
         return values;
     }
-
+    public static List<String> extractMetricList(List<FridgeHistoryItem> historyList) {
+        List<String> values = new ArrayList<>();
+        for (FridgeHistoryItem item : historyList)
+            values.add(item.dateTime); // Extract temperature values
+        return values;
+    }
 }

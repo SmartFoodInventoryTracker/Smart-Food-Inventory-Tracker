@@ -18,5 +18,12 @@
         <item>NH₄</item>
     </string-array>
 
+    <string-array name="time_array">
+        <item>All Time</item>
+        <item>Per Minute</item>
+        <item>Per Hour</item>
+        <item>Per Day</item>
+    </string-array>
+
 
 </resources>
