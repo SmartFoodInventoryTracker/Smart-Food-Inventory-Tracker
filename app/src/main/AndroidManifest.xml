@@ -91,6 +91,12 @@
             </intent-filter>
         </activity>
         <activity android:name=".fridge_conditions.FridgeHistoryActivity" />
+
+        <service
+            android:name=".notifications.FridgeMonitoringService"
+            android:exported="false"
+            android:foregroundServiceType="connectedDevice" />
     </application>
+
 
 </manifest>

@@ -177,14 +177,29 @@ public class DatabaseHelper {
         fridgeRef.orderByKey().limitToLast(1).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
+                Log.d("FridgeMonitor", "📡 Data change received from fridge_condition!");
                 for (DataSnapshot snap : snapshot.getChildren()) {
+                    Log.d("FridgeMonitor", "🧪 Snapshot key: " + snap.getKey());
+                    Log.d("FridgeMonitor", "🧪 Raw snapshot: " + snap.getValue());
+
                     Map<String, Integer> conditionMap = new HashMap<>();
                     conditionMap.put("Temperature", snap.child("temperature condition").getValue(Integer.class));
+                    Log.d("FridgeMonitor", "Temp condition = " + snap.child("temperature condition").getValue());
+
                     conditionMap.put("Humidity", snap.child("humidity condition").getValue(Integer.class));
+                    Log.d("FridgeMonitor", "Humidity condition = " + snap.child("humidity condition").getValue());
+
                     conditionMap.put("CO Level", snap.child("co condition").getValue(Integer.class));
+                    Log.d("FridgeMonitor", "CO condition = " + snap.child("co condition").getValue());
+
                     conditionMap.put("LPG Level", snap.child("lpg condition").getValue(Integer.class));
+                    Log.d("FridgeMonitor", "LPG condition = " + snap.child("lpg condition").getValue());
+
                     conditionMap.put("Smoke Level", snap.child("smoke condition").getValue(Integer.class));
+                    Log.d("FridgeMonitor", "Smoke condition = " + snap.child("smoke condition").getValue());
+
                     conditionMap.put("Overall", snap.child("overall condition").getValue(Integer.class));
+                    Log.d("FridgeMonitor", "Overall condition = " + snap.child("overall condition").getValue());
 
                     Map<String, String> currentStatuses = new HashMap<>();
                     boolean statusChanged = false;
@@ -195,6 +210,7 @@ public class DatabaseHelper {
                         String newStatus = getStatusLabel(cond);
 
                         currentStatuses.put(key, newStatus);
+                        Log.d("FridgeMonitor", "→ " + key + " = " + newStatus);
 
                         String last = fridgePrefs.getString(key, null);
                         if (last == null || !last.equals(newStatus)) {
@@ -223,12 +239,14 @@ public class DatabaseHelper {
                                 // Only include Moderate or Poor in the message
                                 if (status.equals("Moderate") || status.equals("Poor")) {
                                     String emoji = getEmojiForStatus(status);
-                                    message.append("\n- ").append(entry.getKey()).append(": ").append(emoji).append(" ").append(status);
+                                    message.append("\n• ").append(entry.getKey()).append(": ").append(emoji).append(" ").append(status);
                                 }
 
                                 // Still save all updated statuses to avoid repeated alerts
                                 fridgePrefs.edit().putString(entry.getKey(), status).apply();
                             }
+
+                            Log.d("FridgeMonitor", "🚨 Sending notification: " + message.toString());
 
                             helper.sendNotification(
                                     NotificationHelper.FRIDGE_ALERT_TITLE,
