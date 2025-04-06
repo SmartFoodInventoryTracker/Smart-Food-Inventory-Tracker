@@ -312,11 +312,17 @@ public class FridgeGraphActivity extends AppCompatActivity {
 
         lineChart.clear();
         LineDataSet dataSet = new LineDataSet(entries, label);
-        styleChartAppearance(dataSet, label); // 🎨 Apply custom styling
+        styleChartAppearance(dataSet, label);
 
         LineData lineData = new LineData(dataSet);
         lineChart.setData(lineData);
         configureChartBasics(lineChart, label);
+
+        // ✅ Attach custom marker tooltip (only once, and with chartView set!)
+        CustomMarkerView markerView = new CustomMarkerView(this, R.layout.layout_custom_marker, items);
+        markerView.setChartView(lineChart);
+        lineChart.setMarker(markerView);
+
         lineChart.invalidate();
     }
 
@@ -329,13 +335,21 @@ public class FridgeGraphActivity extends AppCompatActivity {
 
         lineChart.clear();
         LineDataSet dataSet = new LineDataSet(entries, label);
-        styleChartAppearance(dataSet, label); // 🎨 Custom styling
+        styleChartAppearance(dataSet, label);
 
         LineData lineData = new LineData(dataSet);
         lineChart.setData(lineData);
         configureChartBasics(lineChart, label);
+
+        // ✅ Attach custom marker tooltip (no duplicate!)
+        CustomMarkerView markerView = new CustomMarkerView(this, R.layout.layout_custom_marker, items);
+        markerView.setChartView(lineChart);
+        lineChart.setMarker(markerView);
+
         lineChart.invalidate();
     }
+
+
 
     // Format the date based on the time filter
     private String formatDate(LocalDateTime dateTime) {
