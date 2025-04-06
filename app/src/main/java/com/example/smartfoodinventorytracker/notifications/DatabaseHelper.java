@@ -160,100 +160,76 @@ public class DatabaseHelper {
         });
     }
 
-    public static void listenToFridgeConditions(String userId, NotificationHelper helper) {
-        long COOLDOWN_MILLIS = 10 * 60 * 1000L; // 10 minutes
-        String COOLDOWN_KEY = "last_fridge_alert";
-
+    public static void listenToFridgeConditionChanges(String userId, NotificationHelper helper) {
+        // Reference the fridge condition node
         DatabaseReference fridgeRef = FirebaseDatabase.getInstance()
                 .getReference("users")
                 .child(userId)
                 .child("fridge_condition");
 
-        Handler handler = new Handler(Looper.getMainLooper());
-        final Runnable[] pendingNotification = new Runnable[1];
+        // SharedPreferences to store last status and last notification time per sensor
         Context context = helper.getContext();
-        SharedPreferences fridgePrefs = context.getSharedPreferences("fridge_status", Context.MODE_PRIVATE);
+        final SharedPreferences statusPrefs = context.getSharedPreferences("fridge_status", Context.MODE_PRIVATE);
+        final SharedPreferences notifTimePrefs = context.getSharedPreferences("fridge_notif_times", Context.MODE_PRIVATE);
 
+        // Repeat interval for a sensor that remains Poor (in milliseconds)
+        final long REPEAT_INTERVAL = 1 * 60 * 1000L; // 1 minute
+
+        // Attach a realtime listener – it will fire on every update
         fridgeRef.orderByKey().limitToLast(1).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                for (DataSnapshot snap : snapshot.getChildren()) {
-                    Map<String, Integer> conditionMap = new HashMap<>();
-                    conditionMap.put("Temperature", snap.child("temperature condition").getValue(Integer.class));
-                    conditionMap.put("Humidity", snap.child("humidity condition").getValue(Integer.class));
-                    conditionMap.put("CO Level", snap.child("co condition").getValue(Integer.class));
-                    conditionMap.put("LPG Level", snap.child("lpg condition").getValue(Integer.class));
-                    conditionMap.put("Smoke Level", snap.child("smoke condition").getValue(Integer.class));
-                    conditionMap.put("Overall", snap.child("overall condition").getValue(Integer.class));
+                // We'll build one combined notification if any sensor qualifies
+                StringBuilder notificationMessage = new StringBuilder();
+                boolean shouldNotify = false;
+                long now = System.currentTimeMillis();
 
-                    Map<String, String> currentStatuses = new HashMap<>();
-                    boolean statusChanged = false;
+                // List of sensor types (keys must match what you write to Firebase)
+                String[] sensors = {"Temperature", "Humidity", "CO Level", "LPG Level", "Smoke Level"};
 
-                    for (Map.Entry<String, Integer> entry : conditionMap.entrySet()) {
-                        String key = entry.getKey();
-                        Integer cond = entry.getValue();
-                        String newStatus = getStatusLabel(cond);
+                // For each sensor, read its current condition from Firebase
+                for (String sensor : sensors) {
+                    // Assuming your Firebase keys are like "temperature condition", "humidity condition", etc.
+                    // Adjust the key naming as needed.
+                    String key = sensor + " condition";
+                    Integer cond = snapshot.child(key).getValue(Integer.class);
+                    String newStatus = getStatusLabel(cond);
+                    String lastStatus = statusPrefs.getString(sensor, "Good");
+                    long lastNotifTime = notifTimePrefs.getLong(sensor, 0);
 
-                        currentStatuses.put(key, newStatus);
+                    // Check if there’s a transition from Good to Moderate/Poor
+                    boolean transitionTriggered = "Good".equals(lastStatus) && ( "Moderate".equals(newStatus) || "Poor".equals(newStatus) );
+                    // Also, if the condition is Poor, allow repeat notifications every REPEAT_INTERVAL
+                    boolean repeatTriggered = "Poor".equals(newStatus) && (now - lastNotifTime >= REPEAT_INTERVAL);
 
-                        String last = fridgePrefs.getString(key, null);
-                        if (last == null || !last.equals(newStatus)) {
-                            statusChanged = true;
-                        }
+                    if (transitionTriggered || repeatTriggered) {
+                        shouldNotify = true;
+                        String emoji = getEmojiForStatus(newStatus);
+                        // Use a bullet point instead of a dash
+                        notificationMessage.append("\n• ").append(sensor).append(": ").append(emoji).append(" ").append(newStatus);
+                        // Save the time of this notification for this sensor
+                        notifTimePrefs.edit().putLong(sensor, now).apply();
                     }
+                    // Always update the last known status for this sensor
+                    statusPrefs.edit().putString(sensor, newStatus).apply();
+                }
 
-                    if (statusChanged) {
-                        if (pendingNotification[0] != null) {
-                            handler.removeCallbacks(pendingNotification[0]);
-                        }
-
-                        pendingNotification[0] = () -> {
-                            boolean hasAlert = currentStatuses.values().stream()
-                                    .anyMatch(status -> status.equals("Moderate") || status.equals("Poor"));
-
-                            if (!hasAlert) {
-                                Log.d("FridgeMonitor", "✅ All statuses are Good — skipping notification.");
-                                return;
-                            }
-
-                            StringBuilder message = new StringBuilder("Some abnormal condition was detected:");
-                            for (Map.Entry<String, String> entry : currentStatuses.entrySet()) {
-                                String status = entry.getValue();
-
-                                // Only include Moderate or Poor in the message
-                                if (status.equals("Moderate") || status.equals("Poor")) {
-                                    String emoji = getEmojiForStatus(status);
-                                    message.append("\n- ").append(entry.getKey()).append(": ").append(emoji).append(" ").append(status);
-                                }
-
-                                // Still save all updated statuses to avoid repeated alerts
-                                fridgePrefs.edit().putString(entry.getKey(), status).apply();
-                            }
-
-                            helper.sendNotification(
-                                    NotificationHelper.FRIDGE_ALERT_TITLE,
-                                    message.toString(),
-                                    com.example.smartfoodinventorytracker.fridge_conditions.FridgeConditionsActivity.class,
-                                    ""
-                            );
-
-                            // ✅ Save cooldown timestamp
-                            fridgePrefs.edit().putLong(COOLDOWN_KEY, System.currentTimeMillis()).apply();
-                        };
-
-                        long now = System.currentTimeMillis();
-                        long lastSent = fridgePrefs.getLong(COOLDOWN_KEY, 0);
-
-                        if (now - lastSent < COOLDOWN_MILLIS) {
-                            Log.d("FridgeMonitor", "🕐 Cooldown active — skipping notification");
-                            return;
-                        }
-
-                        handler.postDelayed(pendingNotification[0], 5000);
-                    }
+                if (shouldNotify) {
+                    helper.sendNotificationLocalAndFirebase(
+                            userId,
+                            NotificationHelper.FRIDGE_ALERT_TITLE,
+                            notificationMessage.toString(),
+                            com.example.smartfoodinventorytracker.fridge_conditions.FridgeConditionsActivity.class
+                    );
                 }
             }
 
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.e("FridgeRealtime", "Listener error", error.toException());
+            }
+
+            // Helper: Determine status label based on condition value
             private String getStatusLabel(Integer cond) {
                 if (cond == null) return "Unknown";
                 if (cond <= 3) return "Good";
@@ -261,18 +237,14 @@ public class DatabaseHelper {
                 else return "Poor";
             }
 
+            // Helper: Get an emoji for the status
             private String getEmojiForStatus(String status) {
                 switch (status) {
-                    case "Good": return "✅";
                     case "Moderate": return "⚠️";
                     case "Poor": return "🔴";
+                    case "Good": return "✅";
                     default: return "❔";
                 }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Log.e("FridgeMonitor", "Failed to monitor fridge conditions", error.toException());
             }
         });
     }
