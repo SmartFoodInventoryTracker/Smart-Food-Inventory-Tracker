@@ -12,6 +12,12 @@ public class FridgeHistoryItem {
     public Integer lpg;
     public Integer smoke;
 
+    public int tempCondition;
+    public int humidityCondition;
+    public int coCondition;
+    public int lpgCondition;
+    public int smokeCondition;
+
     public FridgeHistoryItem(String dateTime, double temperature, double humidity, int co, int lpg, int smoke) {
         this.dateTime = dateTime;
         this.temperature = temperature;

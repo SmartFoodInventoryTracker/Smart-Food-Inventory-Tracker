@@ -210,24 +210,40 @@ public class FridgeHistoryActivity extends AppCompatActivity {
                     Integer co = itemSnapshot.child("co").getValue(Integer.class);
                     Integer lpg = itemSnapshot.child("lpg").getValue(Integer.class);
                     Integer smoke = itemSnapshot.child("smoke").getValue(Integer.class);
-                    Integer overallCond = itemSnapshot.child("overall condition").getValue(Integer.class);
-// Extract the "yyyy:mm:dd" part of both dates
-                    String firebaseDate = dateTime.substring(0, 10); // "yyyy:mm:dd"
-                    String currentDate = dateselected;  // "yyyy:mm:dd"
 
-// Compare the dates
-                    if (firebaseDate.equals(currentDate)) {
-                        FridgeHistoryItem item = new FridgeHistoryItem(dateTime, temp, hum, co, lpg, smoke);
-                        mockHistory.add(item);
+                    // ✅ Fetch condition fields
+                    Integer tempCond = itemSnapshot.child("temperature condition").getValue(Integer.class);
+                    Integer humCond = itemSnapshot.child("humidity condition").getValue(Integer.class);
+                    Integer coCond = itemSnapshot.child("co condition").getValue(Integer.class);
+                    Integer lpgCond = itemSnapshot.child("lpg condition").getValue(Integer.class);
+                    Integer smokeCond = itemSnapshot.child("smoke condition").getValue(Integer.class);
 
-                        // 🖨️ Debug print each value
-                        System.out.println("Item: " + item.dateTime + " | Temp: " + temp + " | Hum: " + hum +
-                                " | CO: " + co + " | LPG: " + lpg + " | NH4: " + smoke);
+                    if (dateTime != null && dateTime.length() >= 10) {
+                        String firebaseDate = dateTime.substring(0, 10);
+                        String currentDate = dateselected;
+
+                        if (firebaseDate.equals(currentDate)) {
+                            FridgeHistoryItem item = new FridgeHistoryItem(dateTime, temp, hum, co, lpg, smoke);
+
+                            // ✅ Assign conditions to the item
+                            item.tempCondition = tempCond != null ? tempCond : 0;
+                            item.humidityCondition = humCond != null ? humCond : 0;
+                            item.coCondition = coCond != null ? coCond : 0;
+                            item.lpgCondition = lpgCond != null ? lpgCond : 0;
+                            item.smokeCondition = smokeCond != null ? smokeCond : 0;
+
+                            mockHistory.add(item);
+
+                            // 🖨️ Debug log
+                            System.out.println("Item: " + item.dateTime + " | Temp: " + temp + " (" + tempCond + ")"
+                                    + " | Hum: " + hum + " (" + humCond + ")"
+                                    + " | CO: " + co + " (" + coCond + ")"
+                                    + " | LPG: " + lpg + " (" + lpgCond + ")"
+                                    + " | NH₄: " + smoke + " (" + smokeCond + ")");
+                        }
                     }
-
                 }
 
-                // Now that mockHistory is ready, notify adapter
                 adapter.notifyDataSetChanged();
             }
 
@@ -237,6 +253,7 @@ public class FridgeHistoryActivity extends AppCompatActivity {
             }
         });
     }
+
 
 
     private void openDatePicker() {
