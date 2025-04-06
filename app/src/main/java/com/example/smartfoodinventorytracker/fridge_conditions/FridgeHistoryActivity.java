@@ -29,6 +29,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
@@ -243,7 +244,7 @@ public class FridgeHistoryActivity extends AppCompatActivity {
                         }
                     }
                 }
-
+                Collections.reverse(mockHistory);
                 adapter.notifyDataSetChanged();
             }
 
