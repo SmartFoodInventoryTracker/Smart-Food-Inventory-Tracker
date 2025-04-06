@@ -21,13 +21,18 @@ public class FridgeMonitoringService extends Service {
         createNotificationChannel();
         startForeground(1, createServiceNotification());
 
+        // Check if a user is currently signed in
+        if (FirebaseAuth.getInstance().getCurrentUser() == null) {
+            // Handle the absence of a signed-in user (e.g., stop the service)
+            stopSelf();
+            return;
+        }
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         NotificationHelper notificationHelper = new NotificationHelper(getApplicationContext(), false, userId);
-
-        DatabaseHelper.listenToFridgeConditions(userId, notificationHelper); // ✅ This line is key
-
+        DatabaseHelper.listenToFridgeConditionChanges(userId, notificationHelper);
         notificationHelper.triggerPendingFridgeNotifications(); // Optional catch-up
     }
+
 
 
 
