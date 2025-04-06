@@ -8,12 +8,14 @@ import android.os.Build;
 import android.os.Bundle;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import android.os.Handler;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -22,12 +24,18 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.widget.SwitchCompat;
 
 import com.example.smartfoodinventorytracker.utils.Bluetooth;
 import com.example.smartfoodinventorytracker.R;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.io.IOException;
 
@@ -115,30 +123,74 @@ public class SettingsActivity extends AppCompatActivity {
         LinearLayout dialogView = (LinearLayout) getLayoutInflater().inflate(R.layout.dialog_wifi_config, null);
         EditText ssidInput = dialogView.findViewById(R.id.dialog_ssid);
         EditText passInput = dialogView.findViewById(R.id.dialog_password);
+        TextView statusText = dialogView.findViewById(R.id.dialog_status); // Add a TextView to your layout with this ID
         Button saveButton = dialogView.findViewById(R.id.dialog_save);
+
+        // Load saved credentials
+        String savedSsid = prefs.getString("wifi_ssid", "");
+        String savedPass = prefs.getString("wifi_password", "");
+        long lastConnected = prefs.getLong("wifi_last_connected", -1);
+
+        ssidInput.setText(savedSsid);
+        passInput.setText(savedPass);
+
+        // Show status if available
+        if (lastConnected > 0) {
+            long elapsedMillis = System.currentTimeMillis() - lastConnected;
+            String timeAgo = formatTimeAgo(elapsedMillis);
+            statusText.setText("Last connection attempt: " + timeAgo + " ago");
+        } else {
+            statusText.setText("Not connected yet");
+        }
 
         androidx.appcompat.app.AlertDialog dialog = new androidx.appcompat.app.AlertDialog.Builder(this)
                 .setView(dialogView)
                 .create();
 
         saveButton.setOnClickListener(v -> {
-            String ssid = ssidInput.getText().toString();
-            String password = passInput.getText().toString();
+            String ssid = ssidInput.getText().toString().trim();
+            String password = passInput.getText().toString().trim();
             String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+
             if (!ssid.isEmpty() && !password.isEmpty()) {
                 try {
                     if (btHelper != null) {
-                        Log.d("Bluetooth", "Sending WiFi credentials via Bluetooth");
                         btHelper.transmitCredentials(ssid + "," + password + "," + userId);
+
+                        // ✅ Save attempt info
+                        prefs.edit()
+                                .putString("wifi_ssid", ssid)
+                                .putString("wifi_password", password)
+                                .putLong("wifi_last_connected", System.currentTimeMillis())
+                                .apply();
+
+                        Toast.makeText(this, "Credentials sent. Please check your sensor screen for status.", Toast.LENGTH_LONG).show();
                         dialog.dismiss();
                     }
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    Toast.makeText(this, "Failed to send WiFi credentials", Toast.LENGTH_SHORT).show();
                 }
+            } else {
+                Toast.makeText(this, "Please fill in both SSID and password", Toast.LENGTH_SHORT).show();
             }
         });
+
+
+
         dialog.show();
     }
+
+    private String formatTimeAgo(long millis) {
+        long seconds = millis / 1000;
+        if (seconds < 60) return seconds + " seconds";
+        long minutes = seconds / 60;
+        if (minutes < 60) return minutes + " minutes";
+        long hours = minutes / 60;
+        if (hours < 24) return hours + " hours";
+        long days = hours / 24;
+        return days + " days";
+    }
+
 
     private void showIntervalDialog(String title, String valueKey, String unitKey, int defaultVal, int defaultMax, int fallbackValue, TextView targetView) {
         // Inflate the custom layout from XML
