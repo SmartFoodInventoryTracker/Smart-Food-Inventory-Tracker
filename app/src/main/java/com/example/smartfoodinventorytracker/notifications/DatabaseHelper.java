@@ -343,27 +343,33 @@ public class DatabaseHelper {
                 LocalDate today = LocalDate.now();
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d/M/yyyy");
 
-                // Create lists for each category.
-                List<android.util.Pair<String, Long>> expiredList = new ArrayList<>();         // daysLeft < 0
-                List<android.util.Pair<String, Long>> expiringTodayList = new ArrayList<>();   // daysLeft == 0
-                List<android.util.Pair<String, Long>> withinWeekList = new ArrayList<>();      // daysLeft between 1 and 7
-                List<android.util.Pair<String, Long>> within2WeeksList = new ArrayList<>();    // daysLeft between 8 and 14
+                List<android.util.Pair<String, Long>> expiredList = new ArrayList<>();
+                List<android.util.Pair<String, Long>> expiringTodayList = new ArrayList<>();
+                List<android.util.Pair<String, Long>> withinWeekList = new ArrayList<>();
+                List<android.util.Pair<String, Long>> within2WeeksList = new ArrayList<>();
 
                 Context context = notificationHelper.getContext();
                 SharedPreferences prefs = context.getSharedPreferences("user_settings", Context.MODE_PRIVATE);
                 SharedPreferences sent = context.getSharedPreferences("notif_times", Context.MODE_PRIVATE);
 
                 boolean enabled = prefs.getBoolean("expiry_alerts", true);
-                // Use the same frequency for all groups
-                int freqValue = prefs.getInt("expired_interval_value", 4);
-                String freqUnit = prefs.getString("expired_interval_unit", "minute(s)");
-                long freqDelay = convertIntervalToMillis(freqValue, freqUnit);
+                if (!enabled) return;
+
+                long expiredDelay = convertIntervalToMillis(
+                        prefs.getInt("expired_interval_value", 4),
+                        prefs.getString("expired_interval_unit", "minute(s)")
+                );
+                long week1Delay = convertIntervalToMillis(
+                        prefs.getInt("week1_interval_value", 2),
+                        prefs.getString("week1_interval_unit", "day(s)")
+                );
+                long week2Delay = convertIntervalToMillis(
+                        prefs.getInt("week2_interval_value", 3),
+                        prefs.getString("week2_interval_unit", "day(s)")
+                );
 
                 long now = System.currentTimeMillis();
 
-                if (!enabled) return;
-
-                // Process each product from inventory
                 for (DataSnapshot child : snapshot.getChildren()) {
                     Product product = child.getValue(Product.class);
                     if (product == null || product.getExpiryDate() == null || product.getExpiryDate().equals("Not set"))
@@ -371,7 +377,7 @@ public class DatabaseHelper {
                     try {
                         LocalDate expiry = LocalDate.parse(product.getExpiryDate(), formatter);
                         long daysLeft = ChronoUnit.DAYS.between(today, expiry);
-                        if (daysLeft > 14) continue; // ignore products expiring in more than 2 weeks
+                        if (daysLeft > 14) continue;
 
                         if (daysLeft < 0) {
                             expiredList.add(new android.util.Pair<>(product.getName(), daysLeft));
@@ -379,7 +385,7 @@ public class DatabaseHelper {
                             expiringTodayList.add(new android.util.Pair<>(product.getName(), daysLeft));
                         } else if (daysLeft <= 7) {
                             withinWeekList.add(new android.util.Pair<>(product.getName(), daysLeft));
-                        } else { // daysLeft between 8 and 14
+                        } else {
                             within2WeeksList.add(new android.util.Pair<>(product.getName(), daysLeft));
                         }
                     } catch (Exception e) {
@@ -387,11 +393,10 @@ public class DatabaseHelper {
                     }
                 }
 
-                // Send notifications for each group (if conditions are met)
-                sendGroupNotification("expired", "❌ Expired", expiredList, freqDelay, sent, now, notificationHelper);
-                sendGroupNotification("expiring_today", "📅 Expires today", expiringTodayList, freqDelay, sent, now, notificationHelper);
-                sendGroupNotification("within_week", "🕒 Expires within a week", withinWeekList, freqDelay, sent, now, notificationHelper);
-                sendGroupNotification("within_2weeks", "⏰ Expires within two weeks", within2WeeksList, freqDelay, sent, now, notificationHelper);
+                sendGroupNotification("expired", "❌ Expired", expiredList, expiredDelay, sent, now, notificationHelper);
+                sendGroupNotification("expiring_today", "📅 Expires today", expiringTodayList, expiredDelay, sent, now, notificationHelper);
+                sendGroupNotification("within_week", "🕒 Expires within a week", withinWeekList, week1Delay, sent, now, notificationHelper);
+                sendGroupNotification("within_2weeks", "⏰ Expires within two weeks", within2WeeksList, week2Delay, sent, now, notificationHelper);
             }
 
             @Override
