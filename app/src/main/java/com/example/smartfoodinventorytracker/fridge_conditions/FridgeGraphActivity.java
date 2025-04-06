@@ -1,6 +1,8 @@
 package com.example.smartfoodinventorytracker.fridge_conditions;
 
 
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
@@ -11,6 +13,7 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.FileProvider;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -23,6 +26,7 @@ import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.formatter.IAxisValueFormatter;
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -30,6 +34,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.io.File;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -87,6 +92,7 @@ public class FridgeGraphActivity extends AppCompatActivity {
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {}
+
         });
 
         timespinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -101,6 +107,33 @@ public class FridgeGraphActivity extends AppCompatActivity {
             public void onNothingSelected(AdapterView<?> parent) {}
         });
         //setUpToolbar();
+
+        FloatingActionButton exportButton = findViewById(R.id.btnExport);
+        exportButton.setOnClickListener(v -> {
+            try {
+                String fileName = "fridge_graph_" + System.currentTimeMillis() + ".png";
+                File imageFile = new File(getExternalFilesDir(null), fileName);
+
+                // Save chart to file
+                lineChart.saveToPath(fileName, imageFile.getParent());
+
+                Uri uri = FileProvider.getUriForFile(
+                        this,
+                        getPackageName() + ".provider",
+                        imageFile
+                );
+
+                Intent shareIntent = new Intent(Intent.ACTION_SEND);
+                shareIntent.setType("image/png");
+                shareIntent.putExtra(Intent.EXTRA_STREAM, uri);
+                shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                startActivity(Intent.createChooser(shareIntent, "Share Fridge Graph"));
+
+            } catch (Exception e) {
+                Toast.makeText(this, "Export failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+
     }
 
     private void settime_scaled(String metric)
