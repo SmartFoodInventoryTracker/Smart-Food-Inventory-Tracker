@@ -269,52 +269,74 @@ public class FridgeGraphActivity extends AppCompatActivity {
         return filtered;
     }
 
-
-
-
-    private void plotGraph(List<Double> values,List<FridgeHistoryItem> item ,String label) {
-        List<Entry> entries = new ArrayList<>();
-
-        for (int i = 0; i < values.size(); i++) { //item.get(i).second
-
-            entries.add(new Entry(i, values.get(i).floatValue())); // Convert Double to float for chart
-        }
-        lineChart.clear();
-        //item.second -> x axis
-        LineDataSet dataSet = new LineDataSet(entries, label);
-        dataSet.setColor(getResources().getColor(R.color.green));
-        dataSet.setValueTextSize(12f);
+    private void styleChartAppearance(LineDataSet dataSet, String label) {
+        dataSet.setColor(getResources().getColor(R.color.graph_line)); // Your custom color
+        dataSet.setValueTextColor(getResources().getColor(R.color.text_secondary));
         dataSet.setLineWidth(2f);
-
-        LineData lineData = new LineData(dataSet);
-        lineChart.setData(lineData);
-        lineChart.invalidate();
-
-        XAxis xAxis = lineChart.getXAxis();
-        xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
-        //xAxis.setValueFormatter(new LineChartXAxisValueFormatter());
+        dataSet.setCircleRadius(5f);
+        dataSet.setCircleHoleRadius(2.5f);
+        dataSet.setDrawCircleHole(true);
+        dataSet.setDrawValues(false);
+        dataSet.setDrawHighlightIndicators(true);
+        dataSet.setHighlightLineWidth(1.5f);
+        dataSet.setHighLightColor(getResources().getColor(R.color.accent)); // Tap highlight
+        dataSet.setMode(LineDataSet.Mode.CUBIC_BEZIER); // Smooth lines
     }
 
-    private void plotGraphInt(List<Integer> values,List<FridgeHistoryItem> item, String label) {
+    private void configureChartBasics(LineChart chart, String label) {
+        chart.getDescription().setEnabled(false);
+        chart.setDrawGridBackground(false);
+        chart.setTouchEnabled(true);
+        chart.setDragEnabled(true);
+        chart.setScaleEnabled(true);
+        chart.setPinchZoom(true);
+        chart.animateX(700);
+        chart.getLegend().setEnabled(true);
+
+        XAxis xAxis = chart.getXAxis();
+        xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
+        xAxis.setTextColor(getResources().getColor(R.color.text_secondary));
+        xAxis.setDrawGridLines(false);
+
+        chart.getAxisLeft().setTextColor(getResources().getColor(R.color.text_secondary));
+        chart.getAxisRight().setEnabled(false);
+    }
+
+
+
+    private void plotGraph(List<Double> values, List<FridgeHistoryItem> items, String label) {
         List<Entry> entries = new ArrayList<>();
         for (int i = 0; i < values.size(); i++) {
-            entries.add(new Entry(i, values.get(i))); // Use Integer directly
+            entries.add(new Entry(i, values.get(i).floatValue()));
         }
+
         lineChart.clear();
-        //item.second -> x axis
         LineDataSet dataSet = new LineDataSet(entries, label);
-        dataSet.setColor(getResources().getColor(R.color.green));
-        dataSet.setValueTextSize(12f);
-        dataSet.setLineWidth(2f);
+        styleChartAppearance(dataSet, label); // 🎨 Apply custom styling
 
         LineData lineData = new LineData(dataSet);
         lineChart.setData(lineData);
+        configureChartBasics(lineChart, label);
         lineChart.invalidate();
-
-        XAxis xAxis = lineChart.getXAxis();
-        xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
-      //  xAxis.setValueFormatter(new LineChartXAxisValueFormatter());
     }
+
+
+    private void plotGraphInt(List<Integer> values, List<FridgeHistoryItem> items, String label) {
+        List<Entry> entries = new ArrayList<>();
+        for (int i = 0; i < values.size(); i++) {
+            entries.add(new Entry(i, values.get(i)));
+        }
+
+        lineChart.clear();
+        LineDataSet dataSet = new LineDataSet(entries, label);
+        styleChartAppearance(dataSet, label); // 🎨 Custom styling
+
+        LineData lineData = new LineData(dataSet);
+        lineChart.setData(lineData);
+        configureChartBasics(lineChart, label);
+        lineChart.invalidate();
+    }
+
     // Format the date based on the time filter
     private String formatDate(LocalDateTime dateTime) {
         switch (time_filter) {
