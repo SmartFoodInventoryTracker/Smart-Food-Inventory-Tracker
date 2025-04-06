@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.smartfoodinventorytracker.R;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -59,7 +60,7 @@ public class FridgeHistoryActivity extends AppCompatActivity {
         // ✅ Buttons
         Button btnDateRange = findViewById(R.id.btnDateRange);
         Button btnGraph = findViewById(R.id.btnGraph);
-        Button btnRefresh = findViewById(R.id.btnRefresh);
+        FloatingActionButton btnRefresh = findViewById(R.id.btnRefresh);
 
         btnDateRange.setOnClickListener(v -> openDatePicker());
 

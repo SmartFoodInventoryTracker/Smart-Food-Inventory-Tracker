@@ -6,79 +6,78 @@
     android:id="@+id/historyMain"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".fridge_conditions.FridgeHistoryActivity">
+    tools:context=".fridge_conditions.FridgeHistoryActivity"
+    android:background="#FAFAFA">
 
-    <!-- Top Toolbar -->
+    <!-- Toolbar -->
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/historyToolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         android:background="?attr/colorPrimary"
-        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        app:title="Fridge History"
+        app:titleTextColor="@android:color/white"
+        app:navigationIcon="@drawable/ic_back"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- Scrollable content -->
+    <!-- Buttons Row -->
     <LinearLayout
-        android:id="@+id/historyContent"
+        android:id="@+id/buttonRow"
         android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:orientation="vertical"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
         android:padding="16dp"
+        android:layout_marginTop="8dp"
         app:layout_constraintTop_toBottomOf="@id/historyToolbar"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <!-- Title (optional, inside toolbar is fine too) -->
-        <TextView
-            android:id="@+id/historyTitle"
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnDateRange"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="📜 Fridge History"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="12dp" />
+            android:text="Pick Date"
+            app:icon="@drawable/ic_calender"
+            app:iconPadding="8dp"
+            app:iconGravity="textStart"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_marginEnd="8dp" />
 
-        <!-- Button Row -->
-        <LinearLayout
-            android:layout_width="match_parent"
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnGraph"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="end"
-            android:layout_marginBottom="8dp">
-
-            <Button
-                android:id="@+id/btnDateRange"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Pick Date" />
-
-            <Button
-                android:id="@+id/btnGraph"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="View Graph"
-                android:layout_marginStart="8dp" />
-        </LinearLayout>
-
-        <!-- Refresh Button -->
-        <Button
-            android:id="@+id/btnRefresh"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Refresh"
-            android:layout_marginBottom="12dp" />
-
-        <!-- RecyclerView for history -->
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/historyRecyclerView"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:clipToPadding="false"
-            android:paddingBottom="8dp"
-            tools:listitem="@layout/item_history_entry" />
-
+            android:text="View Graph"
+            app:icon="@drawable/ic_chart"
+            app:iconPadding="8dp"
+            app:iconGravity="textStart"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
     </LinearLayout>
 
+    <!-- RecyclerView -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/historyRecyclerView"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:clipToPadding="false"
+        android:paddingHorizontal="12dp"
+        android:paddingBottom="8dp"
+        app:layout_constraintTop_toBottomOf="@id/buttonRow"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:listitem="@layout/item_fridge_history" />
+
+    <!-- Optional Floating Refresh Button -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/btnRefresh"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_refresh"
+        android:contentDescription="Refresh"
+        app:backgroundTint="@color/white"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_margin="20dp"/>
 </androidx.constraintlayout.widget.ConstraintLayout>
