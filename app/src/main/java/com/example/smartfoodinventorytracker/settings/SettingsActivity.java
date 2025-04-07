@@ -98,8 +98,15 @@ public class SettingsActivity extends AppCompatActivity {
         switchFridge.setOnCheckedChangeListener((btn, isChecked) ->
                 prefs.edit().putBoolean("fridge_alerts", isChecked).apply());
 
-        switchExpiry.setOnCheckedChangeListener((btn, isChecked) ->
-                prefs.edit().putBoolean("expiry_alerts", isChecked).apply());
+        switchExpiry.setOnCheckedChangeListener((btn, isChecked) -> {
+            prefs.edit().putBoolean("expiry_alerts", isChecked).apply();
+
+            // ✅ Immediately reschedule expiry based on new toggle
+            String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+            new com.example.smartfoodinventorytracker.notifications.NotificationHelper(this, false, userId)
+                    .scheduleExpiryNotificationCheck();
+        });
+
 
         setUpToolbar();
     }
@@ -253,6 +260,14 @@ public class SettingsActivity extends AppCompatActivity {
                     editor.putInt(valueKey, value);
                     editor.putString(unitKey, unit);
                     editor.apply();
+
+                    // ✅ Immediately reschedule expiry with updated interval
+                    if (valueKey.equals("expired_interval_value") && unitKey.equals("expired_interval_unit")) {
+                        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+                        new com.example.smartfoodinventorytracker.notifications.NotificationHelper(this, false, userId)
+                                .scheduleExpiryNotificationCheck();
+                    }
+
                 })
                 .setNegativeButton("Cancel", null)
                 .show();

@@ -28,6 +28,7 @@ import android.os.Handler;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import com.example.smartfoodinventorytracker.inventory.InventoryActivity;
 
 public class DatabaseHelper {
 
@@ -259,9 +260,22 @@ public class DatabaseHelper {
 
                 boolean enabled = prefs.getBoolean("expiry_alerts", true);
                 // Use the same frequency for all groups
-                int freqValue = prefs.getInt("expired_interval_value", 4);
-                String freqUnit = prefs.getString("expired_interval_unit", "minute(s)");
-                long freqDelay = convertIntervalToMillis(freqValue, freqUnit);
+
+                long expiredDelay = convertIntervalToMillis(
+                        prefs.getInt("expired_interval_value", 4),
+                        prefs.getString("expired_interval_unit", "minute(s)")
+                );
+
+                long week1Delay = convertIntervalToMillis(
+                        prefs.getInt("week1_interval_value", 2),
+                        prefs.getString("week1_interval_unit", "day(s)")
+                );
+
+                long week2Delay = convertIntervalToMillis(
+                        prefs.getInt("week2_interval_value", 3),
+                        prefs.getString("week2_interval_unit", "day(s)")
+                );
+
 
                 long now = System.currentTimeMillis();
 
@@ -291,11 +305,10 @@ public class DatabaseHelper {
                     }
                 }
 
-                // Send notifications for each group (if conditions are met)
-                sendGroupNotification("expired", "❌ Expired", expiredList, freqDelay, sent, now, notificationHelper);
-                sendGroupNotification("expiring_today", "📅 Expires today", expiringTodayList, freqDelay, sent, now, notificationHelper);
-                sendGroupNotification("within_week", "🕒 Expires within a week", withinWeekList, freqDelay, sent, now, notificationHelper);
-                sendGroupNotification("within_2weeks", "⏰ Expires within two weeks", within2WeeksList, freqDelay, sent, now, notificationHelper);
+                sendGroupNotification("expired", "❌ Expired", expiredList, expiredDelay, sent, now, notificationHelper);
+                sendGroupNotification("expiring_today", "📅 Expires today", expiringTodayList, expiredDelay, sent, now, notificationHelper);
+                sendGroupNotification("within_week", "🕒 Expires within a week", withinWeekList, week1Delay, sent, now, notificationHelper);
+                sendGroupNotification("within_2weeks", "⏰ Expires within two weeks", within2WeeksList, week2Delay, sent, now, notificationHelper);
             }
 
             @Override
@@ -337,11 +350,11 @@ public class DatabaseHelper {
             message = titlePrefix + ":" + sb.toString();
         }
 
-        notificationHelper.sendNotification(
+        notificationHelper.sendNotificationLocalAndFirebase(
+                FirebaseAuth.getInstance().getCurrentUser().getUid(),
                 NotificationHelper.EXPIRY_ALERT_TITLE,
                 message,
-                com.example.smartfoodinventorytracker.inventory.InventoryActivity.class,
-                "" // no extra data
+                InventoryActivity.class
         );
 
         sent.edit().putLong(groupKey, now).apply();

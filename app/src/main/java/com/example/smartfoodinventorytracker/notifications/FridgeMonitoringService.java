@@ -4,6 +4,7 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.IBinder;
 
@@ -29,6 +30,8 @@ public class FridgeMonitoringService extends Service {
         }
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         NotificationHelper helper = new NotificationHelper(this, false, userId);
+        SharedPreferences prefs = getSharedPreferences("NotificationPrefs", MODE_PRIVATE);
+
         helper.scheduleFridgeConditionCheck();
     }
 

@@ -55,6 +55,9 @@ public class DashboardActivity extends AppCompatActivity {
         requestNotificationPermissionIfNeeded(); // ✅ Ask permission early
 
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        SharedPreferences notifPrefs = getSharedPreferences("NotificationPrefs", MODE_PRIVATE);
+        notifPrefs.edit().putBoolean("first_run_done", false).apply(); // force first expiry run
+
         NotificationHelper notificationHelper = new NotificationHelper(this, true, userId);
         notificationHelper.startFridgeMonitoringService();
 

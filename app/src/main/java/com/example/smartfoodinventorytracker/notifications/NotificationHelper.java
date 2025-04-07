@@ -67,33 +67,41 @@ public class NotificationHelper {
     }
 
     public void scheduleExpiryNotificationCheck() {
-        scheduleOneTimeCheck();
+        // Cancel any existing expiry jobs
+        WorkManager.getInstance(context).cancelAllWorkByTag("expiry_check");
+
+        scheduleOneTimeCheck(); // Schedule a new one
     }
 
+
     private void scheduleOneTimeCheck() {
-        // Read the new keys: expired_interval_value and expired_interval_unit
         SharedPreferences settingsPrefs = context.getSharedPreferences("user_settings", Context.MODE_PRIVATE);
         int value = settingsPrefs.getInt("expired_interval_value", 1);
-        // Change default to "minute(s)"
         String unit = settingsPrefs.getString("expired_interval_unit", "minute(s)");
 
-        TimeUnit timeUnit = TimeUnit.MINUTES;
-        if (unit.equalsIgnoreCase("hour(s)")) {
-            timeUnit = TimeUnit.HOURS;
-        } else if (unit.equalsIgnoreCase("day(s)")) {
-            timeUnit = TimeUnit.DAYS;
-        }
-
-        SharedPreferences notificationPrefs = context.getSharedPreferences("NotificationPrefs", Context.MODE_PRIVATE);
+        SharedPreferences notificationPrefs = context.getSharedPreferences("NotificationPrefs_" + userId, Context.MODE_PRIVATE);
         boolean firstRunDone = notificationPrefs.getBoolean("first_run_done", false);
 
-        long delay = firstRunDone ? value : 0;
+        long delay;
+        TimeUnit timeUnit = TimeUnit.MINUTES;
+
         if (!firstRunDone) {
+            delay = 0;
             notificationPrefs.edit().putBoolean("first_run_done", true).apply();
+        } else {
+            // Convert all intervals to minutes
+            if (unit.equalsIgnoreCase("hour(s)")) {
+                delay = value * 60L;
+            } else if (unit.equalsIgnoreCase("day(s)")) {
+                delay = value * 24L * 60L;
+            } else {
+                delay = value;
+            }
         }
 
         WorkRequest workRequest = new OneTimeWorkRequest.Builder(ExpiryWorker.class)
                 .setInitialDelay(delay, timeUnit)
+                .addTag("expiry_check")
                 .build();
 
         WorkManager.getInstance(context).enqueue(workRequest);
