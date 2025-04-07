@@ -207,7 +207,7 @@ public class DashboardActivity extends AppCompatActivity {
         if (cachedName != null && !cachedName.isEmpty()) {
             greetingText.setText("👋 " + greeting + ", " + cachedName);
         } else {
-            greetingText.setText("👋 " + greeting + ", User");
+            greetingText.setText("👋 " + greeting);
         }
 
         // ✅ Then load fresh data from Firestore
