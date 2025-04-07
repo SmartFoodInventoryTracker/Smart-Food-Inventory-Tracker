@@ -149,13 +149,13 @@ public class NotificationHelper {
 
     public void sendNotification(String title, String message, Class<?> targetActivity, String data) {
         Log.d("NotificationHelper", "Sending notification without duplicate check: " + message);
-        storeNotificationInFirebase(title, message);
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-                ActivityCompat.checkSelfPermission(context, android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.checkSelfPermission(context, android.Manifest.permission.POST_NOTIFICATIONS)
+                        != PackageManager.PERMISSION_GRANTED) {
             Log.e("NotificationHelper", "Missing POST_NOTIFICATIONS permission!");
             return;
         }
+
 
         Intent intent = new Intent(context, targetActivity);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -174,6 +174,19 @@ public class NotificationHelper {
         notificationManager.notify(notificationId, builder.build());
         Log.d("NotificationHelper", "Notification Sent - ID: " + notificationId);
     }
+
+    public void scheduleFridgeConditionCheck() {
+        WorkManager.getInstance(context).cancelAllWorkByTag("fridge_condition_check");
+
+        WorkRequest request = new OneTimeWorkRequest.Builder(FridgeConditionWorker.class)
+                .addTag("fridge_condition_check") // 👈 Add this
+                .setInitialDelay(1, TimeUnit.MINUTES)
+                .build();
+
+        WorkManager.getInstance(context).enqueue(request);
+    }
+
+
 
 
     public interface NotificationCallback {
@@ -204,7 +217,7 @@ public class NotificationHelper {
         });
     }
 
-    private void isNotificationAlreadySent(String title, String message, NotificationCallback callback) {
+    public void isNotificationAlreadySent(String title, String message, NotificationCallback callback) {
         // Get the duplicate window from preferences (default to 60 seconds if not set)
         SharedPreferences settingsPrefs = context.getSharedPreferences("user_settings", Context.MODE_PRIVATE);
         int duplicateWindowInSeconds = settingsPrefs.getInt("duplicate_window_seconds", 30);
@@ -262,10 +275,11 @@ public class NotificationHelper {
             case "Smoke Level": unit = " ppm"; break;
             default: unit = "";
         }
-        if (condition < 5) {
+        if (condition < 4) {
             Log.d("FridgeMonitor", "Condition is safe, skipping notification.");
             return;
         }
+
         String severity = (condition >= 9) ? "🔴 CRITICAL" : "🟠 WARNING";
         String message = severity + " - " + type + " changed! Current: " + value + unit;
         Log.d("FridgeMonitor", "Sending Notification - " + message);

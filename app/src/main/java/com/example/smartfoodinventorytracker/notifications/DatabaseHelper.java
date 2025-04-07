@@ -25,6 +25,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import android.os.Handler;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 
 public class DatabaseHelper {
 
@@ -161,59 +164,21 @@ public class DatabaseHelper {
         });
     }
 
-    public static void listenToFridgeConditionChanges(String userId, NotificationHelper helper) {
-        DatabaseReference fridgeRef = FirebaseDatabase.getInstance()
-                .getReference("users")
-                .child(userId)
-                .child("fridge_condition");
+    private static String getStatusLabel(int cond) {
+        if (cond <= 3) return "Good";
+        else if (cond <= 6) return "Moderate";
+        else return "Poor";
+    }
 
-        // Use SharedPreferences to store the last known raw values for each parameter
-        Context context = helper.getContext();
-        final SharedPreferences lastValuePrefs = context.getSharedPreferences("fridge_last_values", Context.MODE_PRIVATE);
-
-        // Attach a realtime listener to the fridge_condition node
-        fridgeRef.orderByKey().limitToLast(1).addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                StringBuilder notificationMessage = new StringBuilder();
-                boolean shouldNotify = false;
-
-                // List of parameter keys to inspect
-                String[] parameters = {"temperature", "humidity", "co", "lpg", "smoke"};
-
-                for (String param : parameters) {
-                    // Retrieve the current raw value from Firebase
-                    // Assuming all parameters can be represented as Double (adjust type as needed)
-                    Double currentValue = snapshot.child(param).getValue(Double.class);
-                    if (currentValue == null) continue;
-
-                    // Retrieve the last stored value; if not found, use a special default value that forces a notification.
-                    float lastValue = lastValuePrefs.getFloat(param, Float.MIN_VALUE);
-                    // If this is the first value or if the value has changed, add it to the notification
-                    if (lastValue == Float.MIN_VALUE || currentValue.floatValue() != lastValue) {
-                        shouldNotify = true;
-                        notificationMessage.append("\n• ").append(param)
-                                .append(": ").append(currentValue);
-                        // Update stored value with the new value
-                        lastValuePrefs.edit().putFloat(param, currentValue.floatValue()).apply();
-                    }
-                }
-
-                if (shouldNotify) {
-                    helper.sendNotificationLocalAndFirebase(
-                            userId,
-                            NotificationHelper.FRIDGE_ALERT_TITLE,
-                            notificationMessage.toString(),
-                            FridgeConditionsActivity.class
-                    );
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Log.e("FridgeListener", "Listener error", error.toException());
-            }
-        });
+    private static String getParamDisplayName(String key) {
+        switch (key) {
+            case "temperature": return "Temperature";
+            case "humidity": return "Humidity";
+            case "co": return "CO Level";
+            case "lpg": return "LPG Level";
+            case "smoke": return "Ammonia Level";
+            default: return key;
+        }
     }
 
     // Provide a way to listen for notification changes
