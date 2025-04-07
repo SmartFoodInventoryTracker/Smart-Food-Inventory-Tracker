@@ -4,6 +4,7 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.IBinder;
 
@@ -21,13 +22,19 @@ public class FridgeMonitoringService extends Service {
         createNotificationChannel();
         startForeground(1, createServiceNotification());
 
+        // Check if a user is currently signed in
+        if (FirebaseAuth.getInstance().getCurrentUser() == null) {
+            // Handle the absence of a signed-in user (e.g., stop the service)
+            stopSelf();
+            return;
+        }
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        NotificationHelper notificationHelper = new NotificationHelper(getApplicationContext(), false, userId);
+        NotificationHelper helper = new NotificationHelper(this, false, userId);
+        SharedPreferences prefs = getSharedPreferences("NotificationPrefs", MODE_PRIVATE);
 
-        DatabaseHelper.listenToFridgeConditions(userId, notificationHelper); // ✅ This line is key
-
-        notificationHelper.triggerPendingFridgeNotifications(); // Optional catch-up
+        helper.scheduleFridgeConditionCheck();
     }
+
 
 
 

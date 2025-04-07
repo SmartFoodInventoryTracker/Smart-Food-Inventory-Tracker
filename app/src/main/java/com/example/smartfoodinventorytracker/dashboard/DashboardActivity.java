@@ -55,6 +55,9 @@ public class DashboardActivity extends AppCompatActivity {
         requestNotificationPermissionIfNeeded(); // ✅ Ask permission early
 
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        SharedPreferences notifPrefs = getSharedPreferences("NotificationPrefs", MODE_PRIVATE);
+        notifPrefs.edit().putBoolean("first_run_done", false).apply(); // force first expiry run
+
         NotificationHelper notificationHelper = new NotificationHelper(this, true, userId);
         notificationHelper.startFridgeMonitoringService();
 
@@ -148,8 +151,6 @@ public class DashboardActivity extends AppCompatActivity {
             } else if (id == R.id.nav_notifications) {
                 Toast.makeText(this, "Notifications Center", Toast.LENGTH_SHORT).show();
                 startActivity(new Intent(this, NotificationCenterActivity.class));
-            } else if (id == R.id.nav_profile) {
-                startActivity(new Intent(this, ProfileActivity.class));
             } else if (id == R.id.nav_settings) {
                 Toast.makeText(this, "Settings Clicked", Toast.LENGTH_SHORT).show();
                 startActivity(new Intent(this, SettingsActivity.class));
@@ -206,7 +207,7 @@ public class DashboardActivity extends AppCompatActivity {
         if (cachedName != null && !cachedName.isEmpty()) {
             greetingText.setText("👋 " + greeting + ", " + cachedName);
         } else {
-            greetingText.setText("👋 " + greeting + ", User");
+            greetingText.setText("👋 " + greeting);
         }
 
         // ✅ Then load fresh data from Firestore

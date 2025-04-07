@@ -67,33 +67,41 @@ public class NotificationHelper {
     }
 
     public void scheduleExpiryNotificationCheck() {
-        scheduleOneTimeCheck();
+        // Cancel any existing expiry jobs
+        WorkManager.getInstance(context).cancelAllWorkByTag("expiry_check");
+
+        scheduleOneTimeCheck(); // Schedule a new one
     }
 
+
     private void scheduleOneTimeCheck() {
-        // Read the new keys: expired_interval_value and expired_interval_unit
         SharedPreferences settingsPrefs = context.getSharedPreferences("user_settings", Context.MODE_PRIVATE);
         int value = settingsPrefs.getInt("expired_interval_value", 1);
-        // Change default to "minute(s)"
         String unit = settingsPrefs.getString("expired_interval_unit", "minute(s)");
 
-        TimeUnit timeUnit = TimeUnit.MINUTES;
-        if (unit.equalsIgnoreCase("hour(s)")) {
-            timeUnit = TimeUnit.HOURS;
-        } else if (unit.equalsIgnoreCase("day(s)")) {
-            timeUnit = TimeUnit.DAYS;
-        }
-
-        SharedPreferences notificationPrefs = context.getSharedPreferences("NotificationPrefs", Context.MODE_PRIVATE);
+        SharedPreferences notificationPrefs = context.getSharedPreferences("NotificationPrefs_" + userId, Context.MODE_PRIVATE);
         boolean firstRunDone = notificationPrefs.getBoolean("first_run_done", false);
 
-        long delay = firstRunDone ? value : 0;
+        long delay;
+        TimeUnit timeUnit = TimeUnit.MINUTES;
+
         if (!firstRunDone) {
+            delay = 0;
             notificationPrefs.edit().putBoolean("first_run_done", true).apply();
+        } else {
+            // Convert all intervals to minutes
+            if (unit.equalsIgnoreCase("hour(s)")) {
+                delay = value * 60L;
+            } else if (unit.equalsIgnoreCase("day(s)")) {
+                delay = value * 24L * 60L;
+            } else {
+                delay = value;
+            }
         }
 
         WorkRequest workRequest = new OneTimeWorkRequest.Builder(ExpiryWorker.class)
                 .setInitialDelay(delay, timeUnit)
+                .addTag("expiry_check")
                 .build();
 
         WorkManager.getInstance(context).enqueue(workRequest);
@@ -149,13 +157,13 @@ public class NotificationHelper {
 
     public void sendNotification(String title, String message, Class<?> targetActivity, String data) {
         Log.d("NotificationHelper", "Sending notification without duplicate check: " + message);
-        storeNotificationInFirebase(title, message);
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-                ActivityCompat.checkSelfPermission(context, android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.checkSelfPermission(context, android.Manifest.permission.POST_NOTIFICATIONS)
+                        != PackageManager.PERMISSION_GRANTED) {
             Log.e("NotificationHelper", "Missing POST_NOTIFICATIONS permission!");
             return;
         }
+
 
         Intent intent = new Intent(context, targetActivity);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -173,6 +181,30 @@ public class NotificationHelper {
         int notificationId = (int) (System.currentTimeMillis() % Integer.MAX_VALUE);
         notificationManager.notify(notificationId, builder.build());
         Log.d("NotificationHelper", "Notification Sent - ID: " + notificationId);
+    }
+
+    public void scheduleFridgeConditionCheck() {
+        WorkManager.getInstance(context).cancelAllWorkByTag("fridge_condition_check");
+
+        SharedPreferences prefs = context.getSharedPreferences("user_settings", Context.MODE_PRIVATE);
+        int value = prefs.getInt("fridge_interval_value", 1);
+        String unit = prefs.getString("fridge_interval_unit", "minute(s)");
+
+        long delayMinutes;
+        if (unit.equalsIgnoreCase("hour(s)")) {
+            delayMinutes = value * 60L;
+        } else if (unit.equalsIgnoreCase("day(s)")) {
+            delayMinutes = value * 24L * 60L;
+        } else {
+            delayMinutes = value;
+        }
+
+        WorkRequest request = new OneTimeWorkRequest.Builder(FridgeConditionWorker.class)
+                .addTag("fridge_condition_check")
+                .setInitialDelay(delayMinutes, TimeUnit.MINUTES) // ✅ now respects user setting
+                .build();
+
+        WorkManager.getInstance(context).enqueue(request);
     }
 
 
@@ -204,7 +236,7 @@ public class NotificationHelper {
         });
     }
 
-    private void isNotificationAlreadySent(String title, String message, NotificationCallback callback) {
+    public void isNotificationAlreadySent(String title, String message, NotificationCallback callback) {
         // Get the duplicate window from preferences (default to 60 seconds if not set)
         SharedPreferences settingsPrefs = context.getSharedPreferences("user_settings", Context.MODE_PRIVATE);
         int duplicateWindowInSeconds = settingsPrefs.getInt("duplicate_window_seconds", 30);
@@ -262,10 +294,11 @@ public class NotificationHelper {
             case "Smoke Level": unit = " ppm"; break;
             default: unit = "";
         }
-        if (condition < 5) {
+        if (condition < 4) {
             Log.d("FridgeMonitor", "Condition is safe, skipping notification.");
             return;
         }
+
         String severity = (condition >= 9) ? "🔴 CRITICAL" : "🟠 WARNING";
         String message = severity + " - " + type + " changed! Current: " + value + unit;
         Log.d("FridgeMonitor", "Sending Notification - " + message);

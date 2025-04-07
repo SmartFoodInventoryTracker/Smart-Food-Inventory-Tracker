@@ -38,12 +38,17 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.DocumentReference;
 
 public class SettingsActivity extends AppCompatActivity {
-
+    private FirebaseFirestore db;
     private SwitchCompat switchFridge, switchExpiry;
     private Bluetooth btHelper;
-    private TextView inputExpiredHours, inputWeek1Days, inputWeek2Days;
+    private TextView inputExpiredHours, inputWeek1Days, inputWeek2Days, inputFridgeInterval;
     private SharedPreferences prefs;
     private static final String PREFS_NAME = "user_settings";
 
@@ -63,6 +68,14 @@ public class SettingsActivity extends AppCompatActivity {
         setUpBluetooth(this);
         setUpUi();
 
+        findViewById(R.id.buttonConfigureProfile).setOnClickListener(v -> showNameDialog());
+
+        db = FirebaseFirestore.getInstance();
+
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        DocumentReference userRef = db.collection("users").document(userId);
+
+
         // Load saved toggle settings
         switchFridge.setChecked(prefs.getBoolean("fridge_alerts", true));
         switchExpiry.setChecked(prefs.getBoolean("expiry_alerts", true));
@@ -79,6 +92,15 @@ public class SettingsActivity extends AppCompatActivity {
         int week2Val = prefs.getInt("week2_interval_value", 3);
         String week2Unit = prefs.getString("week2_interval_unit", "day(s)");
         inputWeek2Days.setText(week2Val + " " + week2Unit);
+
+        int fridgeVal = prefs.getInt("fridge_interval_value", 1);
+        String fridgeUnit = prefs.getString("fridge_interval_unit", "minute(s)");
+        inputFridgeInterval.setText(fridgeVal + " " + fridgeUnit);
+
+        inputFridgeInterval.setOnClickListener(v ->
+                showIntervalDialog("Choose frequency",
+                        "fridge_interval_value", "fridge_interval_unit", 1, 60, 1, inputFridgeInterval)
+        );
 
 
         // Set up click listeners using the generic picker method
@@ -98,8 +120,14 @@ public class SettingsActivity extends AppCompatActivity {
         switchFridge.setOnCheckedChangeListener((btn, isChecked) ->
                 prefs.edit().putBoolean("fridge_alerts", isChecked).apply());
 
-        switchExpiry.setOnCheckedChangeListener((btn, isChecked) ->
-                prefs.edit().putBoolean("expiry_alerts", isChecked).apply());
+        switchExpiry.setOnCheckedChangeListener((btn, isChecked) -> {
+            prefs.edit().putBoolean("expiry_alerts", isChecked).apply();
+
+            // ✅ Immediately reschedule expiry based on new toggle
+            new com.example.smartfoodinventorytracker.notifications.NotificationHelper(this, false, userId)
+                    .scheduleExpiryNotificationCheck();
+        });
+
 
         setUpToolbar();
     }
@@ -114,6 +142,7 @@ public class SettingsActivity extends AppCompatActivity {
         inputExpiredHours = findViewById(R.id.input_expired_hours);
         inputWeek1Days = findViewById(R.id.input_week1_days);
         inputWeek2Days = findViewById(R.id.input_week2_days);
+        inputFridgeInterval = findViewById(R.id.input_fridge_interval);
 
         requestBluetoothIfNeeded();
         findViewById(R.id.buttonConfigureWifi).setOnClickListener(v -> showWifiDialog());
@@ -253,6 +282,19 @@ public class SettingsActivity extends AppCompatActivity {
                     editor.putInt(valueKey, value);
                     editor.putString(unitKey, unit);
                     editor.apply();
+
+                    // ✅ Immediately reschedule expiry with updated interval
+                    if (valueKey.equals("expired_interval_value") && unitKey.equals("expired_interval_unit")) {
+                        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+                        new com.example.smartfoodinventorytracker.notifications.NotificationHelper(this, false, userId)
+                                .scheduleExpiryNotificationCheck();
+                    } else if (valueKey.equals("fridge_interval_value") && unitKey.equals("fridge_interval_unit")) {
+                        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+                        new com.example.smartfoodinventorytracker.notifications.NotificationHelper(this, false, userId)
+                                .scheduleFridgeConditionCheck();
+                    }
+
+
                 })
                 .setNegativeButton("Cancel", null)
                 .show();
@@ -266,6 +308,53 @@ public class SettingsActivity extends AppCompatActivity {
             }
         }
     }
+
+    private void showNameDialog() {
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_profile_name, null);
+        EditText nameInput = dialogView.findViewById(R.id.dialog_name);
+        EditText emailField = dialogView.findViewById(R.id.dialog_email);
+        TextView statusText = dialogView.findViewById(R.id.dialog_status);
+        Button saveButton = dialogView.findViewById(R.id.dialog_save);
+
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        DocumentReference userRef = FirebaseFirestore.getInstance().collection("users").document(userId);
+
+        // Pre-fill fields
+        userRef.get().addOnSuccessListener(document -> {
+            if (document.exists()) {
+                String email = document.getString("email");
+                String name = document.getString("name");
+
+                emailField.setText(email != null ? email : "");
+                nameInput.setText(name != null ? name : "");
+            }
+        });
+
+        // Build and show the dialog
+        androidx.appcompat.app.AlertDialog dialog = new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setView(dialogView)
+                .create();
+
+        saveButton.setOnClickListener(v -> {
+            String newName = nameInput.getText().toString().trim();
+            if (newName.isEmpty()) {
+                Toast.makeText(this, "Name cannot be empty", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            userRef.update("name", newName)
+                    .addOnSuccessListener(aVoid -> {
+                        Toast.makeText(this, "Name updated!", Toast.LENGTH_SHORT).show();
+                        dialog.dismiss();
+                    })
+                    .addOnFailureListener(e -> {
+                        Toast.makeText(this, "Failed to update name", Toast.LENGTH_SHORT).show();
+                    });
+        });
+
+        dialog.show();
+    }
+
 
     private void setUpToolbar() {
         Toolbar toolbar = findViewById(R.id.toolbar);

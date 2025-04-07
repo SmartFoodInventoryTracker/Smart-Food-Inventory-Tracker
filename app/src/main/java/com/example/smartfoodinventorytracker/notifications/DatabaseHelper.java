@@ -7,6 +7,7 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 
+import com.example.smartfoodinventorytracker.fridge_conditions.FridgeConditionsActivity;
 import com.example.smartfoodinventorytracker.inventory.Product;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -24,6 +25,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import android.os.Handler;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import com.example.smartfoodinventorytracker.inventory.InventoryActivity;
 
 public class DatabaseHelper {
 
@@ -160,121 +165,21 @@ public class DatabaseHelper {
         });
     }
 
-    public static void listenToFridgeConditions(String userId, NotificationHelper helper) {
-        long COOLDOWN_MILLIS = 10 * 60 * 1000L; // 10 minutes
-        String COOLDOWN_KEY = "last_fridge_alert";
+    private static String getStatusLabel(int cond) {
+        if (cond <= 3) return "Good";
+        else if (cond <= 6) return "Moderate";
+        else return "Poor";
+    }
 
-        DatabaseReference fridgeRef = FirebaseDatabase.getInstance()
-                .getReference("users")
-                .child(userId)
-                .child("fridge_condition");
-
-        Handler handler = new Handler(Looper.getMainLooper());
-        final Runnable[] pendingNotification = new Runnable[1];
-        Context context = helper.getContext();
-        SharedPreferences fridgePrefs = context.getSharedPreferences("fridge_status", Context.MODE_PRIVATE);
-
-        fridgeRef.orderByKey().limitToLast(1).addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                for (DataSnapshot snap : snapshot.getChildren()) {
-                    Map<String, Integer> conditionMap = new HashMap<>();
-                    conditionMap.put("Temperature", snap.child("temperature condition").getValue(Integer.class));
-                    conditionMap.put("Humidity", snap.child("humidity condition").getValue(Integer.class));
-                    conditionMap.put("CO Level", snap.child("co condition").getValue(Integer.class));
-                    conditionMap.put("LPG Level", snap.child("lpg condition").getValue(Integer.class));
-                    conditionMap.put("Smoke Level", snap.child("smoke condition").getValue(Integer.class));
-                    conditionMap.put("Overall", snap.child("overall condition").getValue(Integer.class));
-
-                    Map<String, String> currentStatuses = new HashMap<>();
-                    boolean statusChanged = false;
-
-                    for (Map.Entry<String, Integer> entry : conditionMap.entrySet()) {
-                        String key = entry.getKey();
-                        Integer cond = entry.getValue();
-                        String newStatus = getStatusLabel(cond);
-
-                        currentStatuses.put(key, newStatus);
-
-                        String last = fridgePrefs.getString(key, null);
-                        if (last == null || !last.equals(newStatus)) {
-                            statusChanged = true;
-                        }
-                    }
-
-                    if (statusChanged) {
-                        if (pendingNotification[0] != null) {
-                            handler.removeCallbacks(pendingNotification[0]);
-                        }
-
-                        pendingNotification[0] = () -> {
-                            boolean hasAlert = currentStatuses.values().stream()
-                                    .anyMatch(status -> status.equals("Moderate") || status.equals("Poor"));
-
-                            if (!hasAlert) {
-                                Log.d("FridgeMonitor", "✅ All statuses are Good — skipping notification.");
-                                return;
-                            }
-
-                            StringBuilder message = new StringBuilder("Some abnormal condition was detected:");
-                            for (Map.Entry<String, String> entry : currentStatuses.entrySet()) {
-                                String status = entry.getValue();
-
-                                // Only include Moderate or Poor in the message
-                                if (status.equals("Moderate") || status.equals("Poor")) {
-                                    String emoji = getEmojiForStatus(status);
-                                    message.append("\n- ").append(entry.getKey()).append(": ").append(emoji).append(" ").append(status);
-                                }
-
-                                // Still save all updated statuses to avoid repeated alerts
-                                fridgePrefs.edit().putString(entry.getKey(), status).apply();
-                            }
-
-                            helper.sendNotification(
-                                    NotificationHelper.FRIDGE_ALERT_TITLE,
-                                    message.toString(),
-                                    com.example.smartfoodinventorytracker.fridge_conditions.FridgeConditionsActivity.class,
-                                    ""
-                            );
-
-                            // ✅ Save cooldown timestamp
-                            fridgePrefs.edit().putLong(COOLDOWN_KEY, System.currentTimeMillis()).apply();
-                        };
-
-                        long now = System.currentTimeMillis();
-                        long lastSent = fridgePrefs.getLong(COOLDOWN_KEY, 0);
-
-                        if (now - lastSent < COOLDOWN_MILLIS) {
-                            Log.d("FridgeMonitor", "🕐 Cooldown active — skipping notification");
-                            return;
-                        }
-
-                        handler.postDelayed(pendingNotification[0], 5000);
-                    }
-                }
-            }
-
-            private String getStatusLabel(Integer cond) {
-                if (cond == null) return "Unknown";
-                if (cond <= 3) return "Good";
-                else if (cond <= 6) return "Moderate";
-                else return "Poor";
-            }
-
-            private String getEmojiForStatus(String status) {
-                switch (status) {
-                    case "Good": return "✅";
-                    case "Moderate": return "⚠️";
-                    case "Poor": return "🔴";
-                    default: return "❔";
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Log.e("FridgeMonitor", "Failed to monitor fridge conditions", error.toException());
-            }
-        });
+    private static String getParamDisplayName(String key) {
+        switch (key) {
+            case "temperature": return "Temperature";
+            case "humidity": return "Humidity";
+            case "co": return "CO Level";
+            case "lpg": return "LPG Level";
+            case "smoke": return "Ammonia Level";
+            default: return key;
+        }
     }
 
     // Provide a way to listen for notification changes
@@ -355,9 +260,22 @@ public class DatabaseHelper {
 
                 boolean enabled = prefs.getBoolean("expiry_alerts", true);
                 // Use the same frequency for all groups
-                int freqValue = prefs.getInt("expired_interval_value", 4);
-                String freqUnit = prefs.getString("expired_interval_unit", "minute(s)");
-                long freqDelay = convertIntervalToMillis(freqValue, freqUnit);
+
+                long expiredDelay = convertIntervalToMillis(
+                        prefs.getInt("expired_interval_value", 4),
+                        prefs.getString("expired_interval_unit", "minute(s)")
+                );
+
+                long week1Delay = convertIntervalToMillis(
+                        prefs.getInt("week1_interval_value", 2),
+                        prefs.getString("week1_interval_unit", "day(s)")
+                );
+
+                long week2Delay = convertIntervalToMillis(
+                        prefs.getInt("week2_interval_value", 3),
+                        prefs.getString("week2_interval_unit", "day(s)")
+                );
+
 
                 long now = System.currentTimeMillis();
 
@@ -387,11 +305,10 @@ public class DatabaseHelper {
                     }
                 }
 
-                // Send notifications for each group (if conditions are met)
-                sendGroupNotification("expired", "❌ Expired", expiredList, freqDelay, sent, now, notificationHelper);
-                sendGroupNotification("expiring_today", "📅 Expires today", expiringTodayList, freqDelay, sent, now, notificationHelper);
-                sendGroupNotification("within_week", "🕒 Expires within a week", withinWeekList, freqDelay, sent, now, notificationHelper);
-                sendGroupNotification("within_2weeks", "⏰ Expires within two weeks", within2WeeksList, freqDelay, sent, now, notificationHelper);
+                sendGroupNotification("expired", "❌ Expired", expiredList, expiredDelay, sent, now, notificationHelper);
+                sendGroupNotification("expiring_today", "📅 Expires today", expiringTodayList, expiredDelay, sent, now, notificationHelper);
+                sendGroupNotification("within_week", "🕒 Expires within a week", withinWeekList, week1Delay, sent, now, notificationHelper);
+                sendGroupNotification("within_2weeks", "⏰ Expires within two weeks", within2WeeksList, week2Delay, sent, now, notificationHelper);
             }
 
             @Override
@@ -433,11 +350,11 @@ public class DatabaseHelper {
             message = titlePrefix + ":" + sb.toString();
         }
 
-        notificationHelper.sendNotification(
+        notificationHelper.sendNotificationLocalAndFirebase(
+                FirebaseAuth.getInstance().getCurrentUser().getUid(),
                 NotificationHelper.EXPIRY_ALERT_TITLE,
                 message,
-                com.example.smartfoodinventorytracker.inventory.InventoryActivity.class,
-                "" // no extra data
+                InventoryActivity.class
         );
 
         sent.edit().putLong(groupKey, now).apply();

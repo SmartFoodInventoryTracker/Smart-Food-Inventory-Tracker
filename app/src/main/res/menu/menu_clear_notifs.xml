@@ -10,6 +10,7 @@
     <item
         android:id="@+id/filter_menu"
         android:icon="@drawable/filter"
+        android:iconTint="#D5D0D0"
         android:title="Filter"
         app:showAsAction="always">
         <menu>
