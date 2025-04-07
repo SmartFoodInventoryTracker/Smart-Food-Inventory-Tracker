@@ -43,7 +43,7 @@ public class SettingsActivity extends AppCompatActivity {
 
     private SwitchCompat switchFridge, switchExpiry;
     private Bluetooth btHelper;
-    private TextView inputExpiredHours, inputWeek1Days, inputWeek2Days;
+    private TextView inputExpiredHours, inputWeek1Days, inputWeek2Days, inputFridgeInterval;
     private SharedPreferences prefs;
     private static final String PREFS_NAME = "user_settings";
 
@@ -79,6 +79,15 @@ public class SettingsActivity extends AppCompatActivity {
         int week2Val = prefs.getInt("week2_interval_value", 3);
         String week2Unit = prefs.getString("week2_interval_unit", "day(s)");
         inputWeek2Days.setText(week2Val + " " + week2Unit);
+
+        int fridgeVal = prefs.getInt("fridge_interval_value", 1);
+        String fridgeUnit = prefs.getString("fridge_interval_unit", "minute(s)");
+        inputFridgeInterval.setText(fridgeVal + " " + fridgeUnit);
+
+        inputFridgeInterval.setOnClickListener(v ->
+                showIntervalDialog("Choose frequency",
+                        "fridge_interval_value", "fridge_interval_unit", 1, 60, 1, inputFridgeInterval)
+        );
 
 
         // Set up click listeners using the generic picker method
@@ -121,6 +130,7 @@ public class SettingsActivity extends AppCompatActivity {
         inputExpiredHours = findViewById(R.id.input_expired_hours);
         inputWeek1Days = findViewById(R.id.input_week1_days);
         inputWeek2Days = findViewById(R.id.input_week2_days);
+        inputFridgeInterval = findViewById(R.id.input_fridge_interval);
 
         requestBluetoothIfNeeded();
         findViewById(R.id.buttonConfigureWifi).setOnClickListener(v -> showWifiDialog());
@@ -266,7 +276,12 @@ public class SettingsActivity extends AppCompatActivity {
                         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
                         new com.example.smartfoodinventorytracker.notifications.NotificationHelper(this, false, userId)
                                 .scheduleExpiryNotificationCheck();
+                    } else if (valueKey.equals("fridge_interval_value") && unitKey.equals("fridge_interval_unit")) {
+                        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+                        new com.example.smartfoodinventorytracker.notifications.NotificationHelper(this, false, userId)
+                                .scheduleFridgeConditionCheck();
                     }
+
 
                 })
                 .setNegativeButton("Cancel", null)

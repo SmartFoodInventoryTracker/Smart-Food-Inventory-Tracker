@@ -186,15 +186,26 @@ public class NotificationHelper {
     public void scheduleFridgeConditionCheck() {
         WorkManager.getInstance(context).cancelAllWorkByTag("fridge_condition_check");
 
+        SharedPreferences prefs = context.getSharedPreferences("user_settings", Context.MODE_PRIVATE);
+        int value = prefs.getInt("fridge_interval_value", 1);
+        String unit = prefs.getString("fridge_interval_unit", "minute(s)");
+
+        long delayMinutes;
+        if (unit.equalsIgnoreCase("hour(s)")) {
+            delayMinutes = value * 60L;
+        } else if (unit.equalsIgnoreCase("day(s)")) {
+            delayMinutes = value * 24L * 60L;
+        } else {
+            delayMinutes = value;
+        }
+
         WorkRequest request = new OneTimeWorkRequest.Builder(FridgeConditionWorker.class)
-                .addTag("fridge_condition_check") // 👈 Add this
-                .setInitialDelay(60, TimeUnit.SECONDS)
+                .addTag("fridge_condition_check")
+                .setInitialDelay(delayMinutes, TimeUnit.MINUTES) // ✅ now respects user setting
                 .build();
 
         WorkManager.getInstance(context).enqueue(request);
     }
-
-
 
 
     public interface NotificationCallback {
