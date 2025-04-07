@@ -32,7 +32,7 @@
                 android:layout_height="25dp"
                 android:layout_gravity="center_vertical"
                 android:layout_marginStart="0dp"
-                android:layout_weight="0.5"
+                android:layout_weight="0.1"
                 android:src="@drawable/ic_fridge"
                 app:tint="@android:color/white" />
 

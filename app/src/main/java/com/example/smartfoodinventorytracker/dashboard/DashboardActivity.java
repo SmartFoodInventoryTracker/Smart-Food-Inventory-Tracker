@@ -151,8 +151,6 @@ public class DashboardActivity extends AppCompatActivity {
             } else if (id == R.id.nav_notifications) {
                 Toast.makeText(this, "Notifications Center", Toast.LENGTH_SHORT).show();
                 startActivity(new Intent(this, NotificationCenterActivity.class));
-            } else if (id == R.id.nav_profile) {
-                startActivity(new Intent(this, ProfileActivity.class));
             } else if (id == R.id.nav_settings) {
                 Toast.makeText(this, "Settings Clicked", Toast.LENGTH_SHORT).show();
                 startActivity(new Intent(this, SettingsActivity.class));

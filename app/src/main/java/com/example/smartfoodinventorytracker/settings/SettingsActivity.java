@@ -38,9 +38,14 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.DocumentReference;
 
 public class SettingsActivity extends AppCompatActivity {
-
+    private FirebaseFirestore db;
     private SwitchCompat switchFridge, switchExpiry;
     private Bluetooth btHelper;
     private TextView inputExpiredHours, inputWeek1Days, inputWeek2Days, inputFridgeInterval;
@@ -62,6 +67,14 @@ public class SettingsActivity extends AppCompatActivity {
         prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         setUpBluetooth(this);
         setUpUi();
+
+        findViewById(R.id.buttonConfigureProfile).setOnClickListener(v -> showNameDialog());
+
+        db = FirebaseFirestore.getInstance();
+
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        DocumentReference userRef = db.collection("users").document(userId);
+
 
         // Load saved toggle settings
         switchFridge.setChecked(prefs.getBoolean("fridge_alerts", true));
@@ -111,7 +124,6 @@ public class SettingsActivity extends AppCompatActivity {
             prefs.edit().putBoolean("expiry_alerts", isChecked).apply();
 
             // ✅ Immediately reschedule expiry based on new toggle
-            String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
             new com.example.smartfoodinventorytracker.notifications.NotificationHelper(this, false, userId)
                     .scheduleExpiryNotificationCheck();
         });
@@ -296,6 +308,53 @@ public class SettingsActivity extends AppCompatActivity {
             }
         }
     }
+
+    private void showNameDialog() {
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_profile_name, null);
+        EditText nameInput = dialogView.findViewById(R.id.dialog_name);
+        EditText emailField = dialogView.findViewById(R.id.dialog_email);
+        TextView statusText = dialogView.findViewById(R.id.dialog_status);
+        Button saveButton = dialogView.findViewById(R.id.dialog_save);
+
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        DocumentReference userRef = FirebaseFirestore.getInstance().collection("users").document(userId);
+
+        // Pre-fill fields
+        userRef.get().addOnSuccessListener(document -> {
+            if (document.exists()) {
+                String email = document.getString("email");
+                String name = document.getString("name");
+
+                emailField.setText(email != null ? email : "");
+                nameInput.setText(name != null ? name : "");
+            }
+        });
+
+        // Build and show the dialog
+        androidx.appcompat.app.AlertDialog dialog = new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setView(dialogView)
+                .create();
+
+        saveButton.setOnClickListener(v -> {
+            String newName = nameInput.getText().toString().trim();
+            if (newName.isEmpty()) {
+                Toast.makeText(this, "Name cannot be empty", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            userRef.update("name", newName)
+                    .addOnSuccessListener(aVoid -> {
+                        Toast.makeText(this, "Name updated!", Toast.LENGTH_SHORT).show();
+                        dialog.dismiss();
+                    })
+                    .addOnFailureListener(e -> {
+                        Toast.makeText(this, "Failed to update name", Toast.LENGTH_SHORT).show();
+                    });
+        });
+
+        dialog.show();
+    }
+
 
     private void setUpToolbar() {
         Toolbar toolbar = findViewById(R.id.toolbar);
