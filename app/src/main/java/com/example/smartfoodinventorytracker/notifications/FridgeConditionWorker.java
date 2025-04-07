@@ -33,6 +33,13 @@ public class FridgeConditionWorker extends Worker {
         Context context = getApplicationContext();
         NotificationHelper helper = new NotificationHelper(context, false, userId);
         SharedPreferences sent = context.getSharedPreferences("notif_times", Context.MODE_PRIVATE);
+        SharedPreferences prefs = context.getSharedPreferences("user_settings", Context.MODE_PRIVATE);
+        boolean alertsEnabled = prefs.getBoolean("fridge_alerts", true);
+        if (!alertsEnabled) {
+            helper.scheduleFridgeConditionCheck();
+            return Result.success();
+        }
+
         long now = System.currentTimeMillis();
 
         final boolean[] success = {false};

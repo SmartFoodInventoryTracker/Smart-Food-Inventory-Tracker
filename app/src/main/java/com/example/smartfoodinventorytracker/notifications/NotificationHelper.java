@@ -180,7 +180,7 @@ public class NotificationHelper {
 
         WorkRequest request = new OneTimeWorkRequest.Builder(FridgeConditionWorker.class)
                 .addTag("fridge_condition_check") // 👈 Add this
-                .setInitialDelay(1, TimeUnit.MINUTES)
+                .setInitialDelay(60, TimeUnit.SECONDS)
                 .build();
 
         WorkManager.getInstance(context).enqueue(request);
