@@ -175,9 +175,9 @@ public class DatabaseHelper {
         switch (key) {
             case "temperature": return "Temperature";
             case "humidity": return "Humidity";
-            case "co": return "CO Level";
+            case "co": return "CO₂ Level";
             case "lpg": return "LPG Level";
-            case "smoke": return "Ammonia Level";
+            case "smoke": return "NH₃ Level";
             default: return key;
         }
     }

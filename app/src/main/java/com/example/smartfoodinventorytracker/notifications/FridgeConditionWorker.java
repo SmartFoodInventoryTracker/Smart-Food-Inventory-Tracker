@@ -74,9 +74,9 @@ public class FridgeConditionWorker extends Worker {
 
                         addAlertIfNeeded(alerts, "Temperature", temp, tempCond, "°C");
                         addAlertIfNeeded(alerts, "Humidity", hum, humCond, "%");
-                        addAlertIfNeeded(alerts, "CO", co, coCond, " ppm");
+                        addAlertIfNeeded(alerts, "CO₂", co, coCond, " ppm");
                         addAlertIfNeeded(alerts, "LPG", lpg, lpgCond, " ppm");
-                        addAlertIfNeeded(alerts, "Ammonia", smoke, smokeCond, " ppm");
+                        addAlertIfNeeded(alerts, "NH₃", smoke, smokeCond, " ppm");
 
                         long lastSent = sent.getLong("fridge_group", 0);
                         if (now - lastSent < 60_000) {
