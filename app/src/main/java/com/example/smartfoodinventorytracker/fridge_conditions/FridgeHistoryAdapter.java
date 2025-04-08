@@ -33,9 +33,9 @@ public class FridgeHistoryAdapter extends RecyclerView.Adapter<FridgeHistoryAdap
         holder.dateTimeText.setText(item.dateTime);
         holder.tempText.setText("Temperature: " + item.temperature + "°C");
         holder.humidityText.setText("Humidity: " + item.humidity + "%");
-        holder.coText.setText("CO: " + item.co + " ppm");
+        holder.coText.setText("CO₂: " + item.co + " ppm");
         holder.lpgText.setText("LPG: " + item.lpg + " ppm");
-        holder.smokeText.setText("NH₄: " + item.smoke + " ppm");
+        holder.smokeText.setText("NH₃: " + item.smoke + " ppm");
 
         // Set condition labels with color
         setConditionLabel(holder.tempStatus, item.tempCondition);

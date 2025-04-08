@@ -320,15 +320,16 @@ public class FridgeGraphActivity extends AppCompatActivity {
                 color = getResources().getColor(R.color.teal_700); break;
             case "Humidity":
                 color = getResources().getColor(R.color.purple_500); break;
-            case "CO":
+            case "CO₂":
                 color = getResources().getColor(R.color.co_color); break;
             case "LPG":
                 color = getResources().getColor(R.color.lpg_color); break;
-            case "NH₄":
+            case "NH₃":
                 color = getResources().getColor(R.color.nh4_color); break;
             default:
                 color = getResources().getColor(R.color.graph_line); break;
         }
+
 
         dataSet.setColor(color);
         dataSet.setCircleColor(color);

@@ -13,10 +13,11 @@
     <string-array name="metrics_array">
         <item>Temperature</item>
         <item>Humidity</item>
-        <item>CO₂</item>
+        <item>CO₂</item>      <!-- instead of CO -->
         <item>LPG</item>
-        <item>NH₄</item>
+        <item>NH₃</item>
     </string-array>
+
 
     <string-array name="time_array">
         <item>All Time</item>

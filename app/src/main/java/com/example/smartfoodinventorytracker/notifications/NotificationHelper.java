@@ -300,7 +300,14 @@ public class NotificationHelper {
         }
 
         String severity = (condition >= 9) ? "🔴 CRITICAL" : "🟠 WARNING";
-        String message = severity + " - " + type + " changed! Current: " + value + unit;
+        String displayName;
+        switch (type) {
+            case "CO Level": displayName = "CO₂ Level"; break;
+            case "Smoke Level": displayName = "NH₃ Level"; break;
+            default: displayName = type;
+        }
+
+        String message = severity + " - " + displayName + " changed! Current: " + value + unit;
         Log.d("FridgeMonitor", "Sending Notification - " + message);
         DatabaseReference userNotificationsRef = FirebaseDatabase.getInstance()
                 .getReference("users").child(userId).child("notifications");
