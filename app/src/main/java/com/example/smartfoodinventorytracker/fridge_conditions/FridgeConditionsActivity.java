@@ -225,7 +225,7 @@ public class FridgeConditionsActivity extends AppCompatActivity {
         ImageView coIcon = cardCO.findViewById(R.id.gasIcon);
         TextView coLabel = cardCO.findViewById(R.id.gasLabel);
         coIcon.setImageResource(R.drawable.ic_co);
-        coLabel.setText("CO :");
+        coLabel.setText("CO₂ :");
 
         ImageView coInfoIcon = cardCO.findViewById(R.id.infoIcon);
         LinearLayout coOverlay = cardCO.findViewById(R.id.infoOverlay);
@@ -234,8 +234,8 @@ public class FridgeConditionsActivity extends AppCompatActivity {
         TextView coInfoTitle = cardCO.findViewById(R.id.infoTitle);
         View coMainLayout = cardCO.findViewById(R.id.gasContentLayout);
 
-        coInfoTitle.setText("CO (Carbon Monoxide)");
-        coInfoText.setText("A colorless, odorless gas. High levels may indicate spoilage or poor airflow inside the fridge.");
+        coInfoTitle.setText("CO₂ (Carbon Monoxide)");
+        coInfoText.setText("A naturally occurring gas. Elevated CO₂ levels may indicate inadequate ventilation or early signs of spoilage.");
 
         coInfoIcon.setOnClickListener(v -> {
             coOverlay.setVisibility(View.VISIBLE);
@@ -323,17 +323,17 @@ public class FridgeConditionsActivity extends AppCompatActivity {
         ImageView nh4Icon = cardNH4.findViewById(R.id.gasIcon);
         TextView nh4Label = cardNH4.findViewById(R.id.gasLabel);
         nh4Icon.setImageResource(R.drawable.ic_smoke);
-        nh4Label.setText("NH₄ :");
+        nh4Label.setText("NH₃ :");
 
         ImageView nh4InfoIcon = cardNH4.findViewById(R.id.infoIcon);
         LinearLayout nh4Overlay = cardNH4.findViewById(R.id.infoOverlay);
         ImageView nh4Close = cardNH4.findViewById(R.id.closeInfo);
-        TextView nh4InfoText = cardNH4.findViewById(R.id.infoText);
-        TextView nh4InfoTitle = cardNH4.findViewById(R.id.infoTitle);
+        TextView nh3InfoText = cardNH4.findViewById(R.id.infoText);
+        TextView nh3InfoTitle = cardNH4.findViewById(R.id.infoTitle);
         View nh4MainLayout = cardNH4.findViewById(R.id.gasContentLayout);
 
-        nh4InfoTitle.setText("NH₄ (Ammonia)");
-        nh4InfoText.setText("Commonly produced by spoiling food. High levels can suggest meat, dairy, or produce spoilage.");
+        nh3InfoTitle.setText("NH₃ (Ammonia)");
+        nh3InfoText.setText("Commonly produced by spoiling food. High levels can suggest meat, dairy, or produce spoilage.");
 
         nh4InfoIcon.setOnClickListener(v -> {
             nh4Overlay.setVisibility(View.VISIBLE);

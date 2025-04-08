@@ -33,7 +33,7 @@ public class FridgeHistoryItem {
                 for (FridgeHistoryItem item : historyList)
                     values.add(item.co); // Extract CO₂ values
                 break;
-            case "NH₄":
+            case "NH₃":
                 for (FridgeHistoryItem item : historyList)
                     values.add(item.smoke); // Extract CO₂ values
                 break;

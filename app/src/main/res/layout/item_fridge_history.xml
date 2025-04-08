@@ -124,7 +124,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="CO: -- ppm"
+                android:text="CO₂: -- ppm"
                 android:textColor="#333333"
                 android:textSize="14sp" />
 
@@ -191,7 +191,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="NH₄: -- ppm"
+                android:text="NH₃: -- ppm"
                 android:textColor="#333333"
                 android:textSize="14sp" />
 
