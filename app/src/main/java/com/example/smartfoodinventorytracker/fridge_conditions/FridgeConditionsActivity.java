@@ -234,7 +234,7 @@ public class FridgeConditionsActivity extends AppCompatActivity {
         TextView coInfoTitle = cardCO.findViewById(R.id.infoTitle);
         View coMainLayout = cardCO.findViewById(R.id.gasContentLayout);
 
-        coInfoTitle.setText("CO₂ (Carbon Monoxide)");
+        coInfoTitle.setText("CO₂ (Carbon Dioxide)");
         coInfoText.setText("A naturally occurring gas. Elevated CO₂ levels may indicate inadequate ventilation or early signs of spoilage.");
 
         coInfoIcon.setOnClickListener(v -> {
