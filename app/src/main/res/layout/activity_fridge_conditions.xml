@@ -416,7 +416,7 @@
         </LinearLayout>
     </ScrollView>
 
-    <!-- ℹ️ Shared Overlay for Temp & Humidity -->
+    <!-- Shared Overlay for Temp & Humidity -->
     <LinearLayout
         android:id="@+id/infoOverlayTempHum"
         android:layout_width="match_parent"

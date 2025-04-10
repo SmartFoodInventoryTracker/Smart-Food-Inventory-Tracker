@@ -208,7 +208,7 @@
             android:layout_marginTop="6dp"
             android:layout_marginBottom="4dp" />
 
-        <!-- 🔄 ViewPager2 for Levels -->
+        <!-- ViewPager2 for Levels -->
         <androidx.viewpager2.widget.ViewPager2
             android:id="@+id/levelPager"
             android:layout_width="match_parent"
