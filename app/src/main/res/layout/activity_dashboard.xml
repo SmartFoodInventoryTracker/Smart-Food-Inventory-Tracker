@@ -79,7 +79,7 @@
             </LinearLayout>
         </com.google.android.material.appbar.MaterialToolbar>
 
-        <!-- ✅ Inventory Button -->
+        <!-- Inventory Button -->
         <androidx.cardview.widget.CardView
             android:id="@+id/inventoryButton"
             android:layout_width="0dp"
@@ -149,7 +149,7 @@
         </androidx.cardview.widget.CardView>
 
 
-        <!-- ✅ Shopping List Button -->
+        <!-- Shopping List Button -->
         <androidx.cardview.widget.CardView
             android:id="@+id/shoppingListButton"
             android:layout_width="0dp"
@@ -219,7 +219,7 @@
         </androidx.cardview.widget.CardView>
 
 
-        <!-- ✅ Fridge Condition Button -->
+        <!-- Fridge Condition Button -->
         <androidx.cardview.widget.CardView
             android:id="@+id/fridgeConditionButton"
             android:layout_width="0dp"

@@ -59,7 +59,7 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <!-- 🔔 Notification Preferences Card -->
+            <!-- Notification Preferences Card -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/card_notifications"
                 android:layout_width="match_parent"
@@ -319,7 +319,7 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- 👤 Profile Card -->
+            <!-- Profile Card -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/card_profile"
                 android:layout_width="match_parent"

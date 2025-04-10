@@ -43,10 +43,10 @@ dependencies {
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
 
-    // ✅ Firebase BoM (Bill of Materials)
+    // Firebase BoM (Bill of Materials)
     implementation(platform("com.google.firebase:firebase-bom:33.9.0"))
 
-    // ✅ Firebase Authentication
+    // Firebase Authentication
     implementation("com.google.firebase:firebase-auth")
 
     // Firestore for data storage (for future features)
