@@ -95,12 +95,12 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.View
         holder.name.setText(product.getName());
         holder.brand.setText("Brand: " + product.getBrand());
 
-        /*// ✅ Show Expiry Date
+        /*// Show Expiry Date
         holder.expiryDate.setText(product.getExpiryDate() == null || product.getExpiryDate().isEmpty()
                 ? "Expiry Date: Not set"
                 : "Expiry Date: " + product.getExpiryDate());*/
 
-        // ✅ Show Correct "Date Added"
+        // Show Correct "Date Added"
         holder.DateAdded_h.setText(product.getDateAdded() == null || product.getDateAdded().isEmpty()
                 ? "Date Added: Not set"
                 : "Date Added: " + product.getDateAdded());
@@ -244,8 +244,8 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.View
 
     public void filter(String query) {
         itemList.clear();
-        Log.d("Search", "Filtering for: " + query);  // ✅ Debugging log
-        Log.d("Search", "Original list size: " + originalList.size());  // ✅ Check if originalList has data
+        Log.d("Search", "Filtering for: " + query);
+        Log.d("Search", "Original list size: " + originalList.size());
 
         if (query.isEmpty()) {
             itemList.addAll(originalList);  // Reset to full list
@@ -257,7 +257,7 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.View
             }
         }
 
-        Log.d("Search", "Items after filtering: " + itemList.size()); // ✅ Log filtered items
+        Log.d("Search", "Items after filtering: " + itemList.size());
         notifyDataSetChanged();
     }
 

@@ -135,7 +135,7 @@ public class AddManualProductDialogFragment extends DialogFragment {
                 calendar.get(Calendar.MONTH),
                 calendar.get(Calendar.DAY_OF_MONTH));
 
-        // ⛔ Prevent selecting past dates
+        // Prevent selecting past dates
         datePicker.getDatePicker().setMinDate(calendar.getTimeInMillis());
 
         datePicker.show();

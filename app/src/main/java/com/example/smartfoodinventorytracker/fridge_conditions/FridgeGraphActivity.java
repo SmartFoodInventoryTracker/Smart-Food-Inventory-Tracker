@@ -380,7 +380,7 @@ public class FridgeGraphActivity extends AppCompatActivity {
         lineChart.setData(lineData);
         configureChartBasics(lineChart, label);
 
-        // ✅ Attach custom marker tooltip (only once, and with chartView set!)
+        // Attach custom marker tooltip
         CustomMarkerView markerView = new CustomMarkerView(this, R.layout.layout_custom_marker, items);
         markerView.setChartView(lineChart);
         lineChart.setMarker(markerView);
@@ -403,7 +403,7 @@ public class FridgeGraphActivity extends AppCompatActivity {
         lineChart.setData(lineData);
         configureChartBasics(lineChart, label);
 
-        // ✅ Attach custom marker tooltip (no duplicate!)
+        // Attach custom marker tooltip (no duplicate!)
         CustomMarkerView markerView = new CustomMarkerView(this, R.layout.layout_custom_marker, items);
         markerView.setChartView(lineChart);
         lineChart.setMarker(markerView);
@@ -433,7 +433,7 @@ public class FridgeGraphActivity extends AppCompatActivity {
             // Convert the float value (time in seconds) to milliseconds
             int val = (int) value;
             String dateStr = Integer.toString(val);
-            // Ensure the string has the correct length
+            // Make sure the string has the correct length
             if (dateStr.length() != 14) {
                 throw new IllegalArgumentException("Input must be a 14-digit integer in yyyymmddhhmmss format.");
             }

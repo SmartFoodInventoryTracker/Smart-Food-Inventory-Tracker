@@ -82,7 +82,7 @@ public class BarcodeScannerActivity extends AppCompatActivity {
                         if (barcodeValue != null) {
                             sendResultToInventoryActivity(barcodeValue);
                             imageProxy.close();
-                            return;  // ✅ Stops scanning after finding a barcode
+                            return;  // Stops scanning after finding a barcode
                         }
                     }
                 })
@@ -90,7 +90,7 @@ public class BarcodeScannerActivity extends AppCompatActivity {
     }
 
     private void sendResultToInventoryActivity(String barcode) {
-        Log.d("BarcodeScanner", "Scanned Barcode: " + barcode);  // ✅ Debugging Log
+        Log.d("BarcodeScanner", "Scanned Barcode: " + barcode);
         Intent intent = new Intent();
         intent.putExtra("scannedBarcode", barcode);
         setResult(RESULT_OK, intent);

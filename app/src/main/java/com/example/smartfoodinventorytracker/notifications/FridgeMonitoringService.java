@@ -41,7 +41,7 @@ public class FridgeMonitoringService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        return START_STICKY; // ✅ Keeps the service running even if the app is closed
+        return START_STICKY; // Keeps the service running even if the app is closed
     }
 
     @Nullable
@@ -69,7 +69,7 @@ public class FridgeMonitoringService extends Service {
                 .setContentTitle("Fridge Monitoring Active")
                 .setContentText("Monitoring fridge conditions in the background")
                 .setSmallIcon(R.drawable.ic_notification)
-                .setPriority(NotificationCompat.PRIORITY_LOW) // ✅ Prevents it from being intrusive
-                .build(); // ✅ Correctly returns a Notification object
+                .setPriority(NotificationCompat.PRIORITY_LOW) // Prevents it from being intrusive
+                .build(); // Correctly returns a Notification object
     }
 }

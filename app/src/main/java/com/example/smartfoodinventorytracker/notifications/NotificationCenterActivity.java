@@ -42,7 +42,7 @@ public class NotificationCenterActivity extends AppCompatActivity {
 
     private NotificationAdapter adapter;
     private RecyclerView recyclerView;
-    private List<DatabaseHelper.NotificationItem> notificationList = new ArrayList<>();
+    private List<NotificationDataHelper.NotificationItem> notificationList = new ArrayList<>();
     private NotificationHelper notificationHelper;
     private String currentFilter = null; // null means "All"
     String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
@@ -126,10 +126,10 @@ public class NotificationCenterActivity extends AppCompatActivity {
 
     private void loadFilteredNotifications(String filterType) {
         currentFilter = filterType;
-        DatabaseHelper.fetchNotifications(userId, notifications -> {
+        NotificationDataHelper.fetchNotifications(userId, notifications -> {
             notificationList.clear();
 
-            for (DatabaseHelper.NotificationItem notification : notifications) {
+            for (NotificationDataHelper.NotificationItem notification : notifications) {
                 if (notification.getTitle().contains(filterType)) {
                     notificationList.add(notification);
                 }
@@ -146,7 +146,7 @@ public class NotificationCenterActivity extends AppCompatActivity {
                 .setTitle("Clear All Notifications")
                 .setMessage("Are you sure you want to delete all notifications?")
                 .setPositiveButton("Yes", (dialog, which) -> {
-                    DatabaseHelper.clearNotifications(userId, () -> {
+                    NotificationDataHelper.clearNotifications(userId, () -> {
                         Toast.makeText(this, "All notifications cleared!", Toast.LENGTH_SHORT).show();
                         loadNotifications();
                     });
@@ -157,7 +157,7 @@ public class NotificationCenterActivity extends AppCompatActivity {
 
     private void loadNotifications() {
         currentFilter = null;
-        DatabaseHelper.fetchNotifications(userId, notifications -> {
+        NotificationDataHelper.fetchNotifications(userId, notifications -> {
             notificationList.clear();
             Collections.sort(notifications, (a, b) -> Long.compare(b.getTimestamp(), a.getTimestamp()));
             notificationList.addAll(notifications);
@@ -179,7 +179,7 @@ public class NotificationCenterActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        DatabaseHelper.listenForNotificationUpdates(userId, this::loadNotifications);
+        NotificationDataHelper.listenForNotificationUpdates(userId, this::loadNotifications);
     }
 
 
@@ -193,15 +193,12 @@ public class NotificationCenterActivity extends AppCompatActivity {
         toolbar.setNavigationOnClickListener(v -> NavUtils.navigateUpFromSameTask(this));
     }
 
-    // ==========================
-    // Embedded NotificationAdapter Class
-    // ==========================
     private class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapter.ViewHolder> {
 
-        private final List<DatabaseHelper.NotificationItem> notificationList;
+        private final List<NotificationDataHelper.NotificationItem> notificationList;
         private final Map<String, Integer> colorMap;
 
-        public NotificationAdapter(List<DatabaseHelper.NotificationItem> notifications) {
+        public NotificationAdapter(List<NotificationDataHelper.NotificationItem> notifications) {
             this.notificationList = notifications;
             this.colorMap = new HashMap<>();
             colorMap.put(NotificationHelper.FRIDGE_ALERT_TITLE, Color.RED);
@@ -217,7 +214,7 @@ public class NotificationCenterActivity extends AppCompatActivity {
 
         @Override
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-            DatabaseHelper.NotificationItem notification = notificationList.get(position);
+            NotificationDataHelper.NotificationItem notification = notificationList.get(position);
             holder.notificationTitle.setText(notification.getTitle());
             holder.notificationMessage.setText(notification.getMessage());
             holder.notificationTime.setText(DateUtils.getRelativeTimeSpanString(notification.getTimestamp() * 1000));
@@ -250,7 +247,7 @@ public class NotificationCenterActivity extends AppCompatActivity {
                         .setMessage("Are you sure you want to delete this notification?")
                         .setPositiveButton("Yes", (dialog, which) -> {
                             // Delete the notification from Firebase
-                            DatabaseHelper.deleteNotification(notification, userId, () -> {
+                            NotificationDataHelper.deleteNotification(notification, userId, () -> {
                                 Toast.makeText(v.getContext(), "Notification deleted", Toast.LENGTH_SHORT).show();
                                 int pos = holder.getAdapterPosition();
                                 notificationList.remove(pos);

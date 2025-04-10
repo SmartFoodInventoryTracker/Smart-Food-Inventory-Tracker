@@ -24,7 +24,6 @@ import android.widget.ImageView;
 import androidx.core.graphics.drawable.RoundedBitmapDrawable;
 import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory;
 
-
 public class SignupActivity extends AppCompatActivity {
 
     private EditText signupEmailEditText, signupPasswordEditText, confirmPasswordEditText;
@@ -39,42 +38,38 @@ public class SignupActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_signup);
 
-        // ✅ Handle Window Insets for Edge-to-Edge
+        // Makes sure layout avoids system UI overlap (like status bar)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
 
-        // ✅ Initialize Firebase Auth & Firestore
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
-        // ✅ Link UI Elements
         signupEmailEditText = findViewById(R.id.signupEmailEditText);
         signupPasswordEditText = findViewById(R.id.signupPasswordEditText);
         confirmPasswordEditText = findViewById(R.id.confirmPasswordEditText);
         signupButton = findViewById(R.id.signupButton);
         loginRedirectTextView = findViewById(R.id.loginRedirectTextView);
 
-        ImageView logo = findViewById(R.id.signupLogo); // or whatever the ID is for each page
+        ImageView logo = findViewById(R.id.signupLogo);
 
         Bitmap originalBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.smart_food_inventory_logo);
         RoundedBitmapDrawable roundedDrawable = RoundedBitmapDrawableFactory.create(getResources(), originalBitmap);
 
-        // Adjust this to control roundness (the higher, the rounder)
+        // Rounds the app logo image
         roundedDrawable.setCornerRadius(400f);
         roundedDrawable.setAntiAlias(true);
-
         logo.setImageDrawable(roundedDrawable);
 
-
-        // ✅ Signup Button Logic
         signupButton.setOnClickListener(v -> {
             String email = signupEmailEditText.getText().toString().trim();
             String password = signupPasswordEditText.getText().toString().trim();
             String confirmPassword = confirmPasswordEditText.getText().toString().trim();
 
+            // Input validation for email/password fields
             if (TextUtils.isEmpty(email) || TextUtils.isEmpty(password) || TextUtils.isEmpty(confirmPassword)) {
                 Toast.makeText(SignupActivity.this, "Please fill in all fields", Toast.LENGTH_SHORT).show();
             } else if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
@@ -84,27 +79,28 @@ public class SignupActivity extends AppCompatActivity {
             } else if (!password.equals(confirmPassword)) {
                 Toast.makeText(SignupActivity.this, "Passwords do not match", Toast.LENGTH_SHORT).show();
             } else {
-                // ✅ Create User with Firebase Auth
+                // Creates the user in Firebase Authentication
                 mAuth.createUserWithEmailAndPassword(email, password)
                         .addOnCompleteListener(task -> {
                             if (task.isSuccessful()) {
-                                // ✅ Get User ID
                                 String userId = mAuth.getCurrentUser().getUid();
 
-                                // ✅ Prepare User Data for Firestore
+                                // Optional fields can be set later — for now we only store email
                                 Map<String, Object> user = new HashMap<>();
                                 user.put("email", email);
-                                user.put("name", ""); // Empty for now, user can edit later
+                                user.put("name", "");
 
-                                // ✅ Save to Firestore
+                                // Save basic profile info to Firestore under /users/{uid}
                                 db.collection("users").document(userId)
                                         .set(user)
                                         .addOnSuccessListener(aVoid -> {
-                                            Toast.makeText(SignupActivity.this, "Signup Successful", Toast.LENGTH_SHORT).show();
+                                            // Skipping toast — going straight to dashboard
                                             startActivity(new Intent(SignupActivity.this, DashboardActivity.class));
                                             finish();
                                         })
-                                        .addOnFailureListener(e -> Toast.makeText(SignupActivity.this, "Firestore Error: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                                        .addOnFailureListener(e -> {
+                                            Toast.makeText(SignupActivity.this, "Firestore Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                        });
 
                             } else {
                                 Toast.makeText(SignupActivity.this, "Signup Failed: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
@@ -113,8 +109,8 @@ public class SignupActivity extends AppCompatActivity {
             }
         });
 
-        // ✅ Redirect to Login Page
         loginRedirectTextView.setOnClickListener(v -> {
+            // If user already has an account
             startActivity(new Intent(SignupActivity.this, LoginActivity.class));
             finish();
         });

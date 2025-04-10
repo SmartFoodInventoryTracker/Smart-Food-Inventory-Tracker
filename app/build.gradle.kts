@@ -49,7 +49,7 @@ dependencies {
     // ✅ Firebase Authentication
     implementation("com.google.firebase:firebase-auth")
 
-    // (Optional) Firestore for data storage (for future features)
+    // Firestore for data storage (for future features)
     implementation("com.google.firebase:firebase-firestore")
 
     // ViewPager2 for swipeable onboarding screens

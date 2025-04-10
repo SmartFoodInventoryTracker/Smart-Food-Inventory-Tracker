@@ -6,11 +6,8 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.Gravity;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.FrameLayout;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -24,7 +21,6 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.example.smartfoodinventorytracker.R;
-import com.example.smartfoodinventorytracker.notifications.NotificationHelper;
 import com.github.anastr.speedviewlib.SpeedView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -49,7 +45,7 @@ public class FridgeConditionsActivity extends AppCompatActivity {
     private SpeedView speedTemp, speedHum;
     private LinearLayout colorBar, arrowRow;
 
-    // 🔧 Temp & Humidity Overlay elements
+    // Temp & Humidity Overlay elements
     private LinearLayout tempOverlay, humOverlay;
     private ImageView tempClose, humClose, tempInfoIcon, humInfoIcon;
     private TextView tempInfoTitle, tempInfoText, humInfoTitle, humInfoText;
@@ -122,7 +118,7 @@ public class FridgeConditionsActivity extends AppCompatActivity {
         toolbar.setNavigationOnClickListener(v -> NavUtils.navigateUpFromSameTask(this));
     }
     private void initViews() {
-        // 🌡️ Temp & Humidity
+        // Temp & Humidity
         tempText = findViewById(R.id.tempText);
         humidityText = findViewById(R.id.humidityText);
         speedTemp = findViewById(R.id.speedViewTemp);
@@ -131,11 +127,11 @@ public class FridgeConditionsActivity extends AppCompatActivity {
         humStatus = findViewById(R.id.humStatus);
 
 
-        // 🔽 Layouts
+        // Layouts
         tempLayout = findViewById(R.id.tempCardLayout);
         humLayout = findViewById(R.id.humCardLayout);
 
-        // 🧊 Overlays
+        // Overlays
         tempOverlay = findViewById(R.id.infoOverlayTemp);
         tempClose = findViewById(R.id.closeInfoTemp);
         tempInfoTitle = findViewById(R.id.infoTitleTemp);
@@ -148,11 +144,11 @@ public class FridgeConditionsActivity extends AppCompatActivity {
         humInfoText = findViewById(R.id.infoTextHum);
         humInfoIcon = findViewById(R.id.infoIconHum);
 
-        // 🌡️ Temperature Info Setup
+        // Temperature Info Setup
         tempInfoTitle.setText("Temperature");
         tempInfoText.setText("Monitoring the internal temperature helps prevent food spoilage and ensures safe storage.");
 
-        // 🌡️ ViewPager for Temperature Levels
+        // ViewPager for Temperature Levels
         levelPagerTemp = findViewById(R.id.levelPagerTemp);
         List<String> tempLevels = Arrays.asList(
                 "<font color='#4CAF50'><b>Good ✅</b>: &lt; 4°C</font>",
@@ -180,11 +176,11 @@ public class FridgeConditionsActivity extends AppCompatActivity {
             speedTemp.setAlpha(1f);
         });
 
-        // 💧 Humidity Info Setup
+        // Humidity Info Setup
         humInfoTitle.setText("Humidity");
         humInfoText.setText("Humidity helps maintain moisture in fruits and vegetables. Too low or too high can lead to spoilage.");
 
-        // 💧 ViewPager for Humidity Levels
+        // ViewPager for Humidity Levels
         levelPagerHum = findViewById(R.id.levelPagerHum);
         List<String> humLevels = Arrays.asList(
                 "<font color='#4CAF50'><b>Good ✅</b>: &lt; 40%</font>",
@@ -212,11 +208,11 @@ public class FridgeConditionsActivity extends AppCompatActivity {
             speedHum.setAlpha(1f);
         });
 
-        // 📊 Overall bar
+        // Overall bar
         colorBar = findViewById(R.id.colorBar);
         arrowRow = findViewById(R.id.arrowRow);
 
-        // 🌫️ CO Card
+        // CO₂ Card
         cardCO = findViewById(R.id.card_co);
         coValue = cardCO.findViewById(R.id.gasValue);
         coStatus = cardCO.findViewById(R.id.gasStatus);
@@ -266,7 +262,7 @@ public class FridgeConditionsActivity extends AppCompatActivity {
         });
 
 
-        // 🔥 LPG Card
+        // LPG Card
         cardLPG = findViewById(R.id.card_lpg);
         lpgValue = cardLPG.findViewById(R.id.gasValue);
         lpgStatus = cardLPG.findViewById(R.id.gasStatus);
@@ -315,7 +311,7 @@ public class FridgeConditionsActivity extends AppCompatActivity {
         });
 
 
-        // 🧪 NH₄ Card
+        // NH₃ Card
         cardNH4 = findViewById(R.id.card_nh4);
         nh4Value = cardNH4.findViewById(R.id.gasValue);
         nh4Status = cardNH4.findViewById(R.id.gasStatus);
@@ -393,7 +389,7 @@ public class FridgeConditionsActivity extends AppCompatActivity {
         }
 
 
-        // 📜 History Button
+        // History Button
         ImageView historyButton = findViewById(R.id.historyLogo);
         historyButton.setOnClickListener(v -> {
             Intent intent = new Intent(FridgeConditionsActivity.this, FridgeHistoryActivity.class);
@@ -539,10 +535,7 @@ public class FridgeConditionsActivity extends AppCompatActivity {
                     setGauge(overallCond, "ov");
                 }
 
-
             }
-
-
 
             @Override
             public void onCancelled(DatabaseError error) {

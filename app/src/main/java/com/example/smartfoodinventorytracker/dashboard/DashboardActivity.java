@@ -47,17 +47,18 @@ public class DashboardActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        EdgeToEdge.enable(this); // ✅ Modern edge-to-edge mode
-
+        EdgeToEdge.enable(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dashboard);
 
-        requestNotificationPermissionIfNeeded(); // ✅ Ask permission early
+        requestNotificationPermissionIfNeeded();
 
+        // Forces expiry worker to run on next app open
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         SharedPreferences notifPrefs = getSharedPreferences("NotificationPrefs", MODE_PRIVATE);
-        notifPrefs.edit().putBoolean("first_run_done", false).apply(); // force first expiry run
+        notifPrefs.edit().putBoolean("first_run_done", false).apply();
 
+        // Start fridge monitoring in background
         NotificationHelper notificationHelper = new NotificationHelper(this, true, userId);
         notificationHelper.startFridgeMonitoringService();
 
@@ -69,6 +70,7 @@ public class DashboardActivity extends AppCompatActivity {
         setUpNavBar();
         loadUserName();
 
+        // Moves toolbar down so it doesn't overlap with status bar
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.toolbar), (view, insets) -> {
             int statusBarHeight = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top;
             view.setTranslationY(statusBarHeight);
@@ -76,11 +78,10 @@ public class DashboardActivity extends AppCompatActivity {
         });
     }
 
-
     @Override
     protected void onResume() {
         super.onResume();
-        loadUserName(); // ✅ Reload user data when returning
+        loadUserName(); // Refresh greeting in case name changed
     }
 
     private void setUpUi() {
@@ -91,7 +92,6 @@ public class DashboardActivity extends AppCompatActivity {
         shoppingListButton = findViewById(R.id.shoppingListButton);
         fridgeConditionButton = findViewById(R.id.fridgeConditionButton);
 
-        // Set onClickListeners
         setUpOnClickListeners();
     }
 
@@ -101,7 +101,8 @@ public class DashboardActivity extends AppCompatActivity {
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_menu);
-        getSupportActionBar().setDisplayShowTitleEnabled(false); // Disable default title
+        getSupportActionBar().setDisplayShowTitleEnabled(false);
+
         toolbar.setNavigationOnClickListener(v -> {
             if (drawerLayout.isDrawerOpen(GravityCompat.START))
                 drawerLayout.closeDrawer(GravityCompat.START);
@@ -110,6 +111,7 @@ public class DashboardActivity extends AppCompatActivity {
         });
     }
 
+    // Ask user for notification permission (needed for Android 13+)
     private void requestNotificationPermissionIfNeeded() {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
             if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS)
@@ -123,13 +125,6 @@ public class DashboardActivity extends AppCompatActivity {
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == 200) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(this, "Notifications enabled", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(this, "Notifications denied", Toast.LENGTH_SHORT).show();
-            }
-        }
     }
 
     private void setUpNavBar() {
@@ -137,26 +132,20 @@ public class DashboardActivity extends AppCompatActivity {
         navigationView.setNavigationItemSelectedListener(item -> {
             int id = item.getItemId();
 
-            if (id == R.id.nav_dashboard) {
-                Toast.makeText(this, "Dashboard", Toast.LENGTH_SHORT).show();
-            } else if (id == R.id.nav_inventory) {
-                Toast.makeText(this, "Inventory", Toast.LENGTH_SHORT).show();
+            if (id == R.id.nav_inventory) {
                 startActivity(new Intent(this, InventoryActivity.class));
             } else if (id == R.id.nav_shopping_lists) {
-                Toast.makeText(this, "Shopping Lists", Toast.LENGTH_SHORT).show();
                 startActivity(new Intent(this, ShoppingListActivity.class));
             } else if (id == R.id.nav_fridge_condition) {
-                Toast.makeText(this, "Fridge Condition", Toast.LENGTH_SHORT).show();
                 startActivity(new Intent(this, FridgeConditionsActivity.class));
             } else if (id == R.id.nav_notifications) {
-                Toast.makeText(this, "Notifications Center", Toast.LENGTH_SHORT).show();
                 startActivity(new Intent(this, NotificationCenterActivity.class));
             } else if (id == R.id.nav_settings) {
-                Toast.makeText(this, "Settings Clicked", Toast.LENGTH_SHORT).show();
                 startActivity(new Intent(this, SettingsActivity.class));
             } else if (id == R.id.nav_logout) {
                 logout();
             } else {
+                // Fallback if menu ID isn't handled
                 Toast.makeText(this, "Unknown Option", Toast.LENGTH_SHORT).show();
             }
 
@@ -166,23 +155,17 @@ public class DashboardActivity extends AppCompatActivity {
     }
 
     private void setUpOnClickListeners() {
-        // Inventory button onClickListener
-        inventoryButton.setOnClickListener(v -> goToInventory());
-
-        // Shopping button onClickListener
-        shoppingListButton.setOnClickListener(v -> goToShoppingList());
-
-        // Fridge button onClickListener
-        fridgeConditionButton.setOnClickListener(v -> goToFridgeConditions());
+        inventoryButton.setOnClickListener(v -> startActivity(new Intent(this, InventoryActivity.class)));
+        shoppingListButton.setOnClickListener(v -> startActivity(new Intent(this, ShoppingListActivity.class)));
+        fridgeConditionButton.setOnClickListener(v -> startActivity(new Intent(this, FridgeConditionsActivity.class)));
     }
 
     private void setUpGreetings() {
         shared = getApplicationContext().getSharedPreferences("event_preferences", Context.MODE_PRIVATE);
     }
 
-    // ✅ Load User Name from Firestore
     private void loadUserName() {
-        // Determine greeting based on time of day
+        // Set greeting based on time of day
         String greeting;
         int hour = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY);
 
@@ -194,13 +177,13 @@ public class DashboardActivity extends AppCompatActivity {
             greeting = "Good evening";
         }
 
-        // Set rounded background programmatically
+        // Styling for the greeting background
         GradientDrawable bg = new GradientDrawable();
-        bg.setColor(ContextCompat.getColor(this, android.R.color.black));  // black background
-        bg.setCornerRadius(100); // large radius for round edges
+        bg.setColor(ContextCompat.getColor(this, android.R.color.black));
+        bg.setCornerRadius(100);
         greetingText.setBackground(bg);
 
-        // ✅ Try loading from SharedPreferences first
+        // Try loading name from SharedPreferences (faster)
         SharedPreferences prefs = getSharedPreferences("user_prefs", MODE_PRIVATE);
         String cachedName = prefs.getString("cached_name", null);
 
@@ -210,20 +193,17 @@ public class DashboardActivity extends AppCompatActivity {
             greetingText.setText("👋 " + greeting);
         }
 
-        // ✅ Then load fresh data from Firestore
+        // Fetch most recent name from Firestore
         String userId = mAuth.getCurrentUser().getUid();
         db.collection("users").document(userId).get()
                 .addOnSuccessListener(document -> {
                     String name = null;
-
                     if (document.exists()) {
                         name = document.getString("name");
                     }
 
                     if (name != null && !name.trim().isEmpty()) {
                         greetingText.setText("👋 " + greeting + ", " + name);
-
-                        // ✅ Save to SharedPreferences for next time
                         prefs.edit().putString("cached_name", name).apply();
                     }
                 })
@@ -232,13 +212,11 @@ public class DashboardActivity extends AppCompatActivity {
                 });
     }
 
-
-    // ✅ Handle Logout Logic
     private void logout() {
         FirebaseAuth.getInstance().signOut();
         getSharedPreferences("user_prefs", MODE_PRIVATE).edit().clear().apply();
 
-        // ✅ Cancel background worker
+        // Stop background notifications
         WorkManager.getInstance(this).cancelUniqueWork("ExpiryNotificationWorker");
 
         Intent intent = new Intent(this, OnboardingActivity.class);
@@ -247,7 +225,6 @@ public class DashboardActivity extends AppCompatActivity {
         finish();
     }
 
-    // ✅ Handle Back Press for Drawer
     @Override
     public void onBackPressed() {
         if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
@@ -256,23 +233,4 @@ public class DashboardActivity extends AppCompatActivity {
             super.onBackPressed();
         }
     }
-
-    private void goToInventory() {
-        Toast.makeText(this, "Inventory Clicked", Toast.LENGTH_SHORT).show();
-        Intent intent = new Intent(this, InventoryActivity.class);
-        startActivity(intent);
-    }
-
-    private void goToShoppingList() {
-        Toast.makeText(this, "Shopping", Toast.LENGTH_SHORT).show();
-        Intent intent = new Intent(this, ShoppingListActivity.class);
-        startActivity(intent);
-    }
-
-    private void goToFridgeConditions() {
-        Toast.makeText(this, "Fridge Condition Clicked", Toast.LENGTH_SHORT).show();
-        Intent intent = new Intent(this, FridgeConditionsActivity.class);
-        startActivity(intent);
-    }
 }
-

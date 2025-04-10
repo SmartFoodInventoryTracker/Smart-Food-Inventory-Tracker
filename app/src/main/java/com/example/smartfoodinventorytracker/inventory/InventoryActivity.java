@@ -102,9 +102,9 @@ public class InventoryActivity extends AppCompatActivity
         SearchView searchView = findViewById(R.id.searchView);
         ImageButton filterButton = findViewById(R.id.btn_filter);
 
-        searchView.setQuery("", false); // Clear any previous input
-        searchView.clearFocus(); // Remove focus to hide blinking cursor
-        searchView.setQueryHint("Search for a product"); //  Always show the hint
+        searchView.setQuery("", false);
+        searchView.clearFocus();
+        searchView.setQueryHint("Search for a product");
 
 
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
@@ -117,7 +117,7 @@ public class InventoryActivity extends AppCompatActivity
             @Override
             public boolean onQueryTextChange(String newText) {
                 if (newText.isEmpty()) {
-                    searchView.setQueryHint("Search for a product");  // ✅ Restore hint when empty
+                    searchView.setQueryHint("Search for a product");  // Restore hint when empty
                 }
                 inventoryAdapter.filter(newText);  // Apply filter on text change
                 return true;
@@ -129,12 +129,12 @@ public class InventoryActivity extends AppCompatActivity
             PopupMenu popup = new PopupMenu(InventoryActivity.this, v);
             popup.getMenuInflater().inflate(R.menu.sort_menu, popup.getMenu());
 
-            // ✅ Make all items checkable
+            // Make all items checkable
             for (int i = 0; i < popup.getMenu().size(); i++) {
                 popup.getMenu().getItem(i).setCheckable(true);
             }
 
-            // ✅ Restore the last selected sort
+            // Restore the last selected sort
             if (selectedSortOption != -1) {
                 popup.getMenu().findItem(selectedSortOption).setChecked(true);
             }
@@ -147,7 +147,7 @@ public class InventoryActivity extends AppCompatActivity
                 Method setForceIcons = classPopupHelper.getMethod("setForceShowIcon", boolean.class);
                 setForceIcons.invoke(menuPopupHelper, true);
 
-                // ✅ Apply Custom Background
+                // Apply Custom Background
                 View popupView = ((View) menuPopupHelper.getClass().getMethod("getPopup").invoke(menuPopupHelper));
                 popupView.setBackgroundResource(R.drawable.popup_background);
 
@@ -158,16 +158,16 @@ public class InventoryActivity extends AppCompatActivity
             popup.setOnMenuItemClickListener(item -> {
                 int itemId = item.getItemId();
 
-                // ✅ Uncheck previous selection
+                // Uncheck previous selection
                 if (selectedSortOption != -1) {
                     popup.getMenu().findItem(selectedSortOption).setChecked(false);
                 }
 
-                // ✅ Update the selected sort option
+                // Update the selected sort option
                 selectedSortOption = itemId;
                 item.setChecked(true);
 
-                // ✅ Apply Sorting Logic
+                // Apply Sorting Logic
                 if (itemId == R.id.sort_expiry_asc) {
 
                     ExpirydateSort(true);
@@ -204,12 +204,6 @@ public class InventoryActivity extends AppCompatActivity
     public void update_productwhendeleted()
     {
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-
-
-
-
-
-
 
          inventoryRecyclerView.setAdapter(inventoryAdapter);
 
@@ -266,7 +260,7 @@ public class InventoryActivity extends AppCompatActivity
     {
         InventoryAdapter.Sorting sorting = inventoryAdapter.sorting;
         System.out.println();
-        Log.d("G", "Inventory sorting " + inventoryAdapter.sorting + " items"); // ✅ Debugging log
+        Log.d("G", "Inventory sorting " + inventoryAdapter.sorting + " items");
 
 
         if (inventoryAdapter.sorting== InventoryAdapter.Sorting.EXP_DATE_ASC) {
@@ -288,7 +282,6 @@ public class InventoryActivity extends AppCompatActivity
             DateAddedSort(false);
 
         }
-
 
     }
 
@@ -373,7 +366,7 @@ public class InventoryActivity extends AppCompatActivity
     private void checkCameraPermission() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
             if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.CAMERA)) {
-                // ✅ Show an explanation before requesting permission
+                // Show an explanation before requesting permission
                 new AlertDialog.Builder(this)
                         .setTitle("Camera Permission Needed")
                         .setMessage("This app requires camera access to scan barcodes. Please allow camera access.")
@@ -384,7 +377,7 @@ public class InventoryActivity extends AppCompatActivity
                         .create()
                         .show();
             } else {
-                // ✅ Directly request permission (for first-time users)
+                // Directly request permission (for first-time users)
                 ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, 101);
             }
         }
@@ -400,7 +393,7 @@ public class InventoryActivity extends AppCompatActivity
                 Log.d("CameraPermission", "Camera permission granted.");
                 Toast.makeText(this, "Camera permission granted!", Toast.LENGTH_SHORT).show();
             } else {
-                // ✅ If user selected "Don't ask again", show a dialog to open Settings
+                // If user selected "Don't ask again", show a dialog to open Settings
                 if (!ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.CAMERA)) {
                     showSettingsDialog();
                 } else {
@@ -410,7 +403,7 @@ public class InventoryActivity extends AppCompatActivity
         }
     }
 
-    // ✅ Show a Dialog to Redirect User to App Settings
+    // Show a Dialog to Redirect User to App Settings
     private void showSettingsDialog() {
         new AlertDialog.Builder(this)
                 .setTitle("Camera Permission Denied")
@@ -432,7 +425,7 @@ public class InventoryActivity extends AppCompatActivity
         if (requestCode == 1 && resultCode == RESULT_OK) {
             if (data != null && data.hasExtra("scannedBarcode")) {
                 String barcode = data.getStringExtra("scannedBarcode");
-                Log.d("InventoryActivity", "Received Barcode: " + barcode);  // ✅ Debugging Log
+                Log.d("InventoryActivity", "Received Barcode: " + barcode);
                 fetchProductData(barcode);
             } else {
                 Log.e("InventoryActivity", "No barcode received");
@@ -477,7 +470,7 @@ public class InventoryActivity extends AppCompatActivity
                             String productName = product.optString("product_name", "Unknown Product");
                             String brand = product.optString("brands", "Unknown Brand");
 
-                            // ✅ Correctly fetch the image URL
+                            // Correctly fetch the image URL
                             String imageUrl = product.optString("image_url", null);
                             if (imageUrl == null || imageUrl.isEmpty()) {
                                 Log.w("ProductImage", "No image URL found for barcode: " + barcode);
@@ -485,7 +478,7 @@ public class InventoryActivity extends AppCompatActivity
                                 Log.d("ProductImage", "Fetched image URL: " + imageUrl);
                             }
 
-                            // ✅ Pass image URL to Firebase
+                            // Pass image URL to Firebase
                             saveProductToFirebase(barcode, productName, brand);
                         } else {
                             Toast.makeText(this, "Product not found", Toast.LENGTH_SHORT).show();
@@ -554,7 +547,7 @@ public class InventoryActivity extends AppCompatActivity
                             .addOnSuccessListener(aVoid -> {
                                 Toast.makeText(this, "Product added", Toast.LENGTH_SHORT).show();
 
-                                // ✅ Open edit dialog
+                                // Open edit dialog
                                 ProductDetailsDialogFragment dialog = ProductDetailsDialogFragment.newInstance(newProduct);
                                 dialog.setUserId(userId);
                                 dialog.setProductDialogListener(new ProductDetailsDialogFragment.ProductDialogListener() {
@@ -570,7 +563,7 @@ public class InventoryActivity extends AppCompatActivity
                                 });
                                 dialog.show(InventoryActivity.this.getSupportFragmentManager(), "ProductDetailsDialog");
 
-                                // ✅ Store product name temporarily in intent
+                                // Store product name temporarily in intent
                                 Intent intent = getIntent();
                                 intent.putExtra("data", name); // For search bar
                                 intent.putExtra("sortNewest", true); // Signal to sort by newest
@@ -594,7 +587,7 @@ public class InventoryActivity extends AppCompatActivity
 
                 List<Product> tempProductList = new ArrayList<>(); // Temporary list for adapter
 
-                Log.d("Firebase", "Snapshot Children Count: " + snapshot.getChildrenCount()); // ✅ Log Firebase data count
+                Log.d("Firebase", "Snapshot Children Count: " + snapshot.getChildrenCount());
 
                 for (DataSnapshot productSnapshot : snapshot.getChildren()) {
                     Product product = productSnapshot.getValue(Product.class);
@@ -604,13 +597,13 @@ public class InventoryActivity extends AppCompatActivity
                 }
 
                 if (tempProductList.isEmpty()) {
-                    Log.e("Firebase", "No products were retrieved!"); // 🚨 Debugging message
+                    Log.e("Firebase", "No products were retrieved!");
                 }
 
                 productList.addAll(tempProductList);
                 inventoryAdapter.updateList(tempProductList);
 
-                // ✅ Show "Inventory empty" if list is empty
+                // Show "Inventory empty" if list is empty
                 TextView emptyMessage = findViewById(R.id.emptyInventoryMessage);
                 if (productList.isEmpty()) {
                     emptyMessage.setVisibility(View.VISIBLE);

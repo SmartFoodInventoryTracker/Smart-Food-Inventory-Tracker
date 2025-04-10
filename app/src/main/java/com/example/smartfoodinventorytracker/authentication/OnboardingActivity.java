@@ -24,7 +24,6 @@ import com.google.firebase.auth.FirebaseUser;
 import androidx.core.graphics.drawable.RoundedBitmapDrawable;
 import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory;
 
-
 public class OnboardingActivity extends AppCompatActivity {
 
     private TextView rotatingTitle, rotatingDescription;
@@ -52,7 +51,7 @@ public class OnboardingActivity extends AppCompatActivity {
 
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser != null) {
-            // ✅ User is already signed in — skip onboarding
+            // If already logged in, skip onboarding entirely
             startActivity(new Intent(this, DashboardActivity.class));
             finish();
             return;
@@ -61,52 +60,48 @@ public class OnboardingActivity extends AppCompatActivity {
         setContentView(R.layout.activity_onboarding);
         EdgeToEdge.enable(this);
 
+        // Makes sure layout avoids overlapping with system bars
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
 
-        // ✅ Link UI elements
         rotatingTitle = findViewById(R.id.rotatingTitle);
         rotatingDescription = findViewById(R.id.rotatingDescription);
         Button loginButton = findViewById(R.id.loginButton);
         Button signUpButton = findViewById(R.id.signUpButton);
 
-        ImageView logo = findViewById(R.id.appLogo); // or whatever the ID is for each page
+        ImageView logo = findViewById(R.id.appLogo);
 
         Bitmap originalBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.smart_food_inventory_logo);
         RoundedBitmapDrawable roundedDrawable = RoundedBitmapDrawableFactory.create(getResources(), originalBitmap);
 
-        // Adjust this to control roundness (the higher, the rounder)
+        // Customizes the app logo to look rounded
         roundedDrawable.setCornerRadius(400f);
         roundedDrawable.setAntiAlias(true);
-
         logo.setImageDrawable(roundedDrawable);
 
-
-        // ✅ Rotate Texts Every 3 Seconds
+        // Rotates the welcome message every few seconds to show features
         textRotator = new Runnable() {
             @Override
             public void run() {
                 currentIndex = (currentIndex + 1) % titles.length;
                 rotatingTitle.setText(titles[currentIndex]);
                 rotatingDescription.setText(descriptions[currentIndex]);
-                handler.postDelayed(this, 4000); // Rotate every 4 seconds
+                handler.postDelayed(this, 4000);
             }
         };
         handler.post(textRotator);
 
-        // ✅ Login Button Click
         loginButton.setOnClickListener(v -> startActivity(new Intent(this, LoginActivity.class)));
-
-        // ✅ Sign Up Button Click
         signUpButton.setOnClickListener(v -> startActivity(new Intent(this, SignupActivity.class)));
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        handler.removeCallbacks(textRotator); // ✅ Stop rotating when activity is destroyed
+        // Stops the rotation loop when user leaves the screen
+        handler.removeCallbacks(textRotator);
     }
 }

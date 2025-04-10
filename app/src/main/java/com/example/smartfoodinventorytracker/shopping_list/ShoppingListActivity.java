@@ -269,7 +269,7 @@ public class ShoppingListActivity extends AppCompatActivity {
 
                 updateEmptyMessageVisibility(mixedList);
 
-                // Optional: cache names
+                // cache names
                 Map<String, String> nameMap = new HashMap<>();
                 for (ShoppingList list : allLists) {
                     nameMap.put(list.key, list.name);

@@ -2,12 +2,10 @@ package com.example.smartfoodinventorytracker.notifications;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.os.Looper;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
 
-import com.example.smartfoodinventorytracker.fridge_conditions.FridgeConditionsActivity;
 import com.example.smartfoodinventorytracker.inventory.Product;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -20,17 +18,11 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import android.os.Handler;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
+
 import com.example.smartfoodinventorytracker.inventory.InventoryActivity;
 
-public class DatabaseHelper {
+public class NotificationDataHelper {
 
     // --------------------------------------------------
     // 1) This references the GLOBAL "inventory" node
@@ -73,9 +65,9 @@ public class DatabaseHelper {
                                 String lowerMsg = message.toLowerCase(); // For case-insensitive matching
                                 String title;
                                 if (lowerMsg.contains("expires") || lowerMsg.contains("expired")) {
-                                    title = NotificationHelper.EXPIRY_ALERT_TITLE; // "Inventory Alert 🍏"
+                                    title = NotificationHelper.EXPIRY_ALERT_TITLE;
                                 } else {
-                                    title = NotificationHelper.FRIDGE_ALERT_TITLE; // "Fridge Alert 🚨"
+                                    title = NotificationHelper.FRIDGE_ALERT_TITLE;
                                 }
 
                                 notifications.add(new NotificationItem(title, message, timestamp));
@@ -101,9 +93,9 @@ public class DatabaseHelper {
 
         notifRef.removeValue().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
-                Log.d("DatabaseHelper", "All notifications cleared.");
+                Log.d("NotificationDataHelper", "All notifications cleared.");
             } else {
-                Log.e("DatabaseHelper", "Failed to clear notifications.", task.getException());
+                Log.e("NotificationDataHelper", "Failed to clear notifications.", task.getException());
             }
             onComplete.run();
         });
@@ -118,7 +110,7 @@ public class DatabaseHelper {
             public void onDataChange(DataSnapshot snapshot) {
                 for (DataSnapshot inventorySnapshot : snapshot.getChildren()) {
 
-                    // ✅ Get the connected user
+                    // Get the connected user
                     String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
                     // ========== TEMPERATURE ==========
@@ -160,7 +152,7 @@ public class DatabaseHelper {
 
             @Override
             public void onCancelled(DatabaseError error) {
-                Log.e("DatabaseHelper", "Error listening to inventory", error.toException());
+                Log.e("NotificationDataHelper", "Error listening to inventory", error.toException());
             }
         });
     }
@@ -197,7 +189,7 @@ public class DatabaseHelper {
 
             @Override
             public void onCancelled(DatabaseError error) {
-                Log.e("DatabaseHelper", "Error listening for notifications", error.toException());
+                Log.e("NotificationDataHelper", "Error listening for notifications", error.toException());
             }
         });
     }
@@ -236,7 +228,7 @@ public class DatabaseHelper {
     // ------------------------------------------------------------------------
     // 3) checkExpiryNotifications for items in "users/{userId}/inventory_product"
     // ------------------------------------------------------------------------
-    // Inside DatabaseHelper.java
+    // Inside NotificationDataHelper.java
 
     public static void checkExpiryNotifications(String userId, NotificationHelper notificationHelper) {
         DatabaseReference inventoryRef = FirebaseDatabase.getInstance()
@@ -318,12 +310,6 @@ public class DatabaseHelper {
         });
     }
 
-    /**
-     * Helper method to send a grouped notification.
-     * If there are more than 5 products, it sends a message with just the item count.
-     * Otherwise, it lists each product as a bullet. For groups other than "expired" or "expiring_today",
-     * it appends the days left in parentheses.
-     */
     private static void sendGroupNotification(String groupKeySuffix, String titlePrefix,
                                               List<android.util.Pair<String, Long>> list, long freqDelay, SharedPreferences sent, long now,
                                               NotificationHelper notificationHelper) {
