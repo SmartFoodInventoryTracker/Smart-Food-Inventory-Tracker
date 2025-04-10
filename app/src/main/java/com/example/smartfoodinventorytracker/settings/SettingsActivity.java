@@ -123,7 +123,7 @@ public class SettingsActivity extends AppCompatActivity {
         switchExpiry.setOnCheckedChangeListener((btn, isChecked) -> {
             prefs.edit().putBoolean("expiry_alerts", isChecked).apply();
 
-            // ✅ Immediately reschedule expiry based on new toggle
+            // Immediately reschedule expiry based on new toggle
             new com.example.smartfoodinventorytracker.notifications.NotificationHelper(this, false, userId)
                     .scheduleExpiryNotificationCheck();
         });
@@ -186,7 +186,7 @@ public class SettingsActivity extends AppCompatActivity {
                     if (btHelper != null) {
                         btHelper.transmitCredentials(ssid + "," + password + "," + userId);
 
-                        // ✅ Save attempt info
+                        // Save attempt info
                         prefs.edit()
                                 .putString("wifi_ssid", ssid)
                                 .putString("wifi_password", password)
@@ -283,7 +283,7 @@ public class SettingsActivity extends AppCompatActivity {
                     editor.putString(unitKey, unit);
                     editor.apply();
 
-                    // ✅ Immediately reschedule expiry with updated interval
+                    // Immediately reschedule expiry with updated interval
                     if (valueKey.equals("expired_interval_value") && unitKey.equals("expired_interval_unit")) {
                         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
                         new com.example.smartfoodinventorytracker.notifications.NotificationHelper(this, false, userId)

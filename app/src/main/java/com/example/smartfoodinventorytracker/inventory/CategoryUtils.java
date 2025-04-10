@@ -77,9 +77,8 @@ public class CategoryUtils {
             int score = 0;
             for (String keyword : category.keywords) {
                 if (productName.equals(keyword)) {
-                    score += 3; // ✅ Strong match
+                    score += 3;
                 } else if (productName.contains(keyword)) {
-                    // ✅ Boost "juice"/"jus" matching
                     if (keyword.equals("juice") || keyword.equals("jus")) {
                         score += 3;
                     } else {

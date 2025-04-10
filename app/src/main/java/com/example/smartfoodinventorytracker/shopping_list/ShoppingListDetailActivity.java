@@ -54,7 +54,7 @@ public class ShoppingListDetailActivity extends AppCompatActivity implements
     private static final String EDIT_MODE_TITLE = "✍️ Edit Mode";
     private static final String SHOPPING_MODE_TITLE = "🛍️ Shopping Mode";
 
-    private static final int MAX_QUANTITY = 50;  // Or whichever limit you prefer
+    private static final int MAX_QUANTITY = 50;
 
     private RecyclerView recyclerView;
     private TextView emptyMessage;
@@ -535,9 +535,7 @@ public class ShoppingListDetailActivity extends AppCompatActivity implements
     }
 
     @Override
-    public void onProductAdded() {
-        // Optional callback; leave empty if not used.
-    }
+    public void onProductAdded() {}
 
     @Override
     public void onProductAdded(Product product) {

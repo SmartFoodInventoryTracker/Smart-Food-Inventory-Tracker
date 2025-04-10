@@ -56,7 +56,7 @@ public class FridgeHistoryActivity extends AppCompatActivity {
             return insets;
         });
 
-        // ✅ Set up the Toolbar
+        // Set up the Toolbar
         Toolbar toolbar = findViewById(R.id.historyToolbar);
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
@@ -65,11 +65,11 @@ public class FridgeHistoryActivity extends AppCompatActivity {
         }
         toolbar.setNavigationOnClickListener(v -> finish());
 
-        // ✅ RecyclerView setup
+        // RecyclerView setup
         recyclerView = findViewById(R.id.historyRecyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        // ✅ Buttons
+        // Buttons
         Button btnDateRange = findViewById(R.id.btnDateRange);
         Button btnGraph = findViewById(R.id.btnGraph);
         FloatingActionButton btnRefresh = findViewById(R.id.btnRefresh);
@@ -92,7 +92,7 @@ public class FridgeHistoryActivity extends AppCompatActivity {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         String formattedDate = currentDate.format(formatter);
         dateselected =formattedDate;
-        // ✅ Load mock data
+        // Load mock data
         generateMockData();
         adapter = new FridgeHistoryAdapter(mockHistory);
         recyclerView.setAdapter(adapter);
@@ -223,7 +223,7 @@ public class FridgeHistoryActivity extends AppCompatActivity {
                     Integer lpg = itemSnapshot.child("lpg").getValue(Integer.class);
                     Integer smoke = itemSnapshot.child("smoke").getValue(Integer.class);
 
-                    // ✅ Fetch condition fields
+                    // Fetch condition fields
                     Integer tempCond = itemSnapshot.child("temperature condition").getValue(Integer.class);
                     Integer humCond = itemSnapshot.child("humidity condition").getValue(Integer.class);
                     Integer coCond = itemSnapshot.child("co condition").getValue(Integer.class);
@@ -237,7 +237,7 @@ public class FridgeHistoryActivity extends AppCompatActivity {
                         if (firebaseDate.equals(currentDate)) {
                             FridgeHistoryItem item = new FridgeHistoryItem(dateTime, temp, hum, co, lpg, smoke);
 
-                            // ✅ Assign conditions to the item
+                            // Assign conditions to the item
                             item.tempCondition = tempCond != null ? tempCond : 0;
                             item.humidityCondition = humCond != null ? humCond : 0;
                             item.coCondition = coCond != null ? coCond : 0;
@@ -246,7 +246,7 @@ public class FridgeHistoryActivity extends AppCompatActivity {
 
                             mockHistory.add(item);
 
-                            // 🖨️ Debug log
+                            // Debug log
                             System.out.println("Item: " + item.dateTime + " | Temp: " + temp + " (" + tempCond + ")"
                                     + " | Hum: " + hum + " (" + humCond + ")"
                                     + " | CO: " + co + " (" + coCond + ")"
@@ -281,8 +281,6 @@ public class FridgeHistoryActivity extends AppCompatActivity {
                     generateMockData();
                     adapter.notifyDataSetChanged();
                     dateselected = selectedDate;
-                    // 🔁 Filtering placeholder logic
-                    // You could filter the list here using selectedDate
                 },
                 calendar.get(Calendar.YEAR),
                 calendar.get(Calendar.MONTH),

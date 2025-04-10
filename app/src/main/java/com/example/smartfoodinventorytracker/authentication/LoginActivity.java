@@ -26,7 +26,6 @@ import android.widget.ImageView;
 import androidx.core.graphics.drawable.RoundedBitmapDrawable;
 import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory;
 
-
 public class LoginActivity extends AppCompatActivity {
 
     private EditText emailEditText, passwordEditText;
@@ -38,59 +37,58 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this); // ✅ Keeps the Edge-to-Edge layout
+        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_login);
 
-        // ✅ Handle Window Insets for Edge-to-Edge
+        // Makes sure layout respects system UI edges (status bar, etc.)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
 
-        // ✅ Initialize Firebase Auth
         mAuth = FirebaseAuth.getInstance();
 
-        // ✅ Link UI Elements
         emailEditText = findViewById(R.id.emailEditText);
         passwordEditText = findViewById(R.id.passwordEditText);
         loginButton = findViewById(R.id.loginButton);
         signupTextView = findViewById(R.id.signupTextView);
         forgotPasswordTextView = findViewById(R.id.forgotPasswordTextView);
 
-        ImageView logo = findViewById(R.id.appLogo); // or whatever the ID is for each page
+        ImageView logo = findViewById(R.id.appLogo);
 
         Bitmap originalBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.smart_food_inventory_logo);
         RoundedBitmapDrawable roundedDrawable = RoundedBitmapDrawableFactory.create(getResources(), originalBitmap);
 
-        // Adjust this to control roundness (the higher, the rounder)
+        // Gives the logo a rounded appearance (manually set radius)
         roundedDrawable.setCornerRadius(400f);
-        roundedDrawable.setAntiAlias(true);
+        roundedDrawable.setAntiAlias(true);  // Smooths the edges
 
         logo.setImageDrawable(roundedDrawable);
 
-
-        // ✅ Login Button Logic
         loginButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 String email = emailEditText.getText().toString().trim();
                 String password = passwordEditText.getText().toString().trim();
 
+                // Check for empty fields or invalid email format
                 if (TextUtils.isEmpty(email) || TextUtils.isEmpty(password)) {
                     Toast.makeText(LoginActivity.this, "Please fill in all fields", Toast.LENGTH_SHORT).show();
                 } else if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
                     Toast.makeText(LoginActivity.this, "Invalid email format", Toast.LENGTH_SHORT).show();
                 } else {
+                    // Try to sign in using Firebase auth
                     mAuth.signInWithEmailAndPassword(email, password)
                             .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                                 @Override
                                 public void onComplete(@NonNull Task<AuthResult> task) {
                                     if (task.isSuccessful()) {
-                                        Toast.makeText(LoginActivity.this, "Login Successful", Toast.LENGTH_SHORT).show();
+                                        // No toast needed here — user goes straight to dashboard
                                         startActivity(new Intent(LoginActivity.this, DashboardActivity.class));
                                         finish();
                                     } else {
+                                        // Show error message from Firebase if login fails
                                         Toast.makeText(LoginActivity.this, "Login Failed: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
                                     }
                                 }
@@ -99,19 +97,19 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
 
-        // ✅ Navigate to Signup Page
         signupTextView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                // Go to sign-up screen if user doesn't have an account
                 Intent intent = new Intent(LoginActivity.this, SignupActivity.class);
                 startActivity(intent);
             }
         });
 
-        // ✅ Navigate to Forgot Password Page
         forgotPasswordTextView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                // Navigate to password reset screen
                 startActivity(new Intent(LoginActivity.this, ForgotPasswordActivity.class));
             }
         });

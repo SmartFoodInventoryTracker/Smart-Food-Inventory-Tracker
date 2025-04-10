@@ -120,7 +120,7 @@ public class NotificationHelper {
             if (currentUser != null) {
                 String userId = currentUser.getUid();
                 NotificationHelper notificationHelper = new NotificationHelper(getApplicationContext(), false, userId);
-                DatabaseHelper.checkExpiryNotifications(userId, notificationHelper);
+                NotificationDataHelper.checkExpiryNotifications(userId, notificationHelper);
                 notificationHelper.scheduleExpiryNotificationCheck(); // Re-schedule
             }
 
@@ -201,7 +201,7 @@ public class NotificationHelper {
 
         WorkRequest request = new OneTimeWorkRequest.Builder(FridgeConditionWorker.class)
                 .addTag("fridge_condition_check")
-                .setInitialDelay(delayMinutes, TimeUnit.MINUTES) // ✅ now respects user setting
+                .setInitialDelay(delayMinutes, TimeUnit.MINUTES)
                 .build();
 
         WorkManager.getInstance(context).enqueue(request);

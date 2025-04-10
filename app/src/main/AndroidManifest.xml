@@ -46,10 +46,6 @@
             android:exported="false"
             android:parentActivityName=".dashboard.DashboardActivity" />
         <activity
-            android:name=".dashboard.ProfileActivity"
-            android:exported="false"
-            android:parentActivityName=".dashboard.DashboardActivity" />
-        <activity
             android:name=".fridge_conditions.FridgeConditionsActivity"
             android:exported="false"
             android:parentActivityName=".dashboard.DashboardActivity" />
@@ -77,9 +73,6 @@
             android:name=".authentication.LoginActivity"
             android:exported="false"
             android:parentActivityName=".authentication.OnboardingActivity" />
-        <activity
-            android:name=".MainActivity"
-            android:exported="false" />
         <activity
             android:name=".utils.BarcodeScannerActivity"
             android:exported="false"

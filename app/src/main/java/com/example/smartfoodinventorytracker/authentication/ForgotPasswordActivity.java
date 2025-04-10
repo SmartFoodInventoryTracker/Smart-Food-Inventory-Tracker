@@ -29,25 +29,22 @@ public class ForgotPasswordActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_forgot_password);
 
-        // ✅ Handle Edge-to-Edge Layout
+        // Makes sure the content doesn't overlap with the system UI (like status bar)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
 
-        // ✅ Initialize Firebase Auth
         mAuth = FirebaseAuth.getInstance();
         currentUser = mAuth.getCurrentUser();
 
-        // ✅ Link UI Elements
         forgotPasswordEmailEditText = findViewById(R.id.forgotPasswordEmailEditText);
         newPasswordEditText = findViewById(R.id.newPasswordEditText);
         confirmNewPasswordEditText = findViewById(R.id.confirmNewPasswordEditText);
         resetPasswordButton = findViewById(R.id.resetPasswordButton);
         backToLoginTextView = findViewById(R.id.backToLoginTextView);
 
-        // ✅ Reset Password Logic
         resetPasswordButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -55,7 +52,7 @@ public class ForgotPasswordActivity extends AppCompatActivity {
                 String newPassword = newPasswordEditText.getText().toString().trim();
                 String confirmNewPassword = confirmNewPasswordEditText.getText().toString().trim();
 
-                // ✅ Field Validations
+                // Make sure no field is left empty and the email/passwords are valid
                 if (TextUtils.isEmpty(email) || TextUtils.isEmpty(newPassword) || TextUtils.isEmpty(confirmNewPassword)) {
                     Toast.makeText(ForgotPasswordActivity.this, "Please fill in all fields", Toast.LENGTH_SHORT).show();
                 } else if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
@@ -65,9 +62,9 @@ public class ForgotPasswordActivity extends AppCompatActivity {
                 } else if (newPassword.length() < 6) {
                     Toast.makeText(ForgotPasswordActivity.this, "Password should be at least 6 characters", Toast.LENGTH_SHORT).show();
                 } else {
-                    // ✅ Check if user is already authenticated
+                    // Only allow password reset if the logged-in user matches the provided email
                     if (currentUser != null && currentUser.getEmail().equals(email)) {
-                        // ✅ Prevent reusing the same password
+                        // Firebase only lets authenticated users update their password directly
                         currentUser.updatePassword(newPassword)
                                 .addOnCompleteListener(updateTask -> {
                                     if (updateTask.isSuccessful()) {
@@ -75,17 +72,18 @@ public class ForgotPasswordActivity extends AppCompatActivity {
                                         startActivity(new Intent(ForgotPasswordActivity.this, LoginActivity.class));
                                         finish();
                                     } else {
+                                        // This can fail if the session is too old or network is down
                                         Toast.makeText(ForgotPasswordActivity.this, "Error: " + updateTask.getException().getMessage(), Toast.LENGTH_SHORT).show();
                                     }
                                 });
                     } else {
+                        // User isn't logged in or email doesn't match
                         Toast.makeText(ForgotPasswordActivity.this, "User not authenticated. Please log in first.", Toast.LENGTH_SHORT).show();
                     }
                 }
             }
         });
 
-        // ✅ Back to Login Navigation
         backToLoginTextView.setOnClickListener(v -> {
             startActivity(new Intent(ForgotPasswordActivity.this, LoginActivity.class));
             finish();

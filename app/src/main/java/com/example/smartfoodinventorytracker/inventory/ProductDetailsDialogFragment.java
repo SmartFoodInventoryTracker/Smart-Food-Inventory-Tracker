@@ -71,7 +71,6 @@ public class ProductDetailsDialogFragment extends DialogFragment {
         ImageView quantityPlus = view.findViewById(R.id.quantityPlus);
         ImageView quantityMinus = view.findViewById(R.id.quantityMinus);
         Button btnDone = view.findViewById(R.id.btnDone);
-        Button btnCancel = view.findViewById(R.id.btnCancel);
         Button btnDelete = view.findViewById(R.id.btnDelete);
 
         nameInput.setFilters(new InputFilter[] { new InputFilter.LengthFilter(AppConstants.MAX_CHAR) });
@@ -264,7 +263,7 @@ public class ProductDetailsDialogFragment extends DialogFragment {
                 .create();
     }
 
-    // 🔍 Expiry label
+    // Expiry label
     private String getExpiryText(String expiryDate) {
         if (expiryDate == null || expiryDate.equals("Not set")) return "No expiry set";
         try {

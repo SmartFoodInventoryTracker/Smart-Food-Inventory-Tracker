@@ -48,7 +48,7 @@ public class ShoppingListAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             super(itemView);
             listName = itemView.findViewById(R.id.listName);
             itemCount = itemView.findViewById(R.id.itemCount);
-            editIcon = itemView.findViewById(R.id.editIcon); // ✅ Add this line
+            editIcon = itemView.findViewById(R.id.editIcon);
         }
     }
 
